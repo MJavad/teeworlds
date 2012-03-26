@@ -25,6 +25,43 @@ inline vec3 HslToRgb(vec3 HSL)
 	}
 }
 
+inline vec3 RgbToHsl(vec3 RGB)
+{
+	vec3 HSL;
+	float MaxVar, MinVar;
+
+	MinVar = min(min(RGB.r, RGB.g), RGB.b);
+	MaxVar = max(max(RGB.r, RGB.g), RGB.b);
+	
+	HSL.l = (MaxVar+MinVar)/2.0f;
+
+	if(MaxVar == MinVar)
+	{
+		HSL.s = 0;
+		HSL.h = 0;
+	}
+	else
+	{
+		float d = MaxVar - MinVar;
+		HSL.s = HSL.l > 0.5f ? d / (2 - MaxVar - MinVar) : d / (MaxVar + MinVar); 
+		
+		if(MaxVar == RGB.r)
+			HSL.h = (RGB.g - RGB.b) / d + (RGB.g < RGB.b ? 6 : 0);
+		else if(MaxVar == RGB.g)
+			HSL.h = (RGB.b - RGB.r) / d + 2;
+		else if(MaxVar == RGB.b)
+			HSL.h = (RGB.r - RGB.g) / d + 4;
+
+		HSL.h /= 6.0f;
+	}
+	
+	if(HSL.l <= 0.5f)
+		HSL.l = 0.0f;
+	else
+		HSL.l = (HSL.l-0.5f)/0.005f*0.01f;
+
+	return HSL;
+}
 
 int CLuaFile::GetPlayerName(lua_State *L)
 {
@@ -300,6 +337,58 @@ int CLuaFile::GetPlayerColorBody(lua_State *L)
 			lua_pushnumber(L, Color.b);
 			return 3;
 		}
+	}
+
+	return 0;
+}
+
+//SetPlayerColorBody(ClientID, r, g, b)
+int CLuaFile::SetPlayerColorBody(lua_State *L)
+{
+	lua_getglobal(L, "pLUA");
+	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+	lua_Debug Frame;
+	lua_getstack(L, 1, &Frame);
+	lua_getinfo(L, "nlSf", &Frame);
+
+	if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+		return 0;
+
+	int ClientID = lua_tonumber(L, 1);
+	
+	if(ClientID >= 0 && ClientID < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[ClientID])
+	{
+		vec3 RGB = vec3(lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+		vec3 HSL = RgbToHsl(RGB);
+
+		int v = ((int)(HSL.h*255.0f)<<16) + ((int)(HSL.s*255.0f)<<8) + (int)(HSL.l*255.0f); 
+		pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->m_TeeInfos.m_ColorBody = v;
+	}
+
+	return 0;
+}
+
+//SetPlayerColorFeet(ClientID, r, g, b)
+int CLuaFile::SetPlayerColorFeet(lua_State *L)
+{
+	lua_getglobal(L, "pLUA");
+	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+	lua_Debug Frame;
+	lua_getstack(L, 1, &Frame);
+	lua_getinfo(L, "nlSf", &Frame);
+
+	if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+		return 0;
+
+	int ClientID = lua_tonumber(L, 1);
+	
+	if(ClientID >= 0 && ClientID < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[ClientID])
+	{
+		vec3 RGB = vec3(lua_tonumber(L, 2), lua_tonumber(L, 3), lua_tonumber(L, 4));
+		vec3 HSL = RgbToHsl(RGB);
+
+		int v = ((int)(HSL.h*255.0f)<<16) + ((int)(HSL.s*255.0f)<<8) + (int)(HSL.l*255.0f); 
+		pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->m_TeeInfos.m_ColorFeet = v;
 	}
 
 	return 0;

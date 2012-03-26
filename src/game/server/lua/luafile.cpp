@@ -174,6 +174,8 @@ void CLuaFile::Init(const char *pFile)
 	lua_register(m_pLua, "SetPlayerClan", this->SetPlayerClan);
 	lua_register(m_pLua, "SetPlayerCountry", this->SetPlayerCountry);
 
+	lua_register(m_pLua, "SetPlayerColorBody", this->SetPlayerColorBody);
+	lua_register(m_pLua, "SetPlayerColorFeet", this->SetPlayerColorFeet);
 
     //character
     lua_register(m_pLua, "Emote", this->Emote);
