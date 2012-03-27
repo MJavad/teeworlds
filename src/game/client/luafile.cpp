@@ -877,7 +877,7 @@ int CLuaFile::GetPlayerColorFeet(lua_State *L)
             lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).g);
             lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).b);
             lua_pushnumber(L, 1.0f);
-            return 1;
+            return 4;
         }
     }
     return 0;
@@ -899,7 +899,7 @@ int CLuaFile::GetPlayerColorBody(lua_State *L)
             lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).g);
             lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).b);
             lua_pushnumber(L, 1.0f);
-            return 1;
+            return 4;
         }
     }
     return 0;
@@ -923,7 +923,7 @@ int CLuaFile::GetPlayerColorSkin(lua_State *L)
                 lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).g);
                 lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).b);
                 lua_pushnumber(L, 1.0f);
-                return 1;
+                return 4;
             }
             else
             {
@@ -934,7 +934,7 @@ int CLuaFile::GetPlayerColorSkin(lua_State *L)
                     lua_pushnumber(L, s->m_BloodColor.g);
                     lua_pushnumber(L, s->m_BloodColor.b);
                     lua_pushnumber(L, 1.0f);
-                    return 1;
+                    return 4;
                 }
             }
         }

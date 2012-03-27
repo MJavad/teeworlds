@@ -226,10 +226,16 @@ public:
     static inline int GetPlayerPing(lua_State *L);
     static inline int GetPlayerTeam(lua_State *L);
     static inline int GetPlayerSkin(lua_State *L);
-    static inline int GetPlayerColorFeet(lua_State *L); //Todo: implement me
-    static inline int GetPlayerColorBody(lua_State *L); //Todo: implement me
+    static inline int GetPlayerColorFeet(lua_State *L);
+    static inline int GetPlayerColorBody(lua_State *L);
     static inline int GetPlayerColorSkin(lua_State *L); //Todo: implement me
-	static inline int SetPlayerScore(lua_State *L);
+    static inline int SetPlayerScore(lua_State *L);
+    static inline int SetPlayerColorFeet(lua_State *L);
+    static inline int SetPlayerColorBody(lua_State *L);
+    static inline int SetPlayerName(lua_State *L);
+    static inline int SetPlayerClan(lua_State *L);
+    static inline int SetPlayerCountry(lua_State *L);	
+
 
     //Config
     static inline int GetConfigValue(lua_State *L);

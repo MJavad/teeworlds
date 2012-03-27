@@ -167,7 +167,15 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "GetPlayerPing", this->GetPlayerPing);
     lua_register(m_pLua, "GetPlayerTeam", this->GetPlayerTeam);
     lua_register(m_pLua, "GetPlayerSkin", this->GetPlayerSkin);
+	lua_register(m_pLua, "GetPlayerColorFeet", this->GetPlayerColorFeet);
+	lua_register(m_pLua, "GetPlayerColorBody", this->GetPlayerColorBody);
 	lua_register(m_pLua, "SetPlayerScore", this->SetPlayerScore);
+	lua_register(m_pLua, "SetPlayerName", this->SetPlayerName);
+	lua_register(m_pLua, "SetPlayerClan", this->SetPlayerClan);
+	lua_register(m_pLua, "SetPlayerCountry", this->SetPlayerCountry);
+
+	lua_register(m_pLua, "SetPlayerColorBody", this->SetPlayerColorBody);
+	lua_register(m_pLua, "SetPlayerColorFeet", this->SetPlayerColorFeet);
 
     //character
     lua_register(m_pLua, "Emote", this->Emote);
