@@ -214,7 +214,9 @@ static int math_randomseed (lua_State *L) {
 static int math_round (lua_State *L) {
   int n = lua_gettop(L);  /* number of arguments */
   lua_Number num = luaL_checknumber(L, 1);
-  int precision = luaL_checkint(L, 2);
+  int precision = 0;
+  if (n > 1)
+    precision = luaL_checkint(L, 2);
 
   num = ((int)(num<0?num * pow(10, precision)-.5:num * pow(10, precision)+.5)) / pow(10, precision);
 

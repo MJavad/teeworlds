@@ -1462,8 +1462,9 @@ int CLuaFile::GetCharacterPos(lua_State *L)
 
     if (!lua_isnumber(L, 1))
         return 0;
-    lua_pushnumber(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_X);
-    lua_pushnumber(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_Y);
+    vec2 Pos = mix(vec2(pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Prev.m_X, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Prev.m_Y), vec2(pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_X, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_Y), pSelf->m_pClient->Client()->IntraGameTick());
+    lua_pushnumber(L, Pos.x);
+    lua_pushnumber(L, Pos.y);
     return 2;
 }
 
