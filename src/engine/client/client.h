@@ -247,7 +247,7 @@ public:
 	virtual void EnterGame();
 
 	virtual void Connect(const char *pAddress);
-	void DisconnectWithReason(const char *pReason);
+	void DisconnectWithReason(const char *pReason, bool Silent = false);
 	virtual void Disconnect();
 
 

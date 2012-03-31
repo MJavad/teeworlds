@@ -173,7 +173,7 @@ int CNetConnection::Connect(NETADDR *pAddr)
 	return 0;
 }
 
-void CNetConnection::Disconnect(const char *pReason)
+void CNetConnection::Disconnect(const char *pReason, bool Silent)
 {
 	if(State() == NET_CONNSTATE_OFFLINE)
 		return;
@@ -186,7 +186,7 @@ void CNetConnection::Disconnect(const char *pReason)
 			SendControl(NET_CTRLMSG_CLOSE, 0, 0);
 
 		m_ErrorString[0] = 0;
-		if(pReason)
+		if(pReason && !Silent)
 			str_copy(m_ErrorString, pReason, sizeof(m_ErrorString));
 	}
 

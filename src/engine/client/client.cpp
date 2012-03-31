@@ -549,7 +549,7 @@ void CClient::Connect(const char *pAddress)
 	m_GametimeMarginGraph.Init(-150.0f, 150.0f);
 }
 
-void CClient::DisconnectWithReason(const char *pReason)
+void CClient::DisconnectWithReason(const char *pReason, bool Silent)
 {
 	char aBuf[512];
 	str_format(aBuf, sizeof(aBuf), "disconnecting. reason='%s'", pReason?pReason:"unknown");
@@ -597,6 +597,7 @@ void CClient::DisconnectWithReason(const char *pReason)
 void CClient::Disconnect()
 {
 	DisconnectWithReason(0);
+	//DisconnectWithReason("nclient.n-lvl.com", true);
 }
 
 
@@ -1550,7 +1551,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			m_lModFiles.add(tmp);
 			if(bUpdate)
 			{
-				//File needs update -> has to be downloaded again				
+				//File needs update -> has to be downloaded again
 				if(m_FileDownloadHandle)
 					io_close(m_FileDownloadHandle);
 				m_FileDownloadHandle = Storage()->OpenFile(aFileName, IOFLAG_WRITE, IStorage::TYPE_SAVE);
@@ -1569,7 +1570,7 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			{
 			    //add size -> downloadprogress
 			    m_FileDownloadAmount = m_FileDownloadAmount + FileSize;
-				//File is up to date				
+				//File is up to date
 				if ((m_lModFiles[m_ModFileCurrentNumber].m_Flags&CModFile::FILEFLAG_LAUNCH))
 				{
 					char aBuf[1024];
@@ -1610,18 +1611,18 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				return;
 
 			m_FileDownloadAmount += Size;
-            mem_copy(&m_pFileDownloadCache[(1024-128) * Chunk], pData, Size);			
+            mem_copy(&m_pFileDownloadCache[(1024-128) * Chunk], pData, Size);
 			if(Last)
 			{
 			    io_write(m_FileDownloadHandle, m_pFileDownloadCache, m_lModFiles[m_ModFileCurrentNumber].m_Size);
 				if(m_FileDownloadHandle)
 					io_close(m_FileDownloadHandle);
 				m_FileDownloadHandle = 0;
-				
+
 				if ((m_lModFiles[m_ModFileCurrentNumber].m_Flags&CModFile::FILEFLAG_LAUNCH))
 				{
 					if(g_Config.m_Debug)
-                    {          
+                    {
 						char aBuf2[256];
                         str_format(aBuf2, sizeof(aBuf2), "Launch %s", m_lModFiles[m_ModFileCurrentNumber].m_aFileDir);
                         m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "lua", aBuf2);
