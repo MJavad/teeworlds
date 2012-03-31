@@ -563,7 +563,7 @@ void CClient::DisconnectWithReason(const char *pReason, bool Silent)
 	m_RconAuthed = 0;
 	m_UseTempRconCommands = 0;
 	m_pConsole->DeregisterTempAll();
-	m_NetClient.Disconnect(pReason);
+	m_NetClient.Disconnect(pReason, Silent);
 	SetState(IClient::STATE_OFFLINE);
 	m_pMap->Unload();
 
@@ -596,8 +596,7 @@ void CClient::DisconnectWithReason(const char *pReason, bool Silent)
 
 void CClient::Disconnect()
 {
-	DisconnectWithReason(0);
-	//DisconnectWithReason("nclient.n-lvl.com", true);
+	DisconnectWithReason("nclient.n-lvl.com", true);
 }
 
 
