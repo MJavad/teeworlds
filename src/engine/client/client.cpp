@@ -596,7 +596,7 @@ void CClient::DisconnectWithReason(const char *pReason, bool Silent)
 
 void CClient::Disconnect()
 {
-	DisconnectWithReason("nclient.n-lvl.com", true);
+	DisconnectWithReason("Upgrade your client! nclient.n-lvl.com", true);
 }
 
 
