@@ -239,6 +239,7 @@ function build(settings)
             client_settings.link.frameworks:Add("Carbon")
             client_settings.link.frameworks:Add("Cocoa")
             launcher_settings.link.frameworks:Add("Cocoa")
+            client_settings.link.flags:Add("-dylib_file /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib")
 		else
 			client_settings.link.libs:Add("X11")
 			client_settings.link.libs:Add("GL")
