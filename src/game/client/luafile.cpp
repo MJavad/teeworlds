@@ -2973,9 +2973,9 @@ int CLuaFile::PlayWv(lua_State *L)
     if(!lua_isnumber(L, 1))
         return 0;
 
-    int Flags = ISound::FLAG_POS;
+	int Channel = CSounds::CHN_WORLD;
     if (lua_isnumber(L, 2) && lua_tointeger(L, 2) == 1)
-        Flags = 0;
+        Channel = CSounds::CHN_GLOBAL;
 
     float x = 0;
     float y = 0;
@@ -2986,7 +2986,7 @@ int CLuaFile::PlayWv(lua_State *L)
         y = lua_tonumber(L, 4);
     }
 
-    pSelf->m_pClient->Sound()->PlayAt(CSounds::CHN_WORLD, lua_tointeger(L, 1), Flags, x, y);
+    pSelf->m_pClient->Sound()->PlayAt(Channel, lua_tointeger(L, 1), 0, x, y);
     return 0;
 }
 
