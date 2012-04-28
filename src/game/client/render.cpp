@@ -299,6 +299,7 @@ void CRenderTools::MapscreenToWorld(float CenterX, float CenterY, float Parallax
 
 void CRenderTools::RenderTilemapGenerateSkip(class CLayers *pLayers)
 {
+    return;
     try
     {
         for(int g = 0; g < pLayers->NumGroups(); g++)
@@ -324,7 +325,7 @@ void CRenderTools::RenderTilemapGenerateSkip(class CLayers *pLayers)
                                     break;
                             }
 
-                            pTiles[y*pTmap->m_Width+x].m_Skip = sx-1;
+                            pTiles[y*pTmap->m_Width+x].m_Skip = 0;sx-1;
                         }
                     }
                 }
@@ -333,6 +334,6 @@ void CRenderTools::RenderTilemapGenerateSkip(class CLayers *pLayers)
     }
     catch(...) //due to crashbug on disconnecting while running this function we have to catch all exeption
     {
-
+        //i hate try catch
     }
 }

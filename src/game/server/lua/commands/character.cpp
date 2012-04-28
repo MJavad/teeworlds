@@ -19,10 +19,7 @@ int CLuaFile::GetCharacterPos(lua_State *L)
         lua_pushnumber(L, pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_Pos.y);
         return 2;
     }
-
-    lua_pushnumber(L, 0);
-    lua_pushnumber(L, 0);
-    return 2;
+    return 0;
 }
 int CLuaFile::SetCharacterPos(lua_State *L)
 {
@@ -60,9 +57,7 @@ int CLuaFile::GetCharacterVel(lua_State *L)
         lua_pushnumber(L, pSelf->m_pServer->m_World.m_Core.m_apCharacters[lua_tointeger(L, 1)]->m_Vel.x);
         lua_pushnumber(L, pSelf->m_pServer->m_World.m_Core.m_apCharacters[lua_tointeger(L, 1)]->m_Vel.y);
     }
-    lua_pushnumber(L, 0);
-    lua_pushnumber(L, 0);
-    return 2;
+    return 0;
 }
 int CLuaFile::SetCharacterVel(lua_State *L)
 {

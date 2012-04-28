@@ -339,10 +339,16 @@ int CGameClient::OnSnapInput(int *pData, int *pPredictionData)
 	return m_pControls->SnapInput(pData, pPredictionData);
 }
 
-static void RenderTilemapGenerateSkipThread(void *pUser)
+void CGameClient::RenderTilemapGenerateSkipThread(void *pUser)
 {
     CGameClient *pSelf = (CGameClient *)pUser;
+    if (pSelf->RenderTilemapGenerateSkipThreadStatus == 1)
+    {
+        return;
+    }
+    pSelf->RenderTilemapGenerateSkipThreadStatus = 1;
     pSelf->RenderTools()->RenderTilemapGenerateSkip(pSelf->Layers());
+    pSelf->RenderTilemapGenerateSkipThreadStatus = 0;
 }
 
 void CGameClient::OnConnected()

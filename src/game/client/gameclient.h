@@ -269,6 +269,9 @@ public:
 	class CLuaBinding *m_pLuaBinding;
     static void ConAddLuaFile(IConsole::IResult *pResult, void *pUserData);
 	void AddLuaFile(char *pFileName){if(m_pLuaCore){m_pLuaCore->AddLuaFile(pFileName, true);}};
+
+    volatile int RenderTilemapGenerateSkipThreadStatus;
+	static void RenderTilemapGenerateSkipThread(void *pUser);
 };
 
 

@@ -33,6 +33,9 @@ LUALIB_API int (luaopen_string) (lua_State *L);
 #define LUA_MATHLIBNAME	"math"
 LUALIB_API int (luaopen_math) (lua_State *L);
 
+#define LUA_BITLIBNAME	"bit"
+LUALIB_API int (luaopen_bit) (lua_State *L);
+
 #define LUA_DBLIBNAME	"debug"
 LUALIB_API int (luaopen_debug) (lua_State *L);
 
@@ -41,7 +44,7 @@ LUALIB_API int (luaopen_package) (lua_State *L);
 
 
 /* open all previous libraries */
-LUALIB_API void (luaL_openlibs) (lua_State *L); 
+LUALIB_API void (luaL_openlibs) (lua_State *L);
 
 
 
