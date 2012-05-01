@@ -325,7 +325,7 @@ void CRenderTools::RenderTilemapGenerateSkip(class CLayers *pLayers)
                                     break;
                             }
 
-                            pTiles[y*pTmap->m_Width+x].m_Skip = 0;sx-1;
+                            pTiles[y*pTmap->m_Width+x].m_Skip = sx-1;
                         }
                     }
                 }

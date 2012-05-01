@@ -216,12 +216,7 @@ function build(settings)
 	end
 
 	-- build the small libraries
-	settings_lua = settings:Copy()
-	if family == "unix" then
-        settings_lua.cc.flags:Add("-O3")
-	elseif family == "windows" then
-        settings_lua.cc.flags:Add("/Ob2gity /Gs")
-    end
+	settings.cc.includes:Add("src/engine/external/lua")
 	lua = Compile(settings, Collect("src/engine/external/lua/*.c"))
 	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
@@ -286,7 +281,7 @@ function build(settings)
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "n-client", game_shared, game_client,
-		engine, client, game_editor, zlib, pnglite, wavpack, lua, fmod,
+		engine, client, game_editor, zlib, pnglite, wavpack, lua,
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "teeworlds_srv", engine, server,

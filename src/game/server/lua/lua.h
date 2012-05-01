@@ -234,7 +234,7 @@ public:
     static inline int SetPlayerColorBody(lua_State *L);
     static inline int SetPlayerName(lua_State *L);
     static inline int SetPlayerClan(lua_State *L);
-    static inline int SetPlayerCountry(lua_State *L);	
+    static inline int SetPlayerCountry(lua_State *L);
 
 
     //Config

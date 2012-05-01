@@ -219,7 +219,7 @@ public:
     char m_aInfo[256];
 
     bool FunctionExist(const char *pFunctionName);
-    void FunctionExec(const char *pFunctionName = 0);
+    int FunctionExec(const char *pFunctionName = 0);
     void FunctionPrepare(const char *pFunctionName);
     void PushString(const char *pString);
     void PushInteger(int value);
@@ -227,6 +227,8 @@ public:
     void PushBoolean(bool value);
     void PushParameter(const char *pString);
     int m_FunctionVarNum;
+
+    int m_Error;
 
     //Functions:
     //Settings

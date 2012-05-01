@@ -120,8 +120,9 @@ int CControls::SnapInput(int *pData, int *pPredictionData)
 	else
 		m_InputData.m_PlayerFlags = PLAYERFLAG_PLAYING;
 
-	if(m_pClient->m_pScoreboard->Active())
+	if(m_pClient->m_pScoreboard->Active() || m_pClient->m_UpdateScoreboard)
 		m_InputData.m_PlayerFlags |= PLAYERFLAG_SCOREBOARD;
+    m_pClient->m_UpdateScoreboard = false;
 
 	if(m_LastData.m_PlayerFlags != m_InputData.m_PlayerFlags)
 		Send = true;

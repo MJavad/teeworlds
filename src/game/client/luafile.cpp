@@ -54,6 +54,8 @@ void CLuaFile::Tick()
 {
     if (!g_Config.m_ClLua)
         return;
+    if (m_Error)
+        return;
 
     ErrorFunc(m_pLua);
 
@@ -62,8 +64,6 @@ void CLuaFile::Tick()
     PushInteger(m_pClient->m_NewTick);
     PushInteger(m_pClient->m_NewPredictedTick);
     FunctionExec();
-
-    ErrorFunc(m_pLua);
 }
 
 void CLuaFile::End()
@@ -108,6 +108,7 @@ void CLuaFile::Init(const char *pFile)
 
     //include
     lua_register(m_pLua, "Include", this->Include);
+    luaL_dostring(m_pLua, "package.path = \"./?;./lua/?.lua;./lua/lib/?.lua;./lua/lib/socket/?.lua\"\n");
 
     //Settings
     lua_register(m_pLua, "SetScriptUseSettingPage", this->SetScriptUseSettingPage);
@@ -340,11 +341,18 @@ void CLuaFile::Init(const char *pFile)
     }
     if (luaL_loadfile(m_pLua, m_aFilename) == 0)
     {
-        lua_pcall(m_pLua, 0, LUA_MULTRET, 0);
+        if (lua_pcall(m_pLua, 0, LUA_MULTRET, 0))
+        {
+            dbg_msg("Error", "Fail");
+            ErrorFunc(m_pLua);
+            m_Error = 1;
+        }
     }
     else
     {
-        lua_error(m_pLua);
+        dbg_msg("Error", "Fail");
+        m_Error = 1;
+        ErrorFunc(m_pLua);
     }
 }
 
@@ -476,23 +484,24 @@ void CLuaFile::FunctionPrepare(const char *pFunctionName)
     m_FunctionVarNum = 0;
 }
 
-void CLuaFile::FunctionExec(const char *pFunctionName)
+int CLuaFile::FunctionExec(const char *pFunctionName)
 {
     if (m_pLua == 0)
-        return;
+        return 0;
     if (m_aFilename[0] == 0)
-        return;
+        return 0;
 
     if (pFunctionName)
     {
         if (FunctionExist(pFunctionName) == false)
-            return;
+            return 0;
         lua_pushstring (m_pLua, pFunctionName);
         lua_gettable (m_pLua, LUA_GLOBALSINDEX);
     }
-    lua_pcall(m_pLua, m_FunctionVarNum, LUA_MULTRET, 0);
+    int Ret = lua_pcall(m_pLua, m_FunctionVarNum, LUA_MULTRET, 0);
     ErrorFunc(m_pLua);
     m_FunctionVarNum = 0;
+    return Ret;
 }
 
 
@@ -769,6 +778,7 @@ int CLuaFile::GetPlayerCountry(lua_State *L)
     {
         if (lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
         {
+            pSelf->m_pClient->m_UpdateScoreboard = true;
             lua_pushinteger(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Country);
             return 1;
         }
@@ -791,6 +801,7 @@ int CLuaFile::GetPlayerScore(lua_State *L)
             const CNetObj_PlayerInfo *pInfo = pSelf->m_pClient->m_Snap.m_paPlayerInfos[lua_tointeger(L, 1)];
             if (pInfo)
             {
+                pSelf->m_pClient->m_UpdateScoreboard = true;
                 lua_pushinteger(L, pInfo->m_Score);
                 return 1;
             }
@@ -816,6 +827,7 @@ int CLuaFile::GetPlayerPing(lua_State *L)
             const CNetObj_PlayerInfo *pInfo = pSelf->m_pClient->m_Snap.m_paPlayerInfos[lua_tointeger(L, 1)];
             if (pInfo)
             {
+                pSelf->m_pClient->m_UpdateScoreboard = true;
                 lua_pushinteger(L, pInfo->m_Latency);
                 return 1;
             }
@@ -3454,7 +3466,7 @@ int CLuaFile::SetLayerTileIndex(lua_State *L)
 	{
         if (pTiles[y*pTmap->m_Width+x - sx].m_Skip)
         {
-            pTiles[y*pTmap->m_Width+x - sx].m_Skip = 0;sx - 1;
+            pTiles[y*pTmap->m_Width+x - sx].m_Skip = sx - 1;
             break;
         }
         if (pTiles[y*pTmap->m_Width+x - sx].m_Index)

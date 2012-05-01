@@ -267,6 +267,7 @@ public:
 	class ILua *m_pLuaCore;
 	class CLua *m_pLua;
 	class CLuaBinding *m_pLuaBinding;
+	int m_UpdateScoreboard;
     static void ConAddLuaFile(IConsole::IResult *pResult, void *pUserData);
 	void AddLuaFile(char *pFileName){if(m_pLuaCore){m_pLuaCore->AddLuaFile(pFileName, true);}};
 
