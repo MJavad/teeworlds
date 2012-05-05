@@ -270,6 +270,9 @@ void CLuaFile::Init(const char *pFile)
 	lua_register(m_pLua, "GetSelectedTeam", this->GetSelectedTeam);
 	lua_register(m_pLua, "AbortTeamJoin", this->AbortTeamJoin);
 
+	lua_register(m_pLua, "DummyCreate", this->DummyCreate);
+	lua_register(m_pLua, "IsDummy", this->IsDummy);
+
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");

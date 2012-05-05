@@ -566,7 +566,7 @@ int CServer::SendMsgEx(CMsgPacker *pMsg, int Flags, int ClientID, bool System)
 					m_NetServer.Send(&Packet);
 				}
 		}
-		else
+		else if(ClientID < MaxClients())
 			m_NetServer.Send(&Packet);
 	}
 	return 0;

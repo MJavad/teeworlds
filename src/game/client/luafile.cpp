@@ -205,7 +205,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "SetConfigValue", this->SetConfigValue);
 
     lua_register(m_pLua, "GetControlValue", this->GetControlValue);
-    lua_register(m_pLua, "SetControlValue", this->SetControlValuePredicted); //for heinrich :*
+    lua_register(m_pLua, "SetControlValue", this->SetControlValue); //for heinrich :*
     lua_register(m_pLua, "SetControlValuePredicted", this->SetControlValuePredicted);
     lua_register(m_pLua, "UnSetControlValue", this->UnSetControlValue);
 

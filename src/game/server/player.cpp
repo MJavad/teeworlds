@@ -34,6 +34,7 @@ void CPlayer::Tick()
 #ifdef CONF_DEBUG
 	if(!g_Config.m_DbgDummies || m_ClientID < MAX_CLIENTS-g_Config.m_DbgDummies)
 #endif
+    if (!m_IsDummy)
 	if(!Server()->ClientIngame(m_ClientID))
 		return;
 
@@ -104,6 +105,7 @@ void CPlayer::Snap(int SnappingClient)
 #ifdef CONF_DEBUG
 	if(!g_Config.m_DbgDummies || m_ClientID < MAX_CLIENTS-g_Config.m_DbgDummies)
 #endif
+    if (!m_IsDummy)
 	if(!Server()->ClientIngame(m_ClientID))
 		return;
 

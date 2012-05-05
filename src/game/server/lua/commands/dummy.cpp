@@ -9,19 +9,23 @@ int CLuaFile::DummyCreate(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
-    if (!lua_isnumber(L, 1))
-        return 0;
-
-    if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter())
+    for (int i = MAX_CLIENTS - 1; i >= 0; i--)
     {
-        lua_pushnumber(L, pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_Pos.x);
-        lua_pushnumber(L, pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_Pos.y);
-        return 2;
+        if (i < g_Config.m_SvMaxClients)
+        {
+            lua_pushboolean(L, false);
+            return 1;
+        }
+        if(!pSelf->m_pServer->m_apPlayers[i])
+        {
+            pSelf->m_pServer->OnClientConnected(i, true);
+            lua_pushboolean(L, true);
+            return 1;
+        }
     }
 
-    lua_pushnumber(L, 0);
-    lua_pushnumber(L, 0);
-    return 2;
+    lua_pushboolean(L, false);
+    return 1;
 }
 
 int CLuaFile::IsDummy(lua_State *L)
