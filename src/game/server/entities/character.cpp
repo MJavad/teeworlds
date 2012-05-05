@@ -465,7 +465,7 @@ void CCharacter::HandleWeapons()
 
 	// ammo regen
 	int AmmoRegenTime = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Ammoregentime;
-	if(AmmoRegenTime)
+	if(AmmoRegenTime && m_aWeapons[m_ActiveWeapon].m_Ammo > 0)
 	{
 		// If equipped and not active, regen ammo?
 		if (m_ReloadTimer <= 0)
@@ -694,25 +694,30 @@ void CCharacter::TickDefered()
 	}
 }
 
-bool CCharacter::IncreaseHealth(int Amount)
+bool CCharacter::IncreaseHealth(int Amount, int Max)
 {
-	if(m_Health >= 10)
+	if(m_Health >= Max)
 		return false;
-	m_Health = clamp(m_Health+Amount, 0, 10);
+	m_Health = clamp(m_Health+Amount, 0, Max);
 	return true;
 }
 
-bool CCharacter::IncreaseArmor(int Amount)
+bool CCharacter::IncreaseArmor(int Amount, int Max)
 {
-	if(m_Armor >= 10)
+	if(m_Armor >= Max)
 		return false;
-	m_Armor = clamp(m_Armor+Amount, 0, 10);
+	m_Armor = clamp(m_Armor+Amount, 0, Max);
 	return true;
 }
 
 void CCharacter::Die(int Killer, int Weapon)
 {
 	// we got to wait 0.5 secs before respawning
+    GameServer()->m_pLua->m_EventListener.m_OnDieKillerID = Killer;
+    GameServer()->m_pLua->m_EventListener.m_OnDieVictimID = m_pPlayer->GetCID();
+    GameServer()->m_pLua->m_EventListener.m_OnDieWeaponID = Weapon;
+    GameServer()->m_pLua->m_EventListener.OnEvent("OnDie");
+
 	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 	int ModeSpecial = 0;
 	if (Killer >= 0 && Killer < MAX_CLIENTS)

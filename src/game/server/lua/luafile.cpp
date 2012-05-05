@@ -261,6 +261,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "CharacterSetInputWeapon", this->CharacterSetInputWeapon);
     lua_register(m_pLua, "CharacterSetInputTarget", this->CharacterSetInputTarget);
     lua_register(m_pLua, "CharacterSetInputHook", this->CharacterSetInputHook);
+    lua_register(m_pLua, "CharacterSetInputFire", this->CharacterSetInputFire);
     lua_register(m_pLua, "CharacterGetCoreJumped", this->CharacterGetCoreJumped);
     lua_register(m_pLua, "CharacterSpawn", this->CharacterSpawn);
     lua_register(m_pLua, "CharacterIsAlive", this->CharacterIsAlive);
@@ -270,6 +271,13 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "CharacterSetAmmo", this->CharacterSetAmmo);
     lua_register(m_pLua, "CharacterGetAmmo", this->CharacterGetAmmo);
     lua_register(m_pLua, "CharacterGetInputTarget", this->CharacterGetInputTarget);
+    lua_register(m_pLua, "CharacterGetActiveWeapon", this->CharacterGetActiveWeapon);
+    lua_register(m_pLua, "CharacterDirectInput", this->CharacterDirectInput);
+    lua_register(m_pLua, "CharacterPredictedInput", this->CharacterPredictedInput);
+
+    lua_register(m_pLua, "DieGetVictimID", this->DieGetVictimID);
+    lua_register(m_pLua, "DieGetKillerID", this->DieGetKillerID);
+    lua_register(m_pLua, "DieGetWeaponID", this->DieGetWeaponID);
 
     lua_register(m_pLua, "AbortSpawn", this->AbortSpawn);
 

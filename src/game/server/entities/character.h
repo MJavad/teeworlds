@@ -52,8 +52,8 @@ public:
 	bool Spawn(class CPlayer *pPlayer, vec2 Pos);
 	bool Remove();
 
-	bool IncreaseHealth(int Amount);
-	bool IncreaseArmor(int Amount);
+	bool IncreaseHealth(int Amount, int Max = 10);
+	bool IncreaseArmor(int Amount, int Max = 10);
 
 	int GetHealth() { return m_Health; }
 	int GetArmor() { return m_Armor; }
@@ -77,6 +77,7 @@ public:
 
 	CNetObj_PlayerInput *GetInput() { return &m_Input; }
 	CCharacterCore *GetCore() { return &m_Core; }
+	int m_ActiveWeapon;
 
 private:
 	// player controlling this character
@@ -88,7 +89,6 @@ private:
 	CEntity *m_apHitObjects[10];
 	int m_NumObjectsHit;
 
-	int m_ActiveWeapon;
 	int m_LastWeapon;
 	int m_QueuedWeapon;
 

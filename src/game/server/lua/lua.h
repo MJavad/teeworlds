@@ -66,6 +66,11 @@ public:
 	int m_OnJumpJumpID;
 	int m_OnJumpClientID;
 
+	//Die
+	int m_OnDieKillerID;
+	int m_OnDieVictimID;
+	int m_OnDieWeaponID;
+
 	//OnExplosion
 	int m_ExplosionDamage;
 	int m_ExplosionOwner;
@@ -282,6 +287,11 @@ public:
     //OnCanSpawn
     static inline int AbortSpawn(lua_State *L);
 
+    //OnDie
+    static inline int DieGetKillerID(lua_State *L);
+    static inline int DieGetVictimID(lua_State *L);
+    static inline int DieGetWeaponID(lua_State *L);
+
     static inline int CharacterTakeDamage(lua_State *L);
     static inline int CharacterGetHealth(lua_State *L);
     static inline int CharacterGetArmor(lua_State *L);
@@ -299,8 +309,13 @@ public:
     static inline int CharacterSetInputWeapon(lua_State *L);
     static inline int CharacterSetInputTarget(lua_State *L);
     static inline int CharacterSetInputHook(lua_State *L);
+    static inline int CharacterSetInputFire(lua_State *L);
 
     static inline int CharacterGetInputTarget(lua_State *L);
+    static inline int CharacterGetActiveWeapon(lua_State *L);
+
+    static inline int CharacterDirectInput(lua_State *L);
+    static inline int CharacterPredictedInput(lua_State *L);
     //core
     static inline int CharacterGetCoreJumped(lua_State *L);
 
