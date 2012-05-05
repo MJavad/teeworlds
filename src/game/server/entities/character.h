@@ -75,6 +75,9 @@ public:
 
 	} m_aWeapons[NUM_WEAPONS];
 
+	CNetObj_PlayerInput *GetInput() { return &m_Input; }
+	CCharacterCore *GetCore() { return &m_Core; }
+
 private:
 	// player controlling this character
 	class CPlayer *m_pPlayer;

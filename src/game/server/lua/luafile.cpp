@@ -158,7 +158,7 @@ void CLuaFile::Init(const char *pFile)
 		//OnEntity
 		lua_register(m_pLua, "GetOnEntityIndex", this->GetOnEntityIndex);
 		lua_register(m_pLua, "GetOnEntityPosIndex", this->GetOnEntityPosIndex);
-		lua_register(m_pLua, "SettOnEntityIndex", this->SetOnEntityIndex);
+		lua_register(m_pLua, "SetOnEntityIndex", this->SetOnEntityIndex);
 
     //player
     lua_register(m_pLua, "GetPlayerName", this->GetPlayerName);
@@ -172,6 +172,7 @@ void CLuaFile::Init(const char *pFile)
 	lua_register(m_pLua, "GetPlayerColorBody", this->GetPlayerColorBody);
 	lua_register(m_pLua, "SetPlayerScore", this->SetPlayerScore);
 	lua_register(m_pLua, "SetPlayerName", this->SetPlayerName);
+	lua_register(m_pLua, "SetPlayerTeam", this->SetPlayerTeam);
 	lua_register(m_pLua, "SetPlayerClan", this->SetPlayerClan);
 	lua_register(m_pLua, "SetPlayerCountry", this->SetPlayerCountry);
 
@@ -220,6 +221,7 @@ void CLuaFile::Init(const char *pFile)
 
     //Entities
     lua_register(m_pLua, "EntityFind", this->EntityFind);
+    lua_register(m_pLua, "EntityGetCharacterId", this->EntityGetCharacterId);
     lua_register(m_pLua, "EntityGetPos", this->EntityGetPos);
     lua_register(m_pLua, "EntitySetPos", this->EntitySetPos);
     lua_register(m_pLua, "EntityDestroy", this->EntityDestroy);
@@ -254,15 +256,23 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "CharacterTakeDamage", this->CharacterTakeDamage);
     lua_register(m_pLua, "CharacterGetHealth", this->CharacterGetHealth);
     lua_register(m_pLua, "CharacterGetArmor", this->CharacterGetArmor);
+    lua_register(m_pLua, "CharacterSetInputDirection", this->CharacterSetInputDirection);
+    lua_register(m_pLua, "CharacterSetInputJump", this->CharacterSetInputJump);
+    lua_register(m_pLua, "CharacterSetInputWeapon", this->CharacterSetInputWeapon);
+    lua_register(m_pLua, "CharacterSetInputTarget", this->CharacterSetInputTarget);
+    lua_register(m_pLua, "CharacterSetInputHook", this->CharacterSetInputHook);
+    lua_register(m_pLua, "CharacterGetCoreJumped", this->CharacterGetCoreJumped);
+    lua_register(m_pLua, "CharacterSpawn", this->CharacterSpawn);
+    lua_register(m_pLua, "CharacterIsAlive", this->CharacterIsAlive);
+    lua_register(m_pLua, "CharacterIsGrounded", this->CharacterIsGrounded);
+    lua_register(m_pLua, "CharacterIncreaseHealth", this->CharacterIncreaseHealth);
+    lua_register(m_pLua, "CharacterIncreaseArmor", this->CharacterIncreaseArmor);
+    lua_register(m_pLua, "CharacterSetAmmo", this->CharacterSetAmmo);
+    lua_register(m_pLua, "CharacterGetAmmo", this->CharacterGetAmmo);
+    lua_register(m_pLua, "CharacterGetInputTarget", this->CharacterGetInputTarget);
 
     lua_register(m_pLua, "AbortSpawn", this->AbortSpawn);
 
-    lua_register(m_pLua, "CharacterSpawn", this->CharacterSpawn);
-    lua_register(m_pLua, "CharacterIsAlive", this->CharacterIsAlive);
-    lua_register(m_pLua, "IsGrounded", this->IsGrounded);
-    lua_register(m_pLua, "IncreaseHealth", this->IncreaseHealth);
-    lua_register(m_pLua, "IncreaseArmor", this->IncreaseArmor);
-    lua_register(m_pLua, "SetAmmo", this->SetAmmo);
 
     lua_register(m_pLua, "Win", this->Win);
 

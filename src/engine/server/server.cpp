@@ -355,6 +355,16 @@ int CServer::TrySetClientName(int ClientID, const char *pName)
 
 void CServer::SetClientName(int ClientID, const char *pName)
 {
+    if(ClientID > MaxClients() - 1) //dummy
+    {
+        char aTrimmedName[64];
+        // trim the name
+        str_copy(aTrimmedName, StrUTF8Ltrim(pName), sizeof(aTrimmedName));
+        StrUTF8Rtrim(aTrimmedName);
+        str_copy(m_aClients[ClientID].m_aName, aTrimmedName, MAX_NAME_LENGTH);
+        return;
+    }
+
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State < CClient::STATE_READY)
 		return;
 
@@ -483,6 +493,9 @@ void CServer::GetClientAddr(int ClientID, char *pAddrStr, int Size)
 
 const char *CServer::ClientName(int ClientID)
 {
+    if(ClientID > MaxClients() - 1) //dummy
+		return m_aClients[ClientID].m_aName;
+
 	if(ClientID < 0 || ClientID >= MAX_CLIENTS || m_aClients[ClientID].m_State == CServer::CClient::STATE_EMPTY)
 		return "(invalid)";
 	if(m_aClients[ClientID].m_State == CServer::CClient::STATE_INGAME)

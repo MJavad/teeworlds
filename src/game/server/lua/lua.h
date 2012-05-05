@@ -235,6 +235,7 @@ public:
     static inline int SetPlayerName(lua_State *L);
     static inline int SetPlayerClan(lua_State *L);
     static inline int SetPlayerCountry(lua_State *L);
+    static inline int SetPlayerTeam(lua_State *L);
 
 
     //Config
@@ -251,6 +252,7 @@ public:
 
     //Entities
     static inline int EntityFind(lua_State *L);
+    static inline int EntityGetCharacterId(lua_State *L);
     static inline int EntityGetPos(lua_State *L);
     static inline int EntitySetPos(lua_State *L);
     static inline int EntityDestroy(lua_State *L);
@@ -285,11 +287,22 @@ public:
     static inline int CharacterGetArmor(lua_State *L);
     static inline int CharacterSpawn(lua_State *L);
     static inline int CharacterIsAlive(lua_State *L);
-    static inline int IsGrounded(lua_State *L);
-    static inline int IncreaseHealth(lua_State *L);
-    static inline int IncreaseArmor(lua_State *L);
-    static inline int IncreaseAmmo(lua_State *L);
-    static inline int SetAmmo(lua_State *L);
+    static inline int CharacterIsGrounded(lua_State *L);
+    static inline int CharacterIncreaseHealth(lua_State *L);
+    static inline int CharacterIncreaseArmor(lua_State *L);
+    static inline int CharacterIncreaseAmmo(lua_State *L);
+    static inline int CharacterSetAmmo(lua_State *L);
+    static inline int CharacterGetAmmo(lua_State *L);
+    //Input
+    static inline int CharacterSetInputDirection(lua_State *L);
+    static inline int CharacterSetInputJump(lua_State *L);
+    static inline int CharacterSetInputWeapon(lua_State *L);
+    static inline int CharacterSetInputTarget(lua_State *L);
+    static inline int CharacterSetInputHook(lua_State *L);
+
+    static inline int CharacterGetInputTarget(lua_State *L);
+    //core
+    static inline int CharacterGetCoreJumped(lua_State *L);
 
     //this function should also tell the client which team
     static inline int Win(lua_State *L);

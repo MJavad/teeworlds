@@ -27,6 +27,23 @@ int CLuaFile::EntityFind(lua_State *L)
     return Num;
 }
 
+int CLuaFile::EntityGetCharacterId(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pChr)
+    {
+        lua_pushinteger(L, pChr->GetPlayer()->GetCID());
+        return 1;
+    }
+    return 0;
+}
+
 int CLuaFile::EntityGetPos(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -407,7 +424,7 @@ int CLuaFile::LaserCreate(lua_State *L)
 	StartEnergy = lua_tonumber(L, 5);
 	Owner = lua_tonumber(L, 6);
 
-	new CLaser(&pSelf->m_pServer->m_World, Pos, Dir, pSelf->m_pServer->Tuning()->m_LaserReach, Owner);		
+	new CLaser(&pSelf->m_pServer->m_World, Pos, Dir, pSelf->m_pServer->Tuning()->m_LaserReach, Owner);
 
 	return 0;
 }

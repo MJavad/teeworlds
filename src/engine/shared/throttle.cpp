@@ -14,6 +14,8 @@ CThrottle::~CThrottle()
 
 bool CThrottle::Throttled(int Seconds)
 {
+    Seconds = 0; //just for testing
+    //todo: delete this line before release
 	if(time_get() >= m_Time)
 	{
 		m_Time = time_get() + Seconds * time_freq();
