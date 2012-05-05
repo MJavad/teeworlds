@@ -9,9 +9,10 @@ int CLuaFile::DummyCreate(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
-    for (int i = MAX_CLIENTS - 1; i >= 0; i--)
+    if (lua_isnumber(L, 1))
     {
-        if (i < g_Config.m_SvMaxClients)
+        int i = lua_tonumber(L, 1);
+        if (i > MAX_CLIENTS || i < g_Config.m_SvMaxClients)
         {
             lua_pushboolean(L, false);
             return 1;

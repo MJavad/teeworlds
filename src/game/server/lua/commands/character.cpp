@@ -107,20 +107,15 @@ int CLuaFile::CharacterSpawn(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
-    if (lua_isnumber(L, 1) && lua_isnumber(L, 2) && lua_isnumber(L, 3))
+    if (lua_isnumber(L, 1))
     {
-        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() == 0)
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() == 0 && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->m_DieTick < pSelf->m_pServer->Server()->Tick() - 1)
         {
-			pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->Spawn(vec2(lua_tonumber(L, 2), lua_tonumber(L, 3)));
+            if (lua_isnumber(L, 2) && lua_isnumber(L, 3))
+                pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->Spawn(vec2(lua_tonumber(L, 2), lua_tonumber(L, 3)));
+            else
+                pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->TryRespawn();
 			return 0;
-        }
-    }
-    else if(lua_isnumber(L, 1))
-    {
-        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() == 0)
-        {
-            pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->TryRespawn();
-            return 0;
         }
     }
     return 0;
