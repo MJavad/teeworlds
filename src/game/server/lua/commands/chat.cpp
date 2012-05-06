@@ -29,3 +29,18 @@ int CLuaFile::SendChat(lua_State *L)
     }
     return 0;
 }
+
+int CLuaFile::SendBroadcast(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isstring(L, 1))
+    {
+        pSelf->m_pServer->SendBroadcast(lua_tostring(L, 1), lua_isnumber(L, 2) ? lua_tointeger(L, 2) : -1);
+    }
+    return 0;
+}

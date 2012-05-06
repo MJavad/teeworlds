@@ -216,6 +216,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "GetMapHeight", this->GetMapHeight);
 
     //Chat
+    lua_register(m_pLua, "SendBroadcast", this->SendBroadcast);
     lua_register(m_pLua, "SendChat", this->SendChat);
     lua_register(m_pLua, "SendChatTarget", this->SendChatTarget);
 
@@ -429,10 +430,13 @@ void CLuaFile::PushParameter(const char *pString)
 
 bool CLuaFile::FunctionExist(const char *pFunctionName)
 {
+    bool Ret = false;
     if (m_pLua == 0)
         return false;
     lua_getglobal(m_pLua, pFunctionName);
-    return lua_isfunction(m_pLua, lua_gettop(m_pLua));
+    Ret = lua_isfunction(m_pLua, -1);
+    lua_pop(m_pLua, 1);
+    return Ret;
 }
 
 void CLuaFile::FunctionPrepare(const char *pFunctionName)
@@ -440,8 +444,9 @@ void CLuaFile::FunctionPrepare(const char *pFunctionName)
     if (m_pLua == 0 || m_aFilename[0] == 0)
         return;
 
-    lua_pushstring (m_pLua, pFunctionName);
-    lua_gettable (m_pLua, LUA_GLOBALSINDEX);
+    //lua_pushstring (m_pLua, pFunctionName);
+    //lua_gettable (m_pLua, LUA_GLOBALSINDEX);
+    lua_getglobal(m_pLua, pFunctionName);
     m_FunctionVarNum = 0;
 }
 
@@ -456,8 +461,7 @@ void CLuaFile::FunctionExec(const char *pFunctionName)
     {
         if (FunctionExist(pFunctionName) == false)
             return;
-        lua_pushstring (m_pLua, pFunctionName);
-        lua_gettable (m_pLua, LUA_GLOBALSINDEX);
+        FunctionPrepare(pFunctionName);
     }
     lua_pcall(m_pLua, m_FunctionVarNum, LUA_MULTRET, 0);
     ErrorFunc(m_pLua);

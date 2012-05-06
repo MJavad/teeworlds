@@ -221,6 +221,7 @@ public:
     static inline int IsTeamplay(lua_State *L);
 
     //Chat
+    static inline int SendBroadcast(lua_State *L);
     static inline int SendChat(lua_State *L);
     static inline int SendChatTarget(lua_State *L);
 
