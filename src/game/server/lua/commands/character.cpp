@@ -109,7 +109,7 @@ int CLuaFile::CharacterSpawn(lua_State *L)
 
     if (lua_isnumber(L, 1))
     {
-        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() == 0 && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->m_DieTick < pSelf->m_pServer->Server()->Tick() - 1)
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() == 0 && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->m_DieTick < pSelf->m_pServer->Server()->Tick())
         {
             if (lua_isnumber(L, 2) && lua_isnumber(L, 3))
                 pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->Spawn(vec2(lua_tonumber(L, 2), lua_tonumber(L, 3)));

@@ -768,6 +768,8 @@ void CServer::SendMap(int ClientID)
 
 void CServer::SendFile(int ClientID)
 {
+    if (m_lModFiles.size() == 0)
+        return;
     dbg_msg("Mod", "Now we scares the client. Buuuh");
 	CMsgPacker Msg(NETMSG_FILE_CHANGE);
 	Msg.AddInt(m_lModFiles.size());

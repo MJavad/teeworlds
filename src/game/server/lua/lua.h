@@ -93,6 +93,7 @@ public:
 	int m_OnClientEnterClientID;
 
 	//OnCanSpawn
+	int m_SpawnTeam;
 	bool m_AbortSpawn;
 
 	//OnPlayerJoinTeam
@@ -285,6 +286,7 @@ public:
     static inline int GetClientEnterClientID(lua_State *L);
 
     //OnCanSpawn
+    static inline int SpawnGetTeam(lua_State *L);
     static inline int AbortSpawn(lua_State *L);
 
     //OnDie

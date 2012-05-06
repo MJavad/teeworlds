@@ -280,6 +280,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "DieGetWeaponID", this->DieGetWeaponID);
 
     lua_register(m_pLua, "AbortSpawn", this->AbortSpawn);
+    lua_register(m_pLua, "SpawnGetTeam", this->SpawnGetTeam);
 
 
     lua_register(m_pLua, "Win", this->Win);

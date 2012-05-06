@@ -100,6 +100,7 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
 	if(Team == TEAM_SPECTATORS)
 		return false;
 
+    m_pGameServer->m_pLua->m_EventListener.m_SpawnTeam = Team;
     m_pGameServer->m_pLua->m_EventListener.m_AbortSpawn = false;
     m_pGameServer->m_pLua->m_EventListener.OnEvent("OnCanSpawn");
     if (m_pGameServer->m_pLua->m_EventListener.m_AbortSpawn)
