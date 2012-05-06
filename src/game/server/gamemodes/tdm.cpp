@@ -5,18 +5,21 @@
 #include <game/server/entities/character.h>
 #include <game/server/player.h>
 #include "tdm.h"
+#include <base/system.h>
+
 
 CGameControllerTDM::CGameControllerTDM(class CGameContext *pGameServer) : IGameController(pGameServer)
 {
-	m_pGameType = "TDM";
+    str_copy(m_aGameType, "MOD", sizeof(m_aGameType));
+	m_pGameType = m_aGameType;
 	m_GameFlags = GAMEFLAG_TEAMS;
 }
 
 int CGameControllerTDM::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
-	
-	
+
+
 	if(Weapon != WEAPON_GAME)
 	{
 		// do team scoring
@@ -27,7 +30,7 @@ int CGameControllerTDM::OnCharacterDeath(class CCharacter *pVictim, class CPlaye
 	}
 
 	pVictim->GetPlayer()->m_RespawnTick = max(pVictim->GetPlayer()->m_RespawnTick, Server()->Tick()+Server()->TickSpeed()*g_Config.m_SvRespawnDelayTDM);
-		
+
 	return 0;
 }
 

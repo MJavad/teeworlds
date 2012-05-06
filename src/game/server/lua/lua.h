@@ -325,6 +325,8 @@ public:
     //this function should also tell the client which team
     static inline int Win(lua_State *L);
 
+    static inline int SetGametype(lua_State *L);
+
     //Dummy
     static inline int DummyCreate(lua_State *L);
     static inline int IsDummy(lua_State *L);

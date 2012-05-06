@@ -102,6 +102,21 @@ int CLuaFile::CreateDamageIndicator(lua_State *L)
     return 0;
 }
 
+int CLuaFile::SetGametype(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isstring(L, 1))
+    {
+        str_copy(pSelf->m_pServer->m_pController->m_aGameType, lua_tostring(L, 1), sizeof(pSelf->m_pServer->m_pController->m_aGameType));
+    }
+    return 0;
+}
+
 int CLuaFile::Win(lua_State *L)
 {
     lua_getglobal(L, "pLUA");

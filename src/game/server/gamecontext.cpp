@@ -386,18 +386,6 @@ void CGameContext::CheckPureTuning()
 	// might not be created yet during start up
 	if(!m_pController)
 		return;
-
-	if(	str_comp(m_pController->m_pGameType, "DM")==0 ||
-		str_comp(m_pController->m_pGameType, "TDM")==0 ||
-		str_comp(m_pController->m_pGameType, "CTF")==0)
-	{
-		CTuningParams p;
-		if(mem_comp(&p, &m_Tuning, sizeof(p)) != 0)
-		{
-			Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", "resetting tuning due to pure server");
-			m_Tuning = p;
-		}
-	}
 }
 
 void CGameContext::SendTuningParams(int ClientID)

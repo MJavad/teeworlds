@@ -285,6 +285,7 @@ void CLuaFile::Init(const char *pFile)
 
 
     lua_register(m_pLua, "Win", this->Win);
+    lua_register(m_pLua, "SetGametype", this->SetGametype);
 
 	lua_register(m_pLua, "GetJoinTeamClientID", this->GetJoinTeamClientID);
 	lua_register(m_pLua, "GetSelectedTeam", this->GetSelectedTeam);
