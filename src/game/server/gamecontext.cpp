@@ -468,7 +468,7 @@ void CGameContext::OnTick()
 				// count votes
 				char aaBuf[MAX_CLIENTS][NETADDR_MAXSTRSIZE] = {{0}};
 				for(int i = 0; i < MAX_CLIENTS; i++)
-					if(m_apPlayers[i])
+					if(m_apPlayers[i] && m_apPlayers[i]->GetCID() < Server()->MaxClients())
 						Server()->GetClientAddr(i, aaBuf[i], NETADDR_MAXSTRSIZE);
 				bool aVoteChecked[MAX_CLIENTS] = {0};
 				for(int i = 0; i < MAX_CLIENTS; i++)

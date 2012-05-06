@@ -265,6 +265,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "CharacterGetCoreJumped", this->CharacterGetCoreJumped);
     lua_register(m_pLua, "CharacterSpawn", this->CharacterSpawn);
     lua_register(m_pLua, "CharacterIsAlive", this->CharacterIsAlive);
+    lua_register(m_pLua, "CharacterKill", this->CharacterKill);
     lua_register(m_pLua, "CharacterIsGrounded", this->CharacterIsGrounded);
     lua_register(m_pLua, "CharacterIncreaseHealth", this->CharacterIncreaseHealth);
     lua_register(m_pLua, "CharacterIncreaseArmor", this->CharacterIncreaseArmor);
