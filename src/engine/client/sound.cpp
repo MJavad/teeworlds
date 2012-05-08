@@ -333,7 +333,7 @@ static void Mix(short *pFinalOut, unsigned Frames)
             pSelf->m_RecordWaveFileHeader.kanalzahl = 2;
             pSelf->m_RecordWaveFileHeader.samplerate = 44100;
             pSelf->m_RecordWaveFileHeader.b_pro_sec = 44100 * 2 * 2;
-            pSelf->m_RecordWaveFileHeader.b_pro_sample = 4;
+            pSelf->m_RecordWaveFileHeader.b_pro_sample = 2;
             pSelf->m_RecordWaveFileHeader.Bits_per_sample = 16;
 
             io_seek(AudioOut, 0, IOSEEK_START);
@@ -387,7 +387,7 @@ int CSound::Init()
     m_MusicPeakR = 0;
     m_pSelf = this; // needed for the mixing process
 
-    m_RecordAudio = 1;
+    //m_RecordAudio = 1;
 
 	m_MusicLock = lock_create();
 	m_SoundLock = lock_create();
@@ -533,7 +533,7 @@ int CSound::LoadWV(const char *pFilename)
 
 	if(!m_pStorage)
 		return -1;
-	
+
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "downloadfiles/%s", pFilename);
 	ms_File = m_pStorage->OpenFile((char *)aBuf, IOFLAG_READ, IStorage::TYPE_SAVE);

@@ -468,10 +468,13 @@ void CLuaFile::PushParameter(const char *pString)
 
 bool CLuaFile::FunctionExist(const char *pFunctionName)
 {
+    bool Ret = false;
     if (m_pLua == 0)
         return false;
     lua_getglobal(m_pLua, pFunctionName);
-    return lua_isfunction(m_pLua, lua_gettop(m_pLua));
+    Ret = lua_isfunction(m_pLua, -1);
+    lua_pop(m_pLua, 1);
+    return Ret;
 }
 
 void CLuaFile::FunctionPrepare(const char *pFunctionName)
@@ -479,8 +482,9 @@ void CLuaFile::FunctionPrepare(const char *pFunctionName)
     if (m_pLua == 0 || m_aFilename[0] == 0)
         return;
 
-    lua_pushstring (m_pLua, pFunctionName);
-    lua_gettable (m_pLua, LUA_GLOBALSINDEX);
+    //lua_pushstring (m_pLua, pFunctionName);
+    //lua_gettable (m_pLua, LUA_GLOBALSINDEX);
+    lua_getglobal(m_pLua, pFunctionName);
     m_FunctionVarNum = 0;
 }
 
@@ -495,14 +499,14 @@ int CLuaFile::FunctionExec(const char *pFunctionName)
     {
         if (FunctionExist(pFunctionName) == false)
             return 0;
-        lua_pushstring (m_pLua, pFunctionName);
-        lua_gettable (m_pLua, LUA_GLOBALSINDEX);
+        FunctionPrepare(pFunctionName);
     }
     int Ret = lua_pcall(m_pLua, m_FunctionVarNum, LUA_MULTRET, 0);
     ErrorFunc(m_pLua);
     m_FunctionVarNum = 0;
     return Ret;
 }
+
 
 
 //functions
@@ -513,6 +517,17 @@ int CLuaFile::Include(lua_State *L)
     lua_Debug Frame;
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
+
+    //check if file exists
+    IOHANDLE CheckFile = io_open(lua_tostring(L, 1), IOFLAG_READ);
+    if (CheckFile)
+    {
+        io_close(CheckFile);
+    }
+    else
+    {
+        return 0;
+    }
 
     if (!lua_isstring(L, 1))
         return 0;

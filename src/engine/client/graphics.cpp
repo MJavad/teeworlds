@@ -580,8 +580,43 @@ void CGraphics_OpenGL::CapturePixelStreamDirect(const char *pPath, int Frame)
         CaptureData->m_h = h;
         CaptureData->m_pPixelData = pPixelData;
         CaptureData->m_pSelf = this;
-        thread_detach(thread_create(CapturePixelStreamThread, CaptureData));
+        //thread_detach(thread_create(CapturePixelStreamThread, CaptureData));
     }
+    {//non threaded
+        unsigned int Size = w * h * 3;
+
+        char aFilename[1024];
+        str_format(aFilename, sizeof(aFilename), "%s/video.stream", pPath);
+        static IOHANDLE File = m_pStorage->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
+        if(File)
+        {
+            int64 t = time_get() * 1000 / time_freq();
+            char *pHeader = new char[sizeof(t) + sizeof(Size) + sizeof(w) + sizeof(h)];
+            char *pItem = pHeader;
+
+            mem_copy(pItem, &t, sizeof(t));
+            pItem = pItem + sizeof(t);
+
+            mem_copy(pItem, &Size, sizeof(Size));
+            pItem = pItem + sizeof(Size);
+
+            mem_copy(pItem, &w, sizeof(w));
+            pItem = pItem + sizeof(w);
+
+            mem_copy(pItem, &h, sizeof(h));
+            pItem = pItem + sizeof(h);
+
+            thread_sleep(20);
+
+            io_write(File, pHeader, sizeof(t) + sizeof(Size) + sizeof(w) + sizeof(h));
+            io_write(File, pPixelData, Size);
+
+            delete []pHeader;
+            //io_close(File);
+        }
+    }
+
+
     /*// find filename
     {
         char aWholePath[1024];
