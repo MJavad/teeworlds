@@ -285,6 +285,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "UiGetParticleTextureID", this->UiGetParticleTextureID);
     lua_register(m_pLua, "UiGetFlagTextureID", this->UiGetFlagTextureID);
     lua_register(m_pLua, "UiDirectRect", this->UiDirectRect);
+    lua_register(m_pLua, "UiDirectLine", this->UiDirectLine);
     lua_register(m_pLua, "BlendNormal", this->BlendNormal);
     lua_register(m_pLua, "BlendAdditive", this->BlendAdditive);
 
@@ -2819,6 +2820,39 @@ int CLuaFile::UiDirectRect(lua_State *L)
         Rounding = lua_tonumber(L, 10);
 
     pSelf->m_pClient->RenderTools()->DrawUIRect(&Rect, Color, Corners, Rounding);
+
+    return 0;
+}
+
+int CLuaFile::UiDirectLine(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+        return 0;
+
+    vec4 Color = vec4(0, 0, 0, 0.5f);
+
+    float x1 = lua_tonumber(L, 1);
+    float y1 = lua_tonumber(L, 2);
+    float x2 = lua_tonumber(L, 3);
+    float y2 = lua_tonumber(L, 4);
+
+    if (lua_isnumber(L, 5) && lua_isnumber(L, 6) && lua_isnumber(L, 7) && lua_isnumber(L, 8))
+        Color = vec4(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+
+    pSelf->m_pClient->Graphics()->TextureSet(-1);
+    pSelf->m_pClient->Graphics()->BlendNormal();
+    pSelf->m_pClient->Graphics()->LinesBegin();
+    pSelf->m_pClient->Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+    IGraphics::CLineItem Line;
+    Line = IGraphics::CLineItem(x1, y1, x2, y2);
+    pSelf->m_pClient->Graphics()->LinesDraw(&Line, 1);
+    pSelf->m_pClient->Graphics()->LinesEnd();
 
     return 0;
 }

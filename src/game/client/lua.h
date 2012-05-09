@@ -287,12 +287,12 @@ public:
     static inline int GetLocalCharacterId(lua_State *L);
     static inline int GetCharacterPos(lua_State *L);
     static inline int GetCharacterVel(lua_State *L);
+    static inline int GetCharacterActiveWeapon(lua_State *L);
 
     //TODO:
     static inline int GetCharacterHookPos(lua_State *L);
     static inline int GetCharacterHookDir(lua_State *L);
     static inline int GetCharacterHookState(lua_State *L);
-    static inline int GetCharacterActiveWeapon(lua_State *L);
     static inline int GetCharacterWeaponAmmo(lua_State *L);
 
 
@@ -392,6 +392,7 @@ public:
     static inline int UiGetFlagTextureID(lua_State *L);
 
     static inline int UiDirectRect(lua_State *L);
+    static inline int UiDirectLine(lua_State *L);
     static inline int BlendAdditive(lua_State *L);
     static inline int BlendNormal(lua_State *L);
 
