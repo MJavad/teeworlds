@@ -190,6 +190,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "GetLocalCharacterId", this->GetLocalCharacterId);
     lua_register(m_pLua, "GetCharacterPos", this->GetCharacterPos);
     lua_register(m_pLua, "GetCharacterVel", this->GetCharacterVel);
+    lua_register(m_pLua, "GetCharacterActiveWeapon", this->GetCharacterActiveWeapon);
 
     //Music
     lua_register(m_pLua, "MusicPlay", this->MusicPlay);
@@ -1498,6 +1499,20 @@ int CLuaFile::GetCharacterPos(lua_State *L)
     lua_pushnumber(L, Pos.x);
     lua_pushnumber(L, Pos.y);
     return 2;
+}
+
+int CLuaFile::GetCharacterActiveWeapon(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    lua_pushinteger(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_Weapon);
+    return 1;
 }
 
 int CLuaFile::GetCharacterVel(lua_State *L)
