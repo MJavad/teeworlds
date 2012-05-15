@@ -286,6 +286,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "UiGetFlagTextureID", this->UiGetFlagTextureID);
     lua_register(m_pLua, "UiDirectRect", this->UiDirectRect);
     lua_register(m_pLua, "UiDirectLine", this->UiDirectLine);
+    lua_register(m_pLua, "UiDirectRectArray", this->UiDirectRectArray);
     lua_register(m_pLua, "BlendNormal", this->BlendNormal);
     lua_register(m_pLua, "BlendAdditive", this->BlendAdditive);
 
@@ -2821,6 +2822,134 @@ int CLuaFile::UiDirectRect(lua_State *L)
 
     pSelf->m_pClient->RenderTools()->DrawUIRect(&Rect, Color, Corners, Rounding);
 
+    return 0;
+}
+
+//high speed rendering
+int CLuaFile::UiDirectRectArray(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+
+    pSelf->m_pClient->Graphics()->TextureSet(-1);
+    pSelf->m_pClient->Graphics()->QuadsBegin();
+
+    int64 Test = time_get();
+    int iX = 0;
+    lua_pushvalue(L, 1);
+    lua_pushnil(L);
+    while(lua_next(L, -2) != 0)
+    {
+        CUIRect Rect;
+        vec4 Color = vec4(0, 0, 0, 0.5f);
+        int Corners = CUI::CORNER_ALL;
+        float Rounding = 5.0f;
+
+        if (lua_istable(L, -1))
+        {
+            lua_pushvalue(L, -1);
+            lua_pushnil(L);
+            while(lua_next(L, -2) != 0)
+            {
+                if (str_comp(lua_tostring(L, -2), "x") == 0)
+                    Rect.x = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "y") == 0)
+                    Rect.y = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "h") == 0)
+                    Rect.h = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "w") == 0)
+                    Rect.w = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "r") == 0)
+                    Color.r = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "g") == 0)
+                    Color.g = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "b") == 0)
+                    Color.b = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "a") == 0)
+                    Color.a = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "corners") == 0)
+                    Corners = lua_tonumber(L, -1);
+                if (str_comp(lua_tostring(L, -2), "round") == 0)
+                    Rounding = lua_tonumber(L, -1);
+                lua_pop(L, 1);
+            }
+            lua_pop(L, 1);
+        }
+        pSelf->m_pClient->Graphics()->SetColor(Color.r, Color.g, Color.b, Color.a);
+        {
+            if (Rounding && Corners)
+            {
+                static IGraphics::CFreeformItem ArrayF[32];
+                int NumItems = 0;
+                for(int i = 0; i < 8; i+=2)
+                {
+                    float a1 = i/(float)8 * pi/2;
+                    float a2 = (i+1)/(float)8 * pi/2;
+                    float a3 = (i+2)/(float)8 * pi/2;
+                    float Ca1 = cosf(a1);
+                    float Ca2 = cosf(a2);
+                    float Ca3 = cosf(a3);
+                    float Sa1 = sinf(a1);
+                    float Sa2 = sinf(a2);
+                    float Sa3 = sinf(a3);
+
+                    if(Corners&1) // TL
+                    ArrayF[NumItems++] = IGraphics::CFreeformItem(
+                        Rect.x+Rounding, Rect.y+Rounding,
+                        Rect.x+(1-Ca1)*Rounding, Rect.y+(1-Sa1)*Rounding,
+                        Rect.x+(1-Ca3)*Rounding, Rect.y+(1-Sa3)*Rounding,
+                        Rect.x+(1-Ca2)*Rounding, Rect.y+(1-Sa2)*Rounding);
+
+                    if(Corners&2) // TR
+                    ArrayF[NumItems++] = IGraphics::CFreeformItem(
+                        Rect.x+Rect.w-Rounding, Rect.y+Rounding,
+                        Rect.x+Rect.w-Rounding+Ca1*Rounding, Rect.y+(1-Sa1)*Rounding,
+                        Rect.x+Rect.w-Rounding+Ca3*Rounding, Rect.y+(1-Sa3)*Rounding,
+                        Rect.x+Rect.w-Rounding+Ca2*Rounding, Rect.y+(1-Sa2)*Rounding);
+
+                    if(Corners&4) // BL
+                    ArrayF[NumItems++] = IGraphics::CFreeformItem(
+                        Rect.x+Rounding, Rect.y+Rect.h-Rounding,
+                        Rect.x+(1-Ca1)*Rounding, Rect.y+Rect.h-Rounding+Sa1*Rounding,
+                        Rect.x+(1-Ca3)*Rounding, Rect.y+Rect.h-Rounding+Sa3*Rounding,
+                        Rect.x+(1-Ca2)*Rounding, Rect.y+Rect.h-Rounding+Sa2*Rounding);
+
+                    if(Corners&8) // BR
+                    ArrayF[NumItems++] = IGraphics::CFreeformItem(
+                        Rect.x+Rect.w-Rounding, Rect.y+Rect.h-Rounding,
+                        Rect.x+Rect.w-Rounding+Ca1*Rounding, Rect.y+Rect.h-Rounding+Sa1*Rounding,
+                        Rect.x+Rect.w-Rounding+Ca3*Rounding, Rect.y+Rect.h-Rounding+Sa3*Rounding,
+                        Rect.x+Rect.w-Rounding+Ca2*Rounding, Rect.y+Rect.h-Rounding+Sa2*Rounding);
+                }
+                pSelf->m_pClient->Graphics()->QuadsDrawFreeform(ArrayF, NumItems);
+            }
+            static IGraphics::CQuadItem ArrayQ[9];
+            int NumItems = 0;
+            ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x+Rounding, Rect.y+Rounding, Rect.w-Rounding*2, Rect.h-Rounding*2); // center
+            ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x+Rounding, Rect.y, Rect.w-Rounding*2, Rounding); // top
+            ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x+Rounding, Rect.y+Rect.h-Rounding, Rect.w-Rounding*2, Rounding); // bottom
+            ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x, Rect.y+Rounding, Rounding, Rect.h-Rounding*2); // left
+            ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x+Rect.w-Rounding, Rect.y+Rounding, Rounding, Rect.h-Rounding*2); // right
+
+            if(!(Corners&1)) ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x, Rect.y, Rounding, Rounding); // TL
+            if(!(Corners&2)) ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x+Rect.w, Rect.y, -Rounding, Rounding); // TR
+            if(!(Corners&4)) ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x, Rect.y+Rect.h, Rounding, -Rounding); // BL
+            if(!(Corners&8)) ArrayQ[NumItems++] = IGraphics::CQuadItem(Rect.x+Rect.w, Rect.y+Rect.h, -Rounding, -Rounding); // BR
+
+            pSelf->m_pClient->Graphics()->QuadsDrawTL(ArrayQ, NumItems);
+        }
+        lua_pop(L, 1);
+        iX++;
+    }
+    char aBuf[128];
+    str_format(aBuf, sizeof(aBuf), "%f", 1.0f / ((float)(time_get() - Test) / (float)time_freq()));
+    pSelf->m_pClient->Console()->Print(0, "FPS", aBuf);
+    lua_pop(L, 1);
+    pSelf->m_pClient->Graphics()->QuadsEnd();
     return 0;
 }
 
