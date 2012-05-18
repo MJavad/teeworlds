@@ -177,7 +177,7 @@ static const luaL_Reg netlib[] =
 ** Open net library
 */
 LUALIB_API int luaopen_net (lua_State *L) {
-    luaL_register(L, LUA_NETLIBNAME, netlib);
+    luaL_newlib(L, netlib);
     lua_pushnumber(L, SOCKETTCP);
     lua_setfield(L, -2, "SOCKETTCP");
     lua_pushnumber(L, SOCKETUDP);
