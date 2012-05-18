@@ -101,7 +101,7 @@ void CLuaFile::Init(const char *pFile)
 
     str_copy(m_aFilename, pFile, sizeof(m_aFilename));
 
-    m_pLua = lua_open();
+    m_pLua = luaL_newstate();
     luaL_openlibs(m_pLua);
 
     lua_atpanic(m_pLua, &Panic);
