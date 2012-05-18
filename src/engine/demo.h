@@ -43,6 +43,7 @@ public:
 	~IDemoPlayer() {}
 	virtual void SetSpeed(float Speed) = 0;
 	virtual int SetPos(float Precent) = 0;
+    virtual float GetPos() = 0;
 	virtual void Pause() = 0;
 	virtual void Unpause() = 0;
 	virtual const CInfo *BaseInfo() const = 0;

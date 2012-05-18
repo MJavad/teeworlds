@@ -690,6 +690,15 @@ int CDemoPlayer::SetPos(float Percent)
 	return 0;
 }
 
+float CDemoPlayer::GetPos()
+{
+	if(!m_File)
+		return 0.0f;
+
+	// +5 because we have to have a current tick and previous tick when we do the playback
+    return (m_Info.m_Info.m_CurrentTick - m_Info.m_Info.m_FirstTick + 5) / (float)(m_Info.m_Info.m_LastTick - m_Info.m_Info.m_FirstTick);
+}
+
 void CDemoPlayer::SetSpeed(float Speed)
 {
 	m_Info.m_Info.m_Speed = Speed;
@@ -775,7 +784,7 @@ void CDemoPlayer::GetDemoName(char *pBuffer, int BufferSize) const
 		else if(*pFileName == '.')
 			pEnd = pFileName;
 	}
-	
+
 	int Length = pEnd > pExtractedName ? min(BufferSize, (int)(pEnd-pExtractedName+1)) : BufferSize;
 	str_copy(pBuffer, pExtractedName, Length);
 }

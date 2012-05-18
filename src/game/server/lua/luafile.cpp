@@ -117,7 +117,7 @@ void CLuaFile::Init(const char *pFile)
 
     //include
     lua_register(m_pLua, "Include", this->Include);
-    luaL_dostring(m_pLua, "package.path = \"./lua/?.lua;./lua/lib/?.lua;./lua/lib/socket/?.lua\"\n");
+    luaL_dostring(m_pLua, "package.path = \"./lua/?.lua;./lua/lib/?.lua\"\n");
 
     //config
     lua_register(m_pLua, "SetScriptUseSettingPage", this->SetScriptUseSettingPage);

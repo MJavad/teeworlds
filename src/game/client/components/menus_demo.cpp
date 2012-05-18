@@ -38,38 +38,38 @@ int CMenus::DoButton_Sprite(const void *pID, int ImageID, int SpriteID, int Chec
 	IGraphics::CQuadItem QuadItem(pRect->x, pRect->y, pRect->w, pRect->h);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
-	
+
 	return UI()->DoButtonLogic(pID, "", Checked, pRect);
 }
 
 void CMenus::RenderDemoPlayer(CUIRect MainView)
 {
 	const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
-	
+
 	const float SeekBarHeight = 15.0f;
 	const float ButtonbarHeight = 20.0f;
 	const float NameBarHeight = 20.0f;
 	const float Margins = 5.0f;
 	float TotalHeight;
-	
+
 	if(m_MenuActive)
 		TotalHeight = SeekBarHeight+ButtonbarHeight+NameBarHeight+Margins*3;
 	else
 		TotalHeight = SeekBarHeight+Margins*2;
-	
+
 	MainView.HSplitBottom(TotalHeight, 0, &MainView);
 	MainView.VSplitLeft(50.0f, 0, &MainView);
 	MainView.VSplitRight(450.0f, &MainView, 0);
-	
+
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_T, 10.0f);
-		
+
 	MainView.Margin(5.0f, &MainView);
-	
+
 	CUIRect SeekBar, ButtonBar, NameBar;
-	
+
 	int CurrentTick = pInfo->m_CurrentTick - pInfo->m_FirstTick;
 	int TotalTicks = pInfo->m_LastTick - pInfo->m_FirstTick;
-	
+
 	if(m_MenuActive)
 	{
 		MainView.HSplitTop(SeekBarHeight, &SeekBar, &ButtonBar);
@@ -81,20 +81,21 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		SeekBar = MainView;
 
 	// do seekbar
+	bool Seeking = false;
 	{
 		static int s_SeekBarID = 0;
 		void *id = &s_SeekBarID;
 		char aBuffer[128];
-		
+
 		RenderTools()->DrawUIRect(&SeekBar, vec4(0,0,0,0.5f), CUI::CORNER_ALL, 5.0f);
-		
+
 		float Amount = CurrentTick/(float)TotalTicks;
-		
+
 		CUIRect FilledBar = SeekBar;
 		FilledBar.w = 10.0f + (FilledBar.w-10.0f)*Amount;
-		
+
 		RenderTools()->DrawUIRect(&FilledBar, vec4(1,1,1,0.5f), CUI::CORNER_ALL, 5.0f);
-		
+
 		str_format(aBuffer, sizeof(aBuffer), "%d:%02d / %d:%02d",
 			CurrentTick/SERVER_TICK_SPEED/60, (CurrentTick/SERVER_TICK_SPEED)%60,
 			TotalTicks/SERVER_TICK_SPEED/60, (TotalTicks/SERVER_TICK_SPEED)%60);
@@ -102,21 +103,35 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 
 		// do the logic
 	    int Inside = UI()->MouseInside(&SeekBar);
-			
+        static float StartPercent = 0.0f;
+        static float StartPos = 0.0f;
+
 		if(UI()->ActiveItem() == id)
 		{
 			if(!UI()->MouseButton(0))
+			{
+			    Seeking = false;
 				UI()->SetActiveItem(0);
+			}
 			else
 			{
 				static float PrevAmount = 0.0f;
-				float Amount = (UI()->MouseX()-SeekBar.x)/(float)SeekBar.w;
-				if(Amount > 0.0f && Amount < 1.0f && absolute(PrevAmount-Amount) >= 0.01f)
+				float Move = 0.0f;
+				Move = (float)(UI()->MouseX()-SeekBar.x)/(float)SeekBar.w - StartPos;
+				if (UI()->MouseY() < SeekBar.y)
+				{
+                    Move = Move / (float)((SeekBar.y - UI()->MouseY()) / SeekBar.h + 1);
+				}
+                StartPos = (float)(UI()->MouseX()-SeekBar.x)/(float)SeekBar.w;
+				float Amount = StartPercent + Move;//(UI()->MouseX()-SeekBar.x)/(float)SeekBar.w;
+				Seeking = true;
+				if(Amount > 0.0f && Amount < 1.0f) // && absolute(PrevAmount-Amount) >= 0.01f)
 				{
 					PrevAmount = Amount;
 					m_pClient->OnReset();
 					m_pClient->m_SuppressEvents = true;
 					DemoPlayer()->SetPos(Amount);
+					StartPercent = Amount;
 					m_pClient->m_SuppressEvents = false;
 					m_pClient->m_pMapLayersBackGround->EnvelopeUpdate();
 					m_pClient->m_pMapLayersForeGround->EnvelopeUpdate();
@@ -125,13 +140,15 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		}
 		else if(UI()->HotItem() == id)
 		{
+            StartPos = (float)(UI()->MouseX()-SeekBar.x)/(float)SeekBar.w;
+            StartPercent = DemoPlayer()->GetPos();
 			if(UI()->MouseButton(0))
 				UI()->SetActiveItem(id);
-		}		
-		
+		}
+
 		if(Inside)
 			UI()->SetHotItem(id);
-	}	
+	}
 
 	if(CurrentTick == TotalTicks)
 	{
@@ -146,7 +163,8 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	{
 		// do buttons
 		CUIRect Button;
-		
+		CUIRect ButtonCopy = ButtonBar;
+
 		// combined play and pause button
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static int s_PlayPauseButton = 0;
@@ -160,16 +178,16 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 			if(DoButton_Sprite(&s_PlayPauseButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_PLAY, false, &Button, CUI::CORNER_ALL))
 				DemoPlayer()->Unpause();
 		}
-		
+
 		// stop button
-		
+
 		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
 		static int s_ResetButton = 0;
 		if(DoButton_Sprite(&s_ResetButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_STOP, false, &Button, CUI::CORNER_ALL))
 		{
 			m_pClient->OnReset();
-			DemoPlayer()->Pause(); 
+			DemoPlayer()->Pause();
 			DemoPlayer()->SetPos(0);
 		}
 
@@ -179,7 +197,7 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		static int s_SlowDownButton = 0;
 		if(DoButton_Sprite(&s_SlowDownButton, IMAGE_DEMOBUTTONS, SPRITE_DEMOBUTTON_SLOWER, 0, &Button, CUI::CORNER_ALL) || Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN))
 			DecreaseDemoSpeed = true;
-		
+
 		// fastforward
 		ButtonBar.VSplitLeft(Margins, 0, &ButtonBar);
 		ButtonBar.VSplitLeft(ButtonbarHeight, &Button, &ButtonBar);
@@ -195,6 +213,18 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 		else
 			str_format(aBuffer, sizeof(aBuffer), "x%.2f", pInfo->m_Speed);
 		UI()->DoLabel(&ButtonBar, aBuffer, Button.h*0.7f, -1);
+
+		// seek speed meter
+		if (Seeking)
+		{
+		    ButtonCopy.h = Button.h;
+		    ButtonCopy.y = Button.y;
+            if(UI()->MouseY() < SeekBar.y)
+                str_format(aBuffer, sizeof(aBuffer), "Seek speed: x%.2f", (float)1.0f / ((SeekBar.y - UI()->MouseY()) / SeekBar.h + 1.0f));
+            else
+                str_format(aBuffer, sizeof(aBuffer), "Seek speed: x1.00");
+            UI()->DoLabel(&ButtonCopy, aBuffer, ButtonCopy.h*0.7f, 0);
+		}
 
 		// close button
 		ButtonBar.VSplitRight(ButtonbarHeight*3, &ButtonBar, &Button);
@@ -255,15 +285,15 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 	CUIRect Scroll, Row;
 	CUIRect View = *pRect;
 	CUIRect Header, Footer;
-	
+
 	// draw header
 	View.HSplitTop(ms_ListheaderHeight, &Header, &View);
-	RenderTools()->DrawUIRect(&Header, vec4(1,1,1,0.25f), CUI::CORNER_T, 5.0f); 
+	RenderTools()->DrawUIRect(&Header, vec4(1,1,1,0.25f), CUI::CORNER_T, 5.0f);
 	UI()->DoLabel(&Header, pTitle, Header.h*ms_FontmodHeight, 0);
 
 	// draw footers
 	View.HSplitBottom(ms_ListheaderHeight, &View, &Footer);
-	RenderTools()->DrawUIRect(&Footer, vec4(1,1,1,0.25f), CUI::CORNER_B, 5.0f); 
+	RenderTools()->DrawUIRect(&Footer, vec4(1,1,1,0.25f), CUI::CORNER_B, 5.0f);
 	Footer.VSplitLeft(10.0f, 0, &Footer);
 	UI()->DoLabel(&Footer, pBottomText, Header.h*ms_FontmodHeight, 0);
 
@@ -273,7 +303,7 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 	// prepare the scroll
 	View.VSplitRight(15, &View, &Scroll);
 
-	// setup the variables	
+	// setup the variables
 	gs_ListBoxOriginalView = View;
 	gs_ListBoxSelectedIndex = SelectedIndex;
 	gs_ListBoxNewSelected = SelectedIndex;
@@ -287,7 +317,7 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 
 	// do the scrollbar
 	View.HSplitTop(gs_ListBoxRowHeight, &Row, 0);
-	
+
 	int NumViewable = (int)(gs_ListBoxOriginalView.h/Row.h) + 1;
 	int Num = (NumItems+gs_ListBoxItemsPerRow-1)/gs_ListBoxItemsPerRow-NumViewable+1;
 	if(Num < 0)
@@ -298,14 +328,14 @@ void CMenus::UiDoListboxStart(const void *pID, const CUIRect *pRect, float RowHe
 			gs_ListBoxScrollValue -= 3.0f/Num;
 		if(Input()->KeyPresses(KEY_MOUSE_WHEEL_DOWN) && UI()->MouseInside(&View))
 			gs_ListBoxScrollValue += 3.0f/Num;
-		
+
 		if(gs_ListBoxScrollValue < 0.0f) gs_ListBoxScrollValue = 0.0f;
 		if(gs_ListBoxScrollValue > 1.0f) gs_ListBoxScrollValue = 1.0f;
 	}
-		
+
 	Scroll.HMargin(5.0f, &Scroll);
 	gs_ListBoxScrollValue = DoScrollbarV(pID, &Scroll, gs_ListBoxScrollValue);
-	
+
 	// the list
 	gs_ListBoxView = gs_ListBoxOriginalView;
 	gs_ListBoxView.VMargin(5.0f, &gs_ListBoxView);
@@ -324,24 +354,24 @@ CMenus::CListboxItem CMenus::UiDoListboxNextRow()
 
 	Item.m_Visible = 1;
 	//item.rect = row;
-	
+
 	Item.m_HitRect = Item.m_Rect;
-	
+
 	//CUIRect select_hit_box = item.rect;
 
 	if(gs_ListBoxSelectedIndex == gs_ListBoxItemIndex)
 		Item.m_Selected = 1;
-	
+
 	// make sure that only those in view can be selected
 	if(Item.m_Rect.y+Item.m_Rect.h > gs_ListBoxOriginalView.y)
 	{
-		
+
 		if(Item.m_HitRect.y < Item.m_HitRect.y) // clip the selection
 		{
 			Item.m_HitRect.h -= gs_ListBoxOriginalView.y-Item.m_HitRect.y;
 			Item.m_HitRect.y = gs_ListBoxOriginalView.y;
 		}
-		
+
 	}
 	else
 		Item.m_Visible = 0;
@@ -349,7 +379,7 @@ CMenus::CListboxItem CMenus::UiDoListboxNextRow()
 	// check if we need to do more
 	if(Item.m_Rect.y > gs_ListBoxOriginalView.y+gs_ListBoxOriginalView.h)
 		Item.m_Visible = 0;
-		
+
 	gs_ListBoxItemIndex++;
 	return Item;
 }
@@ -363,12 +393,12 @@ CMenus::CListboxItem CMenus::UiDoListboxNextItem(const void *pId, bool Selected)
 			gs_ListBoxNewSelected = ThisItemIndex;
 		gs_ListBoxSelectedIndex = ThisItemIndex;
 	}
-	
+
 	CListboxItem Item = UiDoListboxNextRow();
 
 	if(Item.m_Visible && UI()->DoButtonLogic(pId, "", gs_ListBoxSelectedIndex == gs_ListBoxItemIndex, &Item.m_HitRect))
 		gs_ListBoxNewSelected = ThisItemIndex;
-	
+
 	// process input, regard selected index
 	if(gs_ListBoxSelectedIndex == ThisItemIndex)
 	{
@@ -382,7 +412,7 @@ CMenus::CListboxItem CMenus::UiDoListboxNextItem(const void *pId, bool Selected)
 				UI()->SetActiveItem(0);
 			}
 			else
-			{			
+			{
 				for(int i = 0; i < m_NumInputEvents; i++)
 				{
 					int NewIndex = -1;
@@ -415,18 +445,18 @@ CMenus::CListboxItem CMenus::UiDoListboxNextItem(const void *pId, bool Selected)
 							if(gs_ListBoxScrollValue < 0.0f) gs_ListBoxScrollValue = 0.0f;
 							if(gs_ListBoxScrollValue > 1.0f) gs_ListBoxScrollValue = 1.0f;
 						}
-						
+
 						gs_ListBoxNewSelected = NewIndex;
 					}
 				}
 			}
 		}
-		
+
 		//selected_index = i;
 		CUIRect r = Item.m_Rect;
 		r.Margin(1.5f, &r);
 		RenderTools()->DrawUIRect(&r, vec4(1,1,1,0.5f), CUI::CORNER_ALL, 4.0f);
-	}	
+	}
 
 	return Item;
 }
@@ -449,7 +479,7 @@ int CMenus::DemolistFetchCallback(const char *pName, int IsDir, int StorageType,
 		(pName[1] == '.' && pName[2] == 0 && !str_comp(pSelf->m_aCurrentDemoFolder, "demos")))) ||
 		(!IsDir && (Length < 5 || str_comp(pName+Length-5, ".demo"))))
 		return 0;
-	
+
 	CDemoItem Item;
 	str_copy(Item.m_aFilename, pName, sizeof(Item.m_aFilename));
 	if(IsDir)
@@ -518,11 +548,11 @@ void CMenus::RenderDemoList(CUIRect MainView)
 				str_copy(aFooterLabel, Localize("Demo details"), sizeof(aFooterLabel));
 		}
 	}
-	
+
 	// render background
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_ALL, 10.0f);
 	MainView.Margin(10.0f, &MainView);
-	
+
 	CUIRect ButtonBar, RefreshRect, PlayRect, DeleteRect, RenameRect, FileIcon, ListBox;
 	MainView.HSplitBottom(ms_ButtonHeight+5.0f, &MainView, &ButtonBar);
 	ButtonBar.HSplitTop(5.0f, 0, &ButtonBar);
@@ -600,7 +630,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 		UI()->DoLabelScaled(&Left, Localize("Netversion:"), 14.0f, -1);
 		UI()->DoLabelScaled(&Right, m_lDemos[m_DemolistSelectedIndex].m_Info.m_aNetversion, 14.0f, -1);
 	}
-	
+
 	static int s_DemoListId = 0;
 	static float s_ScrollValue = 0;
 	UiDoListboxStart(&s_DemoListId, &ListBox, 17.0f, Localize("Demos"), aFooterLabel, m_lDemos.size(), 1, m_DemolistSelectedIndex, s_ScrollValue);
@@ -618,7 +648,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	bool Activated = false;
 	m_DemolistSelectedIndex = UiDoListboxEnd(&s_ScrollValue, &Activated);
 	DemolistOnUpdate(false);
-	
+
 	static int s_RefreshButton = 0;
 	if(DoButton_Menu(&s_RefreshButton, Localize("Refresh"), 0, &RefreshRect))
 	{
@@ -660,7 +690,7 @@ void CMenus::RenderDemoList(CUIRect MainView)
 			}
 		}
 	}
-	
+
 	if(!m_DemolistSelectedIsDir)
 	{
 		static int s_DeleteButton = 0;
