@@ -191,6 +191,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "GetCharacterPos", this->GetCharacterPos);
     lua_register(m_pLua, "GetCharacterVel", this->GetCharacterVel);
     lua_register(m_pLua, "GetCharacterActiveWeapon", this->GetCharacterActiveWeapon);
+    lua_register(m_pLua, "CharacterHasFlag", this->CharacterHasFlag);
 
     //Music
     lua_register(m_pLua, "MusicPlay", this->MusicPlay);
@@ -284,9 +285,13 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "UiGetGameTextureID", this->UiGetGameTextureID);
     lua_register(m_pLua, "UiGetParticleTextureID", this->UiGetParticleTextureID);
     lua_register(m_pLua, "UiGetFlagTextureID", this->UiGetFlagTextureID);
+    //Direct Ui
     lua_register(m_pLua, "UiDirectRect", this->UiDirectRect);
     lua_register(m_pLua, "UiDirectLine", this->UiDirectLine);
+    lua_register(m_pLua, "UiDirectLabel", this->UiDirectLabel);
+    //DirectArrayUi
     lua_register(m_pLua, "UiDirectRectArray", this->UiDirectRectArray);
+    //BlendModes
     lua_register(m_pLua, "BlendNormal", this->BlendNormal);
     lua_register(m_pLua, "BlendAdditive", this->BlendAdditive);
 
@@ -1514,6 +1519,20 @@ int CLuaFile::GetCharacterActiveWeapon(lua_State *L)
     if (!lua_isnumber(L, 1))
         return 0;
     lua_pushinteger(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_Weapon);
+    return 1;
+}
+
+int CLuaFile::CharacterHasFlag(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    lua_pushboolean(L, false); //todo
     return 1;
 }
 
@@ -2983,6 +3002,47 @@ int CLuaFile::UiDirectLine(lua_State *L)
     pSelf->m_pClient->Graphics()->LinesDraw(&Line, 1);
     pSelf->m_pClient->Graphics()->LinesEnd();
 
+    return 0;
+}
+
+int CLuaFile::UiDirectLabel(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isstring(L, 3))
+        return 0;
+
+    vec4 Color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    vec4 ColorOutline = vec4(0.0f, 0.0f, 0.0f, 0.5f);
+
+    float x = lua_tonumber(L, 1);
+    float y = lua_tonumber(L, 2);
+    const char *pText = lua_tostring(L, 3);
+    int Align = -1;
+    float Size = 14.0f;
+
+    if (lua_isnumber(L, 4))
+        Align = lua_tonumber(L, 4);
+    if (lua_isnumber(L, 5))
+        Size = lua_tonumber(L, 5);
+    if (lua_isnumber(L, 6) && lua_isnumber(L, 7) && lua_isnumber(L, 8) && lua_isnumber(L, 9))
+        Color = vec4(lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8), lua_tonumber(L, 9));
+    if (lua_isnumber(L, 10) && lua_isnumber(L, 11) && lua_isnumber(L, 12) && lua_isnumber(L, 13))
+        ColorOutline = vec4(lua_tonumber(L, 10), lua_tonumber(L, 11), lua_tonumber(L, 12), lua_tonumber(L, 13));
+
+    pSelf->m_pClient->TextRender()->TextOutlineColor(ColorOutline.r, ColorOutline.g, ColorOutline.b, ColorOutline.a);
+    pSelf->m_pClient->TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
+    float tw = pSelf->m_pClient->TextRender()->TextWidth(0, Size, pText, -1);
+    if (Align == -1) //left
+        pSelf->m_pClient->TextRender()->Text(0, x, y, Size, pText, -1);
+    if (Align == 0) //center
+        pSelf->m_pClient->TextRender()->Text(0, x-tw/2.0f, y, Size, pText, -1);
+    if (Align == 1) //right
+        pSelf->m_pClient->TextRender()->Text(0, x-tw, y, Size, pText, -1);
     return 0;
 }
 

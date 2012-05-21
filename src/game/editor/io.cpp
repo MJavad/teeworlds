@@ -197,7 +197,7 @@ void editor_load_old(DATAFILE *df, MAP *map)
 
 int CEditor::Save(const char *pFilename)
 {
-	return m_Map.Save(Kernel()->RequestInterface<IStorage>(), pFilename);
+	return m_Map.Save(m_pStorage, pFilename);
 }
 
 int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)

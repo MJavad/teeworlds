@@ -100,8 +100,8 @@ static int net_send (lua_State *L)
         NETADDR Addr;
         int Size = 0;
         const char *pTmp = lua_tolstring(L, 2, &Size);
-        net_addr_from_str(&Addr, lua_tostring(L, 3));
-        net_udp_send(Sockets[(int)socketid].m_Socket, &Addr, pTmp, Size);
+        if (lua_tostring(L, 3) && net_addr_from_str(&Addr, lua_tostring(L, 3)) == 0)
+            net_udp_send(Sockets[(int)socketid].m_Socket, &Addr, pTmp, Size);
     }
     return 0;
 }

@@ -60,8 +60,6 @@ protected:
 		int m_Next;
 	};
 
-	CTexture m_aTextures[MAX_TEXTURES];
-	int m_FirstFreeTexture;
 	int m_TextureMemoryUsage;
 
 	void Flush();
@@ -123,6 +121,8 @@ public:
 	};
 
 	virtual void TextureSet(int TextureID);
+	CTexture m_aTextures[MAX_TEXTURES];
+	int m_FirstFreeTexture;
 
 	virtual void Clear(float r, float g, float b);
 
@@ -165,6 +165,7 @@ public:
 	virtual int WindowOpen();
 
 	virtual void TakeScreenshot(const char *pFilename);
+	virtual void TakeCustomScreenshot(const char *pFilename);
 	virtual void Swap();
 
 	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes);

@@ -455,6 +455,7 @@ class CEditor : public IEditor
 	class IClient *m_pClient;
 	class IConsole *m_pConsole;
 	class IGraphics *m_pGraphics;
+	class IEngine *m_pEngine;
 	class ITextRender *m_pTextRender;
 	class IStorage *m_pStorage;
 	CRenderTools m_RenderTools;
@@ -464,6 +465,7 @@ public:
 	class IClient *Client() { return m_pClient; };
 	class IConsole *Console() { return m_pConsole; };
 	class IGraphics *Graphics() { return m_pGraphics; };
+	class IEngine *Engine() { return m_pEngine; };
 	class ITextRender *TextRender() { return m_pTextRender; };
 	class IStorage *Storage() { return m_pStorage; };
 	CUI *UI() { return &m_UI; }
@@ -474,6 +476,7 @@ public:
 		m_pInput = 0;
 		m_pClient = 0;
 		m_pGraphics = 0;
+		m_pEngine = 0;
 		m_pTextRender = 0;
 
 		m_Mode = MODE_LAYERS;
@@ -530,6 +533,8 @@ public:
 		m_AnimateSpeed = 1;
 
 		m_ShowEnvelopeEditor = 0;
+		m_ShowUndo = 0;
+		m_UndoScrollValue = 0.0f;
 
 		m_ShowEnvelopePreview = 0;
 		m_SelectedQuadEnvelope = -1;
@@ -546,6 +551,21 @@ public:
 	virtual void Init();
 	virtual void UpdateAndRender();
 	virtual bool HasUnsavedData() { return m_Map.m_Modified; }
+
+	void CreateUndoStep(const char *pName = 0);
+	int UndoStep();
+	struct CUndo
+	{
+	    int m_FileNum;
+	    int m_ButtonId;
+	    char m_aName[128];
+	    int m_PreviewImage;
+	};
+	array<CUndo> m_lUndoSteps;
+	bool m_Undo;
+	int m_ShowUndo;
+	float m_UndoScrollValue;
+
 
 	void FilelistPopulate(int StorageType);
 	void InvokeFileDialog(int StorageType, int FileType, const char *pTitle, const char *pButtonText,
@@ -748,6 +768,7 @@ public:
 	void RenderModebar(CUIRect View);
 	void RenderStatusbar(CUIRect View);
 	void RenderEnvelopeEditor(CUIRect View);
+	void RenderUndoList(CUIRect View);
 
 	void RenderMenubar(CUIRect Menubar);
 	void RenderFileDialog();

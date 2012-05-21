@@ -290,6 +290,7 @@ public:
     static inline int GetCharacterActiveWeapon(lua_State *L);
 
     //TODO:
+    static inline int CharacterHasFlag(lua_State *L);
     static inline int GetCharacterHookPos(lua_State *L);
     static inline int GetCharacterHookDir(lua_State *L);
     static inline int GetCharacterHookState(lua_State *L);
@@ -393,6 +394,7 @@ public:
 
     static inline int UiDirectRect(lua_State *L);
     static inline int UiDirectLine(lua_State *L);
+    static inline int UiDirectLabel(lua_State *L);
 
     //fast ui functions ;)
     static inline int UiDirectRectArray(lua_State *L);
