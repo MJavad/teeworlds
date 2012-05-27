@@ -28,6 +28,10 @@ public:
 	virtual void Stop(int SampleID) = 0;
 	virtual void StopAll() = 0;
 
+	virtual int AddWaveToStream(const char *pWave) = 0;
+    virtual int GetWaveFrameSize() = 0;
+    virtual int GetWaveBufferSpace() = 0;
+
 //music
 #define MUSICTMPBUFFERSIZE 20
 struct CWaveHeader
@@ -63,6 +67,14 @@ volatile int m_MusicPeakL;
 volatile int m_MusicPeakR;
 volatile int m_MusicPlayIndex;
 volatile int m_MusicPlayedBytes;
+
+char *m_LuaTmpBuffer[MUSICTMPBUFFERSIZE];
+int m_LuaTmpBufferIn;
+int m_LuaTmpBufferRead;
+int m_LuaTmpBufferWrite;
+int m_LuaVolume;
+
+
 
 bool m_RecordAudio;
 CWaveHeader m_RecordWaveFileHeader;

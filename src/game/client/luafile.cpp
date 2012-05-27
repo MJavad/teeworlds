@@ -333,6 +333,12 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "TimeGet", this->TimeGet);
     lua_register(m_pLua, "FPS", this->FPS);
 
+    //sound hooks
+    lua_register(m_pLua, "GetWaveFrameSize", this->GetWaveFrameSize);
+    lua_register(m_pLua, "AddWaveToStream", this->AddWaveToStream);
+    lua_register(m_pLua, "FloatToShortChars", this->FloatToShortChars);
+    lua_register(m_pLua, "GetWaveBufferSpace", this->GetWaveBufferSpace);
+
 
 
     lua_pushlightuserdata(m_pLua, this);
@@ -3957,5 +3963,66 @@ int CLuaFile::FPS(lua_State *L)
     lua_getinfo(L, "nlSf", &Frame);
 
     lua_pushnumber(L, 1.0f / pSelf->m_pClient->Client()->FrameTime());
+    return 1;
+}
+
+int CLuaFile::GetWaveFrameSize(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    lua_pushinteger(L, pSelf->m_pClient->Sound()->GetWaveFrameSize());
+    return 1;
+}
+
+int CLuaFile::GetWaveBufferSpace(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    lua_pushinteger(L, pSelf->m_pClient->Sound()->GetWaveBufferSpace());
+    return 1;
+}
+
+int CLuaFile::AddWaveToStream(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isstring(L, 1))
+        return 0;
+
+    size_t Size = 0;
+    const char *pData = lua_tolstring(L, 1, &Size);
+    if (Size != pSelf->m_pClient->Sound()->GetWaveFrameSize())
+        dbg_msg("msg", "got: %i - wanted: %i", Size, pSelf->m_pClient->Sound()->GetWaveFrameSize()); //quote: westerwave
+    lua_pushinteger(L, pSelf->m_pClient->Sound()->AddWaveToStream(pData));
+    return 1;
+}
+
+int CLuaFile::FloatToShortChars(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+
+    float Value = clamp((float)lua_tonumber(L, 1), -1.0f, 1.0f);
+    short Ret = (short)(Value * 32767);
+    swap_endian(&Ret, 2, 1);
+    lua_pushlstring(L, (char *)&Ret, 2);
     return 1;
 }

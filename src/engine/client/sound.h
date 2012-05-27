@@ -37,6 +37,10 @@ public:
 	virtual int Play(int ChannelID, int SampleID, int Flags);
 	virtual void Stop(int SampleID);
 	virtual void StopAll();
+
+	virtual int AddWaveToStream(const char *pWave);
+	virtual int GetWaveFrameSize() { return m_MusicFrameCount * 4; }
+	virtual int GetWaveBufferSpace() { return MUSICTMPBUFFERSIZE - m_LuaTmpBufferIn; }
 };
 
 #endif

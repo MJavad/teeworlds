@@ -460,6 +460,12 @@ public:
 
     static inline int TimeGet(lua_State *L);
     static inline int FPS(lua_State *L);
+
+    //sound hook
+    static inline int GetWaveFrameSize(lua_State *L);
+    static inline int AddWaveToStream(lua_State *L);
+    static inline int FloatToShortChars(lua_State *L);
+    static inline int GetWaveBufferSpace(lua_State *L);
 };
 
 class CLua
