@@ -125,6 +125,7 @@ void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamag
 	// create the event
 	m_pLua->m_EventListener.m_ExplosionDamage = Damage;
 	m_pLua->m_EventListener.m_ExplosionOwner = Owner;
+	m_pLua->m_EventListener.m_EventCID = Owner;
 	m_pLua->m_EventListener.m_ExplosionWeapon = Weapon;
 	m_pLua->m_EventListener.m_ExplosionPos = Pos;
 	m_pLua->m_EventListener.m_ExplosionAbort = false;
@@ -557,10 +558,10 @@ void CGameContext::OnClientEnter(int ClientID)
 	Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
 	m_VoteUpdate = true;
-
-    m_pLua->m_EventListener.m_OnClientEnterClientID = ClientID;
+    
+    m_pLua->m_EventListener.m_EventCID = ClientID;
 	m_pLua->m_EventListener.OnEvent("OnClientEnter");
-	m_pLua->m_EventListener.m_OnClientEnterClientID = -1;
+	m_pLua->m_EventListener.m_EventCID = -1;
 }
 
 void CGameContext::OnClientConnected(int ClientID, bool IsDummy)
@@ -597,9 +598,9 @@ void CGameContext::OnClientConnected(int ClientID, bool IsDummy)
 	Msg.m_pMessage = g_Config.m_SvMotd;
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 
-    m_pLua->m_EventListener.m_OnClientConnectClientID = ClientID;
+    m_pLua->m_EventListener.m_EventCID = ClientID;
 	m_pLua->m_EventListener.OnEvent("OnClientConnect");
-	m_pLua->m_EventListener.m_OnClientConnectClientID = -1;
+	m_pLua->m_EventListener.m_EventCID = -1;
 }
 
 void CGameContext::OnClientDrop(int ClientID, const char *pReason)
@@ -657,7 +658,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 			pMessage++;
 		}
 		m_pLua->m_EventListener.m_pChatText = (char *)pMsg->m_pMessage;
-		m_pLua->m_EventListener.m_ChatClientID = ClientID;
+		m_pLua->m_EventListener.m_EventCID = ClientID;
 		m_pLua->m_EventListener.m_ChatTeam = Team;
 		m_pLua->m_EventListener.m_ChatHide = false;
 		m_pLua->m_EventListener.OnEvent("OnChat");
@@ -838,7 +839,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		if(pPlayer->GetTeam() == pMsg->m_Team || (g_Config.m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam+Server()->TickSpeed()*3 > Server()->Tick()))
 			return;
 
-		m_pLua->m_EventListener.m_TeamJoinClientID = ClientID;
+		m_pLua->m_EventListener.m_EventCID = ClientID;
 		m_pLua->m_EventListener.m_SelectedTeam = pMsg->m_Team;
 		m_pLua->m_EventListener.m_AbortTeamJoin = false;
 		m_pLua->m_EventListener.OnEvent("OnPlayerJoinTeam");
@@ -1063,7 +1064,7 @@ void CGameContext::OnLuaPacket(CUnpacker *pUnpacker, int ClientID)
 
 
     m_pLua->m_EventListener.m_pNetData = aData; //Fetch Data
-    m_pLua->m_EventListener.m_pNetClientID = ClientID; //Fetch Data
+    m_pLua->m_EventListener.m_EventCID = ClientID; //Fetch Data
 	m_pLua->m_EventListener.OnEvent("OnNetData"); //Call lua
 	m_pLua->m_EventListener.m_pNetData = 0; //Null-Pointer
 }
@@ -1525,6 +1526,17 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	m_Layers.Init(Kernel());
 	m_Collision.Init(&m_Layers);
+	if(m_pLua)
+	{
+		CMapItemLua *pItem = (CMapItemLua *)Kernel()->RequestInterface<IMap>()->FindItem(MAPITEMTYPE_LUA, 0);
+		if(pItem)
+		{
+			m_pLua->m_pMapLuaData = (char *)pItem->m_pData;	
+		}
+		else
+			m_pLua->m_pMapLuaData = 0;	
+	}
+	
 
 	// reset everything here
 	//world = new GAMEWORLD;

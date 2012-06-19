@@ -127,19 +127,24 @@ void CLuaFile::Init(const char *pFile)
     //events
 		lua_register(m_pLua, "AddEventListener", this->AddEventListener);
 		lua_register(m_pLua, "RemoveEventListener", this->RemoveEventListener);
+		lua_register(m_pLua, "EventGetCID", this->EventGetCID);
 		 //chat
 		lua_register(m_pLua, "ChatGetText", this->ChatGetText);
-		lua_register(m_pLua, "ChatGetClientID", this->ChatGetClientID);
+		//lua_register(m_pLua, "ChatGetClientID", this->ChatGetClientID);
 		lua_register(m_pLua, "ChatGetTeam", this->ChatGetTeam);
 		lua_register(m_pLua, "ChatHide", this->ChatHide);
 
 		//kill
-		lua_register(m_pLua, "KillGetKillerID", this->KillGetKillerID);
-		lua_register(m_pLua, "KillGetVictimID", this->KillGetVictimID);
-		lua_register(m_pLua, "KillGetWeapon", this->KillGetWeapon);
-
-		//WeaponFire
-		lua_register(m_pLua, "WeaponFireGetClientID", this->WeaponFireGetClientID);
+		//lua_register(m_pLua, "KillGetKillerID", this->KillGetKillerID);
+		//lua_register(m_pLua, "KillGetVictimID", this->KillGetVictimID);
+		//lua_register(m_pLua, "KillGetWeapon", this->KillGetWeapon);
+		
+		//Die
+		lua_register(m_pLua, "DieGetKillerID", this->DieGetKillerID);
+		lua_register(m_pLua, "DieGetVictimID", this->DieGetVictimID);
+		lua_register(m_pLua, "DieGetWeaponID", this->DieGetWeaponID);
+		
+		//WeaponFire		
 		lua_register(m_pLua, "WeaponFireGetWeaponID", this->WeaponFireGetWeaponID);
 		lua_register(m_pLua, "WeaponFireGetDir", this->WeaponFireGetDir);
 		lua_register(m_pLua, "WeaponFireSetReloadTime", this->WeaponFireSetReloadTime);
@@ -147,7 +152,6 @@ void CLuaFile::Init(const char *pFile)
 		lua_register(m_pLua, "WeaponFireAutoFire", this->WeaponFireAutoFire);
 
 		//OnJump
-		lua_register(m_pLua, "JumpGetClientID", this->JumpGetClientID);
 		lua_register(m_pLua, "JumpGetJumpID", this->JumpGetJumpID);
 
 		//OnTile
@@ -156,9 +160,16 @@ void CLuaFile::Init(const char *pFile)
 		//lua_register(m_pLua, "SettOnTileIndex", this->SetOnTileIndex);
 
 		//OnEntity
-		lua_register(m_pLua, "GetOnEntityIndex", this->GetOnEntityIndex);
-		lua_register(m_pLua, "GetOnEntityPosIndex", this->GetOnEntityPosIndex);
-		lua_register(m_pLua, "SetOnEntityIndex", this->SetOnEntityIndex);
+		lua_register(m_pLua, "OnEntityGetIndex", this->OnEntityGetIndex);
+		lua_register(m_pLua, "OnEntityGetPosIndex", this->OnEntityGetPosIndex);
+		lua_register(m_pLua, "OnEntitySetIndex", this->OnEntitySetIndex);
+		
+		//explosion		
+		lua_register(m_pLua, "ExplosionGetPos", this->ExplosionGetPos);
+		lua_register(m_pLua, "ExplosionGetDamage", this->ExplosionGetDamage);
+		lua_register(m_pLua, "ExplosionGetOwner", this->ExplosionGetOwner);
+		lua_register(m_pLua, "ExplosionGetDamage", this->ExplosionGetDamage);
+		lua_register(m_pLua, "ExplosionAbort", this->ExplosionAbort);		
 
     //player
     lua_register(m_pLua, "GetPlayerName", this->GetPlayerName);
@@ -201,8 +212,7 @@ void CLuaFile::Init(const char *pFile)
     //message
 	//  lua_register(m_pLua, "GetNetError", this->GetNetError);
 	lua_register(m_pLua, "SendPacket", this->SendPacket);
-	lua_register(m_pLua, "FetchPacket", this->FetchPacket);
-	lua_register(m_pLua, "GetPacketClientID", this->GetPacketClientID);
+	lua_register(m_pLua, "FetchPacket", this->FetchPacket);	
 	lua_register(m_pLua, "AddModFile", this->AddModFile);
 	lua_register(m_pLua, "DeleteModFile", this->DeleteModFile);
 	lua_register(m_pLua, "SendFile", this->SendFile);
@@ -242,16 +252,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "CreateDeath", this->CreateDeath);
     lua_register(m_pLua, "CreateDamageIndicator", this->CreateDamageIndicator);
 
-    //event
-    lua_register(m_pLua, "ExplosionGetPos", this->ExplosionGetPos);
-    lua_register(m_pLua, "ExplosionGetDamage", this->ExplosionGetDamage);
-    lua_register(m_pLua, "ExplosionGetOwner", this->ExplosionGetOwner);
-    lua_register(m_pLua, "ExplosionGetDamage", this->ExplosionGetDamage);
-    lua_register(m_pLua, "ExplosionAbort", this->ExplosionAbort);
-
-    lua_register(m_pLua, "GetClientConnectClientID", this->GetClientConnectClientID);
-
-    lua_register(m_pLua, "GetClientEnterClientID", this->GetClientEnterClientID);
+    
 
 
     lua_register(m_pLua, "CharacterTakeDamage", this->CharacterTakeDamage);
@@ -287,8 +288,7 @@ void CLuaFile::Init(const char *pFile)
 
     lua_register(m_pLua, "Win", this->Win);
     lua_register(m_pLua, "SetGametype", this->SetGametype);
-
-	lua_register(m_pLua, "GetJoinTeamClientID", this->GetJoinTeamClientID);
+	
 	lua_register(m_pLua, "GetSelectedTeam", this->GetSelectedTeam);
 	lua_register(m_pLua, "AbortTeamJoin", this->AbortTeamJoin);
 

@@ -10,7 +10,7 @@ int CLuaFile::AddEventListener(lua_State *L)
     lua_getinfo(L, "nlSf", &Frame);
 
 
-    if (!lua_isstring(L, 1) && !lua_isstring(L, 2))
+    if (!lua_isstring(L, 1) || !lua_isstring(L, 2))
         return 0;
     pSelf->m_pLuaHandler->m_EventListener.AddEventListener(pSelf, (char *)lua_tostring(L, 1), (char *)lua_tostring(L, 2));
     return 0;
@@ -30,6 +30,7 @@ int CLuaFile::RemoveEventListener(lua_State *L)
     return 0;
 }
 //Kill-Events
+/*
 int CLuaFile::KillGetKillerID(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -62,7 +63,7 @@ int CLuaFile::KillGetWeapon(lua_State *L)
 
     lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_KillWeapon);
     return 1;
-}
+}*/
 //Chat-Events
 int CLuaFile::ChatGetText(lua_State *L)
 {
@@ -73,17 +74,6 @@ int CLuaFile::ChatGetText(lua_State *L)
     lua_getinfo(L, "nlSf", &Frame);
 
     lua_pushstring(L, pSelf->m_pLuaHandler->m_EventListener.m_pChatText);
-    return 1;
-}
-int CLuaFile::ChatGetClientID(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_ChatClientID);
     return 1;
 }
 int CLuaFile::ChatGetTeam(lua_State *L)
@@ -134,17 +124,7 @@ int CLuaFile::WeaponFireGetDir(lua_State *L)
     return 2;
 }
 
-int CLuaFile::WeaponFireGetClientID(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
 
-    lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnWeaponFireClientID);
-    return 1;
-}
 
 int CLuaFile::WeaponFireSetReloadTime(lua_State *L)
 {
@@ -184,17 +164,7 @@ int CLuaFile::WeaponFireAutoFire(lua_State *L)
     return 0;
 }
 
-int CLuaFile::JumpGetClientID(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
 
-    lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnJumpClientID);
-    return 1;
-}
 int CLuaFile::JumpGetJumpID(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -303,31 +273,6 @@ int CLuaFile::DieGetWeaponID(lua_State *L)
     lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnDieWeaponID);
     return 1;
 }
-
-int CLuaFile::GetClientConnectClientID(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnClientConnectClientID);
-    return 1;
-}
-
-int CLuaFile::GetClientEnterClientID(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnClientEnterClientID);
-    return 1;
-}
-
 int CLuaFile::AbortSpawn(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -350,18 +295,6 @@ int CLuaFile::SpawnGetTeam(lua_State *L)
 
     lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_SpawnTeam);
     return 1;
-}
-
-int CLuaFile::GetJoinTeamClientID(lua_State *L)
-{
-	lua_getglobal(L, "pLUA");
-	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-	lua_Debug Frame;
-	lua_getstack(L, 1, &Frame);
-	lua_getinfo(L, "nlSf", &Frame);
-
-	lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_TeamJoinClientID);
-	return 1;
 }
 
 int CLuaFile::GetSelectedTeam(lua_State *L)
@@ -423,7 +356,7 @@ int CLuaFile::SetOnTileIndex(lua_State *L)
 	pSelf->m_pLuaHandler->m_EventListener.m_OnTileIndex = lua_tointeger(L, 1);
 	return 0;
 }*/
-int CLuaFile::GetOnEntityPosIndex(lua_State *L)
+int CLuaFile::OnEntityGetPosIndex(lua_State *L)
 {
 	lua_getglobal(L, "pLUA");
 	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
@@ -435,7 +368,7 @@ int CLuaFile::GetOnEntityPosIndex(lua_State *L)
 
 	return 1;
 }
-int CLuaFile::GetOnEntityIndex(lua_State *L)
+int CLuaFile::OnEntityGetIndex(lua_State *L)
 {
 	lua_getglobal(L, "pLUA");
 	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
@@ -447,7 +380,7 @@ int CLuaFile::GetOnEntityIndex(lua_State *L)
 
 	return 1;
 }
-int CLuaFile::SetOnEntityIndex(lua_State *L)
+int CLuaFile::OnEntitySetIndex(lua_State *L)
 {
 	lua_getglobal(L, "pLUA");
 	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
@@ -457,4 +390,16 @@ int CLuaFile::SetOnEntityIndex(lua_State *L)
 
 	pSelf->m_pLuaHandler->m_EventListener.m_OnEntityIndex = lua_tointeger(L, 1);
 	return 0;
+}
+
+int CLuaFile::EventGetCID(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_EventCID);
+    return 1;
 }

@@ -336,6 +336,9 @@ public:
 	// io
 	int Save(class IStorage *pStorage, const char *pFilename);
 	int Load(class IStorage *pStorage, const char *pFilename, int StorageType);
+	
+	//Lua
+	char *m_pLuaData;
 };
 
 
