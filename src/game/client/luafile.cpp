@@ -60,9 +60,8 @@ void CLuaFile::Tick()
     ErrorFunc(m_pLua);
 
     FunctionPrepare("Tick");
-    PushInteger((int)(time_get() * 10 / time_freq()));
-    PushInteger(m_pClient->m_NewTick);
-    PushInteger(m_pClient->m_NewPredictedTick);
+    PushInteger((int)(time_get() * 50 / time_freq()));
+    PushInteger(m_pClient->GetPredictedTick());
     FunctionExec();
 }
 
@@ -4009,6 +4008,15 @@ int CLuaFile::AddWaveToStream(lua_State *L)
     return 1;
 }
 
+static short Int2Short(int i)
+{
+	if(i > 0x7fff)
+		return 0x7fff;
+	else if(i < -0x7fff)
+		return -0x7fff;
+	return i;
+}
+
 int CLuaFile::FloatToShortChars(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -4021,7 +4029,7 @@ int CLuaFile::FloatToShortChars(lua_State *L)
         return 0;
 
     float Value = clamp((float)lua_tonumber(L, 1), -1.0f, 1.0f);
-    short Ret = (short)(Value * 32767);
+    short Ret = Int2Short(Value * 32767);
     swap_endian(&Ret, 2, 1);
     lua_pushlstring(L, (char *)&Ret, 2);
     return 1;
