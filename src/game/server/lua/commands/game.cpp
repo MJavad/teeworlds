@@ -49,9 +49,9 @@ int CLuaFile::CreateExplosion(lua_State *L)
     if (lua_isnumber(L, 4))
         Weapon = lua_tointeger(L, 4);
     if (lua_isboolean(L, 5))
-        Weapon = lua_toboolean(L, 5);
+        NoDamage = lua_toboolean(L, 5);
     if (lua_isnumber(L, 6))
-        Damage = lua_toboolean(L, 6);
+        Damage = lua_tointeger(L, 6);
 
 
     pSelf->m_pServer->CreateExplosion(vec2(lua_tonumber(L, 1), lua_tonumber(L, 2)), Owner, Weapon, NoDamage, Damage);
