@@ -85,6 +85,18 @@ static int IntAbs(int i)
 	return i;
 }
 
+int CSound::AddWaveToStream(const char *pWave)
+{
+    if (m_LuaTmpBufferIn >= MUSICTMPBUFFERSIZE - 1)
+        return 0;
+    mem_copy((void *)m_LuaTmpBuffer[m_LuaTmpBufferRead], pWave, m_MusicFrameCount * 4);
+    m_LuaTmpBufferRead++;
+    m_LuaTmpBufferIn++;
+    if (m_LuaTmpBufferRead >= MUSICTMPBUFFERSIZE)
+        m_LuaTmpBufferRead = 0;
+    return MUSICTMPBUFFERSIZE - m_LuaTmpBufferIn;
+}
+
 static void LoadMusicWavThread(void *pUser)
 {
     CSound *pSelf = (CSound *)pUser;
@@ -95,7 +107,6 @@ static void LoadMusicWavThread(void *pUser)
             while(pSelf->m_MusicTmpBufferIn >= MUSICTMPBUFFERSIZE - 1 || !pSelf->m_MusicFileHandle)
             {
                 thread_sleep(1);
-
             }
             lock_wait(m_MusicLock);
             if (pSelf->m_MusicFinished || !pSelf->m_MusicPlaying || !pSelf->m_MusicFileHandle)
@@ -152,14 +163,17 @@ static void Mix(short *pFinalOut, unsigned Frames)
     CSound *pSelf = m_pSelf;
 	int aMixBuffer[MAX_FRAMES*2] = {0};
 	int aMusicBuffer[MAX_FRAMES*2] = {0};
+	int aLuaBuffer[MAX_FRAMES*2] = {0};
 	int MasterVol;
 	int MasterMusicVol;
+	int MasterLuaVol;
 
 	// aquire lock while we are mixing
 	lock_wait(m_SoundLock);
 
 	MasterVol = m_SoundVolume;
 	MasterMusicVol = pSelf->m_MusicVolume;
+	MasterLuaVol = pSelf->m_LuaVolume;
 
 	for(unsigned i = 0; i < NUM_VOICES; i++)
 	{
@@ -238,7 +252,10 @@ static void Mix(short *pFinalOut, unsigned Frames)
     if (!pSelf->m_MusicTmpBuffer[0])
     {
         for (int i = 0; i < MUSICTMPBUFFERSIZE; i++)
+        {
             pSelf->m_MusicTmpBuffer[i] = new char[Frames * 4];
+            pSelf->m_LuaTmpBuffer[i] = new char[Frames * 4];
+        }
         thread_create(LoadMusicWavThread, (void *)pSelf);
     }
     else if(!pSelf->m_MusicFinished && pSelf->m_MusicPlaying && pSelf->m_MusicFileHandle)
@@ -263,6 +280,23 @@ static void Mix(short *pFinalOut, unsigned Frames)
         {
             mem_zero(aMusicBuffer, Frames * 2);
         }
+    }
+    //lua
+    if (pSelf->m_LuaTmpBufferIn > 1)
+    {
+        for(unsigned i = 0; i < Frames; i++)
+        {
+            aLuaBuffer[i * 2] = (int)(((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 0]) * 256 + ((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 1])) * 100;
+            aLuaBuffer[i * 2 + 1] = (int)(((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 2]) * 256 + ((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 3])) * 100;
+        }
+        pSelf->m_LuaTmpBufferWrite++;
+        pSelf->m_LuaTmpBufferIn--;
+        if (pSelf->m_LuaTmpBufferWrite >= MUSICTMPBUFFERSIZE)
+            pSelf->m_LuaTmpBufferWrite = 0;
+    }
+    else
+    {
+        mem_zero(aLuaBuffer, Frames * 2);
     }
     if (pSelf->m_MusicLoadNew == true && pSelf->m_MusicFileName[0])
     {
@@ -305,8 +339,10 @@ static void Mix(short *pFinalOut, unsigned Frames)
 			int j = i<<1;
 			int vl = ((aMixBuffer[j]*MasterVol)/101)>>8;
 			vl += ((aMusicBuffer[j]*MasterMusicVol)/101)>>8;
+			vl += ((aLuaBuffer[j]*MasterLuaVol)/101)>>8;
 			int vr = ((aMixBuffer[j+1]*MasterVol)/101)>>8;
 			vr += ((aMusicBuffer[j+1]*MasterMusicVol)/101)>>8;
+			vr += ((aLuaBuffer[j+1]*MasterLuaVol)/101)>>8;
 
 			pFinalOut[j] = Int2Short(vl);
 			pFinalOut[j+1] = Int2Short(vr);
@@ -383,9 +419,14 @@ int CSound::Init()
     m_MusicFinished = true;
     m_MusicPlaying = false;
     m_MusicVolume = 100;
+    m_LuaVolume = 100;
     m_MusicPeakL = 0;
     m_MusicPeakR = 0;
     m_pSelf = this; // needed for the mixing process
+
+    m_LuaTmpBufferIn = 0;
+    m_LuaTmpBufferWrite = 0;
+    m_LuaTmpBufferRead = 0;
 
     //m_RecordAudio = 1;
 
@@ -427,6 +468,7 @@ int CSound::Update()
 	// update volume
 	int WantedVolume = g_Config.m_SndVolume;
     int WantedMusicVolume = g_Config.m_SndMusicVolume;
+    int WantedLuaVolume = 100;//g_Config.m_SndLuaVolume;
 
 	if(!m_pGraphics->WindowActive() && g_Config.m_SndNonactiveMute)
 	{
@@ -444,6 +486,12 @@ int CSound::Update()
 	{
 		lock_wait(m_SoundLock);
 		m_MusicVolume = WantedMusicVolume;
+		lock_release(m_SoundLock);
+	}
+	if(WantedLuaVolume != m_LuaVolume)
+	{
+		lock_wait(m_SoundLock);
+		m_LuaVolume = WantedLuaVolume;
 		lock_release(m_SoundLock);
 	}
 

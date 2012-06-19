@@ -3099,7 +3099,7 @@ void CEditor::RenderUndoList(CUIRect View)
         {
             char aBuffer[1024];
             str_format(aBuffer, sizeof(aBuffer), "tmp/editor/tmp_undo_%i.png", m_lUndoSteps[HoveredIndex].m_FileNum);
-            m_lUndoSteps[HoveredIndex].m_PreviewImage = Graphics()->LoadTexture(aBuffer, IStorage::TYPE_SAVE, CImageInfo::FORMAT_AUTO, IGraphics::TEXLOAD_NORESAMPLE);
+            m_lUndoSteps[HoveredIndex].m_PreviewImage = Graphics()->LoadTexture(aBuffer, IStorage::TYPE_SAVE, CImageInfo::FORMAT_RGB, IGraphics::TEXLOAD_NORESAMPLE);
         }
         if (m_lUndoSteps[HoveredIndex].m_PreviewImage)
         {

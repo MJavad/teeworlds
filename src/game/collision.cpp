@@ -18,6 +18,7 @@ CCollision::CCollision()
 	m_Width = 0;
 	m_Height = 0;
 	m_pLayers = 0;
+	//m_pOriginalTiles = 0;
 }
 
 void CCollision::Init(class CLayers *pLayers)
@@ -25,7 +26,12 @@ void CCollision::Init(class CLayers *pLayers)
 	m_pLayers = pLayers;
 	m_Width = m_pLayers->GameLayer()->m_Width;
 	m_Height = m_pLayers->GameLayer()->m_Height;
+	if (m_pOriginalTiles)
+        delete []m_pOriginalTiles;
+    m_pOriginalTiles = 0;
 	m_pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(m_pLayers->GameLayer()->m_Data));
+    m_pOriginalTiles = new CTile[m_Height * m_Width];
+    mem_copy(m_pOriginalTiles, m_pTiles, sizeof(CTile) * m_Height * m_Width);
 
 	for(int i = 0; i < m_Width*m_Height; i++)
 	{
@@ -59,7 +65,24 @@ void CCollision::Init(class CLayers *pLayers)
 
 int CCollision::GetTile(int x, int y)
 {
-	return GetTileRaw(x, y) > 128 ? 0 : GetTileRaw(x, y);
+    int Index = GetTileRaw(x, y);
+    Index = Index > 128 ? 0 : Index;
+    switch(Index)
+    {
+    case TILE_DEATH:
+        Index = COLFLAG_DEATH;
+        break;
+    case TILE_SOLID:
+        Index = COLFLAG_SOLID;
+        break;
+    case TILE_NOHOOK:
+        Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
+        break;
+    default:
+        Index = 0;
+    }
+    return Index;
+	//return GetTileRaw(x, y) > 128 ? 0 : GetTileRaw(x, y);
 }
 
 int CCollision::GetTileRaw(int x, int y)
@@ -67,9 +90,9 @@ int CCollision::GetTileRaw(int x, int y)
 	int Nx = clamp(x/32, 0, m_Width-1);
 	int Ny = clamp(y/32, 0, m_Height-1);
 
-    if (!m_pTiles)
+    if (!m_pOriginalTiles)
         return 0;
-	return m_pTiles[Ny*m_Width+Nx].m_Index;
+	return m_pOriginalTiles[Ny*m_Width+Nx].m_Index;
 }
 
 void CCollision::SetTile(int x, int y, int index)
@@ -77,9 +100,10 @@ void CCollision::SetTile(int x, int y, int index)
 	int Nx = clamp(x/32, 0, m_Width-1);
 	int Ny = clamp(y/32, 0, m_Height-1);
 
-    if (!m_pTiles)
+    if (!m_pTiles || !m_pOriginalTiles)
         return;
 	m_pTiles[Ny*m_Width+Nx].m_Index = index;
+	m_pOriginalTiles[Ny*m_Width+Nx].m_Index = index;
 }
 
 bool CCollision::IsTileSolid(int x, int y)

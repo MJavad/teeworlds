@@ -94,6 +94,8 @@ public:
 	int NetobjNumCorrections() { return m_NetObjHandler.NumObjCorrections(); }
 	const char *NetobjCorrectedOn() { return m_NetObjHandler.CorrectedObjOn(); }
 
+	int GetPredictedTick() { return m_PredictedTick; }
+
 	bool m_SuppressEvents;
 	bool m_NewTick;
 	bool m_NewPredictedTick;
