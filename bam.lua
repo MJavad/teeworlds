@@ -469,7 +469,7 @@ else
     if family == "unix" then
         build(buildbot_release32)
         build(buildbot_release64)
-        PseudoTarget("buildbot", "buildbot_release32", "buildbot_release64")
+        PseudoTarget("buildbot", "release_x32", "release_x64")
     end
 
 end
