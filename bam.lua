@@ -371,6 +371,8 @@ if family == "unix" then
 
     buildbot_release32.cc.flags:Add("-m32")
     buildbot_release64.cc.flags:Add("-m64")
+    buildbot_release32.link.flags:Add("-m32")
+    buildbot_release64.link.flags:Add("-m64")
 end
 
 if platform == "macosx" then
@@ -469,7 +471,7 @@ else
     if family == "unix" then
         build(buildbot_release32)
         build(buildbot_release64)
-        PseudoTarget("buildbot", "release_x32", "release_x64")
+        PseudoTarget("buildbot_both", "release_x32", "release_x64")
     end
 
 end
