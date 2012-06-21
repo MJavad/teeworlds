@@ -360,13 +360,14 @@ buildbot_release64 = NewSettings()
 if family == "unix" then
     buildbot_release32 = NewSettings()
     buildbot_release32.config_name = "release_x32"
-    buildbot_release32.config_ext = ""
+    buildbot_release32.config_ext = "_x32"
     buildbot_release32.debug = 0
     buildbot_release32.optimize = 1
     buildbot_release32.cc.defines:Add("CONF_RELEASE")
 
     buildbot_release64 = buildbot_release32:Copy()
-    buildbot_release32.config_name = "release_x64"
+    buildbot_release64.config_name = "release_x64"
+    buildbot_release64.config_ext = "_x64"
 
     buildbot_release32.cc.flags:Add("-m32")
     buildbot_release64.cc.flags:Add("-m64")
