@@ -900,12 +900,14 @@ void CMenus::RenderSettingsLua(CUIRect MainView)
             // display mode list
             static float s_ScrollValue = 0;
             static int pIDItem[MAX_LUA_FILES];
+            static int pIDButtonReload[MAX_LUA_FILES];
             static int pIDButtonDeactivate[MAX_LUA_FILES];
             static int pIDButtonSettings[MAX_LUA_FILES];
             int OldSelected = -1;
 
             UiDoListboxStart(&s_NumNodes , &MainView, 50.0f, Localize("Lua files"), "", NumLuaFiles, 1, OldSelected, s_ScrollValue);
 
+            int HighlightIndex = 0;
             for(int i = 0; i < MAX_LUA_FILES; i++)
             {
                 if (m_pClient->m_pLua->m_aLuaFiles[i].GetScriptName()[0] == 0 || !m_pClient->Client()->GetLuaSaveOption(i))
@@ -917,31 +919,42 @@ void CMenus::RenderSettingsLua(CUIRect MainView)
                     CUIRect LabelInfo;
                     CUIRect ButtonDeactivate;
                     CUIRect ButtonSettings;
+                    CUIRect ButtonReload;
+                    CUIRect Buttons;
 
-                    if (i % 2 == 0)
+                    HighlightIndex++;
+                    if (HighlightIndex % 2 == 0)
                         RenderTools()->DrawUIRect(&Item.m_Rect, vec4(0,0,0,0.3f), CUI::CORNER_ALL, 5.0f);
                     else
                         RenderTools()->DrawUIRect(&Item.m_Rect, vec4(0,0,0,0.5f), CUI::CORNER_ALL, 5.0f);
 
                     Item.m_Rect.HSplitTop(24.0f, &LabelTitle, &LabelInfo);
 
-                    Item.m_Rect.VSplitRight(100.0f, &ButtonSettings, &ButtonDeactivate);
-                    ButtonSettings.VSplitRight(100.0f, 0, &ButtonSettings);
+                    Buttons = Item.m_Rect;
+                    Buttons.VSplitRight(100.0f, &Buttons, &ButtonDeactivate);
+                    Buttons.VSplitRight(100.0f, &Buttons, &ButtonReload);
+                    Buttons.VSplitRight(100.0f, &Buttons, &ButtonSettings);
                     ButtonDeactivate.HMargin(15.0f, &ButtonDeactivate);
                     ButtonDeactivate.VMargin(5.0f, &ButtonDeactivate);
+                    ButtonReload.HMargin(15.0f, &ButtonReload);
+                    ButtonReload.VMargin(5.0f, &ButtonReload);
                     ButtonSettings.HMargin(15.0f, &ButtonSettings);
                     ButtonSettings.VMargin(5.0f, &ButtonSettings);
 
                     if (DoButton_Menu(&pIDButtonDeactivate[i], Localize("Deactivate"), false, &ButtonDeactivate))
                     {
                         m_pClient->m_pLuaCore->DeleteLuaFile(i);
-                        m_NeedRestartLua = true;
+                    }
+                    if (DoButton_Menu(&pIDButtonReload[i], Localize("Reload"), false, &ButtonReload))
+                    {
+                        m_pClient->RenderLoading("Reloading...");
+                        m_pClient->m_pLua->m_aLuaFiles[i].Init(m_pClient->m_pLuaCore->GetFileDir(i));
                     }
                     if (m_pClient->m_pLua->m_aLuaFiles[i].m_HaveSettings)
                     {
                         if (DoButton_Menu(&pIDButtonSettings[i], Localize("Settings"), false, &ButtonSettings))
                         {
-                            if (m_pClient->m_pLua->m_aLuaFiles[i].FunctionExist("ConfigOpen"))
+                            if (m_pClient->m_pLua->m_aLuaFiles[i].FunctionExist("ConfigOpen") && m_pClient->m_pLua->m_aLuaFiles[i].FunctionExist("ConfigClose"))
                             {
                                 m_pClient->m_pLua->m_aLuaFiles[i].FunctionPrepare("ConfigOpen");
                                 MainView.HSplitTop(10.0f, 0, &MainView);
