@@ -18,7 +18,7 @@ public:
 
 	void Init(int CID);
 
-	void TryRespawn();
+	void TryRespawn(bool Force = false);
 	void Spawn(vec2 SpawnPos);
 	void Respawn();
 	void SetTeam(int Team, bool DoChatMsg=true);

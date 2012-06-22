@@ -184,6 +184,7 @@ public:
 
 	class ILua *m_pLuaCore;
 	class CLua *m_pLua;
+	bool m_AutoRespawn;
     //static void ConAddLuaFile(IConsole::IResult *pResult, void *pUserData);
 };
 

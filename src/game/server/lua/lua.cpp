@@ -4,6 +4,7 @@
 #include <engine/serverbrowser.h>
 #include <engine/textrender.h>
 #include <engine/sound.h>
+#include <engine/console.h>
 void CLua::Tick()
 {
     for (int i = 0; i < MAX_LUA_FILES; i++)
@@ -51,6 +52,8 @@ CLua::CLua(CGameContext *pServer)
 
     m_pServer = pServer;
 
+    m_pServer->Console()->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_DEBUG, ConsolePrintCallback, this);
+
     for (int i = 0; i < MAX_LUA_FILES; i++)
     {
         m_aLuaFiles[i].m_pServer = pServer;
@@ -84,4 +87,12 @@ void CLua::ConfigClose(char *pFileDir)
     if (Id == -1)
         return;
     m_aLuaFiles[Id].ConfigClose();
+}
+
+void CLua::ConsolePrintCallback(const char *pLine, void *pUserData)
+{
+    CLua *pSelf = (CLua *)pUserData;
+    pSelf->m_EventListener.m_pLine = (char *)pLine;
+    pSelf->m_EventListener.OnEvent("OnConsole");
+    pSelf->m_EventListener.m_pLine = 0;
 }

@@ -68,6 +68,9 @@ public:
 
     //Keys
     IInput::CEvent m_KeyEvent;
+
+	//OnConsole and OnConsoleRemote
+	char *m_pLine;
 };
 
 class CLuaBinding
@@ -475,6 +478,9 @@ public:
     static inline int AddWaveToStream(lua_State *L);
     static inline int FloatToShortChars(lua_State *L);
     static inline int GetWaveBufferSpace(lua_State *L);
+
+    //OnConsole
+    static inline int OnConsoleGetText(lua_State *L);
 };
 
 class CLua
@@ -500,6 +506,8 @@ public:
     int GetFileId(char *pFilename);
 
     int m_OriginalGameTexture;
+
+    static void ConsolePrintCallback(const char *pLine, void *pUserData);
 };
 
 

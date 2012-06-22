@@ -3060,6 +3060,8 @@ int CLuaFile::UiDirectLabel(lua_State *L)
         pSelf->m_pClient->TextRender()->Text(0, x-tw/2.0f, y, Size, pText, -1);
     if (Align == 1) //right
         pSelf->m_pClient->TextRender()->Text(0, x-tw, y, Size, pText, -1);
+    pSelf->m_pClient->TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 1.0f);
+    pSelf->m_pClient->TextRender()->TextColor(0.0f, 0.0f, 0.0f, 0.3f);
     return 0;
 }
 
@@ -4072,4 +4074,20 @@ int CLuaFile::FloatToShortChars(lua_State *L)
     swap_endian(&Ret, 2, 1);
     lua_pushlstring(L, (char *)&Ret, 2);
     return 1;
+}
+
+int CLuaFile::OnConsoleGetText(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (pSelf->m_pLuaHandler->m_EventListener.m_pLine)
+    {
+        lua_pushstring(L, pSelf->m_pLuaHandler->m_EventListener.m_pLine);
+        return 1;
+    }
+    return 0;
 }

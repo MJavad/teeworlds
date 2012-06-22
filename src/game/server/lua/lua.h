@@ -100,6 +100,9 @@ public:
 	int m_TeamJoinClientID;
 	int m_SelectedTeam;
 	bool m_AbortTeamJoin;
+
+	//OnConsole
+	char *m_pLine;
 };
 
 class CLuaFile
@@ -289,6 +292,7 @@ public:
     //OnCanSpawn
     static inline int SpawnGetTeam(lua_State *L);
     static inline int AbortSpawn(lua_State *L);
+    static inline int SetAutoRespawn(lua_State *L);
 
     //OnDie
     static inline int DieGetKillerID(lua_State *L);
@@ -336,6 +340,9 @@ public:
 	static inline int GetJoinTeamClientID(lua_State *L);
 	static inline int GetSelectedTeam(lua_State *L);
 	static inline int AbortTeamJoin(lua_State *L);
+
+	//OnConsole
+    static inline int OnConsoleGetText(lua_State *L);
 };
 
 class CLua
@@ -359,6 +366,7 @@ public:
 
     int GetFileId(char *pFilename);
 
+    static void ConsolePrintCallback(const char *pLine, void *pUserData);
 };
 
 

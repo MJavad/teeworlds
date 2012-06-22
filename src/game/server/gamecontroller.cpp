@@ -92,7 +92,7 @@ void IGameController::EvaluateSpawnType(CSpawnEval *pEval, int Type)
 	}
 }
 
-bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
+bool IGameController::CanSpawn(int Team, vec2 *pOutPos, bool Force)
 {
 	CSpawnEval Eval;
 
@@ -100,11 +100,16 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos)
 	if(Team == TEAM_SPECTATORS)
 		return false;
 
-    m_pGameServer->m_pLua->m_EventListener.m_SpawnTeam = Team;
-    m_pGameServer->m_pLua->m_EventListener.m_AbortSpawn = false;
-    m_pGameServer->m_pLua->m_EventListener.OnEvent("OnCanSpawn");
-    if (m_pGameServer->m_pLua->m_EventListener.m_AbortSpawn)
+    if (m_pGameServer->m_AutoRespawn == false && Force == false)
         return false;
+    if (Force)
+    {
+        m_pGameServer->m_pLua->m_EventListener.m_SpawnTeam = Team;
+        m_pGameServer->m_pLua->m_EventListener.m_AbortSpawn = false;
+        m_pGameServer->m_pLua->m_EventListener.OnEvent("OnCanSpawn");
+        if (m_pGameServer->m_pLua->m_EventListener.m_AbortSpawn)
+            return false;
+    }
 
 	if(IsTeamplay())
 	{

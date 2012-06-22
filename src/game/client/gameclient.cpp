@@ -736,6 +736,9 @@ void CGameClient::OnStartGame()
 
 void CGameClient::OnRconLine(const char *pLine)
 {
+    m_pLua->m_EventListener.m_pLine = (char *)pLine;
+    m_pLua->m_EventListener.OnEvent("OnConsoleRemote");
+    m_pLua->m_EventListener.m_pLine = 0;
 	m_pGameConsole->PrintLine(CGameConsole::CONSOLETYPE_REMOTE, pLine);
 }
 
