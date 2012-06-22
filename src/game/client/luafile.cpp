@@ -352,6 +352,12 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, "FloatToShortChars", this->FloatToShortChars);
     lua_register(m_pLua, "GetWaveBufferSpace", this->GetWaveBufferSpace);
 
+    //load skin
+    lua_register(m_pLua, "LoadSkin", this->LoadSkin);
+
+    //OnConsole
+    lua_register(m_pLua, "OnConsoleGetText", this->OnConsoleGetText);
+
 
 
     lua_pushlightuserdata(m_pLua, this);
@@ -4088,6 +4094,31 @@ int CLuaFile::OnConsoleGetText(lua_State *L)
     {
         lua_pushstring(L, pSelf->m_pLuaHandler->m_EventListener.m_pLine);
         return 1;
+    }
+    return 0;
+}
+
+int CLuaFile::LoadSkin(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isstring(L, 1))
+    {
+        CSkins::CSkin Skin;
+        const char *pName = str_find_rev(lua_tostring(L, 1), "\\");
+        if (pName == 0)
+            pName = str_find_rev(lua_tostring(L, 1), "/");
+        if (pName == 0)
+            pName = lua_tostring(L, 1);
+        int l = str_length(pName);
+        str_copy(Skin.m_aName, pName , min((int)sizeof(Skin.m_aName), l-3));
+        str_copy(Skin.m_aFilename, lua_tostring(L, 1), (int)sizeof(Skin.m_aFilename));
+        Skin.m_Loaded = false;
+        pSelf->m_pClient->m_pSkins->LoadSkin(&Skin);
     }
     return 0;
 }

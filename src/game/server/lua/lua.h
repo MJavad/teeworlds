@@ -343,6 +343,11 @@ public:
 
 	//OnConsole
     static inline int OnConsoleGetText(lua_State *L);
+
+    //Version
+    static inline int CheckVersion(lua_State *L);
+    static inline int GetVersion(lua_State *L);
+
 };
 
 class CLua

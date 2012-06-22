@@ -481,6 +481,9 @@ public:
 
     //OnConsole
     static inline int OnConsoleGetText(lua_State *L);
+
+    //load skin
+    static inline int LoadSkin(lua_State *L);
 };
 
 class CLua
