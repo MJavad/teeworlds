@@ -373,7 +373,6 @@ if family == "unix" then
     buildbot_release64.cc.flags:Add("-m64")
     buildbot_release32.link.flags:Add("-m elf_i386")
     buildbot_release32.link.flags:Add("-m32")
-    buildbot_release64.link.flags:Add("-m64")
 end
 
 if platform == "macosx" then

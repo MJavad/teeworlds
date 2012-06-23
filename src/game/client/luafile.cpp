@@ -1015,6 +1015,8 @@ int CLuaFile::UiGetScreenWidth(lua_State *L)
     lua_getinfo(L, "nlSf", &Frame);
 
     CUIRect Screen = *pSelf->m_pClient->UI()->Screen();
+    dbg_msg("meth1", "%i", pSelf->m_pClient->Graphics()->ScreenWidth());
+    dbg_msg("meth2", "%f", Screen.w);
     lua_pushnumber(L, Screen.w);
     return 1;
 }

@@ -154,6 +154,22 @@ public:
     //Eventlistener stuff
     static inline int AddEventListener(lua_State *L);
     static inline int RemoveEventListener(lua_State *L);
+    //All Eventlistener
+    //OnWeaponFire
+    //OnJump
+    //OnJump
+    //OnDie
+    //OnExplosion
+    //OnClientEnter
+    //OnClientConnect
+    //OnChat
+    //OnPlayerJoinTeam
+    //OnNetData
+    //OnCanSpawn
+    //OnEntity
+    //OnConsole
+
+
 
     //Menu Browser Things
     static inline int SetMenuBrowserGameTypeColor(lua_State *L);

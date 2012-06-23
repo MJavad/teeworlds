@@ -247,6 +247,28 @@ public:
     //Eventlistener stuff
     static inline int AddEventListener(lua_State *L);
     static inline int RemoveEventListener(lua_State *L);
+    //All Eventlistener
+    //OnChat
+    //OnStateChange
+    //OnControlChange
+    //OnRenderLevelItem1
+    //OnRenderLevelItem2
+    //OnKill
+    //OnRenderLevel1
+    //OnRenderLevel2
+    //OnRenderLevel3
+    //OnRenderLevel4
+    //OnRenderLevel5
+    //OnRenderBackground
+    //OnServerBrowserGameTypeRender
+    //OnScoreboardRender
+    //OnKeyEvent
+    //OnNetData
+    //OnConsoleRemote
+    //OnConsole
+    //OnMusicChange
+
+
 
     //Menu Browser Things
     static inline int SetMenuBrowserGameTypeColor(lua_State *L);
