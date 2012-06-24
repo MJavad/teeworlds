@@ -18,7 +18,7 @@ CCollision::CCollision()
 	m_Width = 0;
 	m_Height = 0;
 	m_pLayers = 0;
-	//m_pOriginalTiles = 0;
+	m_pOriginalTiles = 0;
 }
 
 void CCollision::Init(class CLayers *pLayers)

@@ -192,7 +192,7 @@ void CConsole::SetPrintOutputLevel(int Index, int OutputLevel)
 
 void CConsole::Print(int Level, const char *pFrom, const char *pStr)
 {
-	dbg_msg(pFrom ,"%s", pStr);
+	dbg_msg(pFrom, "%s", pStr);
 	for(int i = 0; i < m_NumPrintCB; ++i)
 	{
 		if(Level <= m_aPrintCB[i].m_OutputLevel && m_aPrintCB[i].m_pfnPrintCallback)
@@ -679,7 +679,7 @@ void CConsole::Register(const char *pName, const char *pParams,
 	pCommand->m_pName = pName;
 	pCommand->m_pHelp = pHelp;
 	pCommand->m_pParams = pParams;
-	
+
 	pCommand->m_Flags = Flags;
 	pCommand->m_Temp = false;
 
@@ -714,7 +714,7 @@ void CConsole::RegisterTemp(const char *pName, const char *pParams,	int Flags, c
 	}
 
 	pCommand->m_pfnCallback = 0;
-	pCommand->m_pUserData = 0;	
+	pCommand->m_pUserData = 0;
 	pCommand->m_Flags = Flags;
 	pCommand->m_Temp = true;
 
@@ -744,7 +744,7 @@ void CConsole::DeregisterTemp(const char *pName)
 				break;
 			}
 	}
-	
+
 	// add to recycle list
 	if(pRemoved)
 	{
@@ -757,7 +757,7 @@ void CConsole::DeregisterTempAll()
 {
 	// set non temp as first one
 	for(; m_pFirstCommand && m_pFirstCommand->m_Temp; m_pFirstCommand = m_pFirstCommand->m_pNext);
-	
+
 	// remove temp entries from command list
 	for(CCommand *pCommand = m_pFirstCommand; pCommand && pCommand->m_pNext; pCommand = pCommand->m_pNext)
 	{

@@ -7,6 +7,7 @@
 #include <engine/serverbrowser.h>
 #include <engine/textrender.h>
 #include <engine/sound.h>
+#include <engine/console.h>
 #include <game/client/lineinput.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/chat.h>
@@ -62,10 +63,12 @@ void CLua::End()
 
 CLua::CLua(CGameClient *pClient)
 {
-    mem_zero(this, sizeof(CLua));
+    mem_zero(this, sizeof(CLua)); //remove this line
     Close();
 
     m_pClient = pClient;
+
+    m_pClient->Console()->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_DEBUG, ConsolePrintCallback, this);
 
     for (int i = 0; i < MAX_LUA_FILES; i++)
     {
@@ -102,4 +105,12 @@ void CLua::ConfigClose(char *pFileDir)
     if (Id == -1)
         return;
     m_aLuaFiles[Id].ConfigClose();
+}
+
+void CLua::ConsolePrintCallback(const char *pLine, void *pUserData)
+{
+    CLua *pSelf = (CLua *)pUserData;
+    pSelf->m_EventListener.m_pLine = (char *)pLine;
+    pSelf->m_EventListener.OnEvent("OnConsole");
+    pSelf->m_EventListener.m_pLine = 0;
 }

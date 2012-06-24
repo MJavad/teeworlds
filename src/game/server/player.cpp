@@ -268,11 +268,11 @@ void CPlayer::SetTeam(int Team, bool DoChatMsg)
 	}
 }
 
-void CPlayer::TryRespawn()
+void CPlayer::TryRespawn(bool Force)
 {
 	vec2 SpawnPos;
 
-	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos))
+	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, Force))
 		return;
 
 	m_Spawning = false;

@@ -39,10 +39,7 @@ int CLuaFile::SetConfigValue(lua_State *L)
 	lua_getstack(L, 1, &Frame);
 	lua_getinfo(L, "nlSf", &Frame);
 
-	if (!(L, 1))
-		return 0;
-    
-	if(lua_isstring(L, 2))
+	if(lua_isstring(L, 1) && lua_isstring(L, 2))
 	{
 		if(CEQUAL("Name"))
 			str_copy(g_Config.m_SvName, lua_tostring(L, 2), sizeof(g_Config.m_SvName));
@@ -57,5 +54,18 @@ int CLuaFile::SetConfigValue(lua_State *L)
 	}
 
 	//TODO: Add more server side variables
+	return 0;
+}
+
+int CLuaFile::SetAutoRespawn(lua_State *L)
+{
+	lua_getglobal(L, "pLUA");
+	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+	lua_Debug Frame;
+	lua_getstack(L, 1, &Frame);
+	lua_getinfo(L, "nlSf", &Frame);
+
+	if (lua_isboolean(L, 1))
+        pSelf->m_pServer->m_AutoRespawn = lua_toboolean(L, 1);
 	return 0;
 }

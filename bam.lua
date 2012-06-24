@@ -327,12 +327,14 @@ release_settings.optimize = 1
 release_settings.cc.defines:Add("CONF_RELEASE")
 
 release_settings_hide = NewSettings()
-release_settings_hide.config_name = "release_hide"
-release_settings_hide.config_ext = "_hide"
-release_settings_hide.debug = 0
-release_settings_hide.optimize = 1
-release_settings_hide.cc.defines:Add("CONF_RELEASE")
-release_settings_hide.link.flags:Add("/subsystem:\"windows\" /entry:\"mainCRTStartup\"") -- hide the console
+if family == "windows" then
+    release_settings_hide.config_name = "release_hide"
+    release_settings_hide.config_ext = "_hide"
+    release_settings_hide.debug = 0
+    release_settings_hide.optimize = 1
+    release_settings_hide.cc.defines:Add("CONF_RELEASE")
+    release_settings_hide.link.flags:Add("/subsystem:\"windows\" /entry:\"mainCRTStartup\"") -- hide the console
+end
 
 release_settings_optimized = NewSettings()
 release_settings_optimized.config_name = "release_optimized"
@@ -340,7 +342,9 @@ release_settings_optimized.config_ext = "_test"
 release_settings_optimized.debug = 0
 release_settings_optimized.optimize = 1
 release_settings_optimized.cc.defines:Add("CONF_RELEASE")
-release_settings_optimized.link.flags:Add("/subsystem:\"windows\" /entry:\"mainCRTStartup\"") -- hide the console
+if family == "windows" then
+    release_settings_optimized.link.flags:Add("/subsystem:\"windows\" /entry:\"mainCRTStartup\"") -- hide the console
+end
 if family == "unix" then
     release_settings_optimized.cc.flags:Add("-O3")
 elseif family == "windows" then
@@ -351,6 +355,25 @@ elseif family == "windows" then
     release_settings_optimized.link.flags:Add("/LTCG")
 end
 
+buildbot_release32 = NewSettings()
+buildbot_release64 = NewSettings()
+if family == "unix" then
+    buildbot_release32 = NewSettings()
+    buildbot_release32.config_name = "release_x32"
+    buildbot_release32.config_ext = "_x32"
+    buildbot_release32.debug = 0
+    buildbot_release32.optimize = 1
+    buildbot_release32.cc.defines:Add("CONF_RELEASE")
+
+    buildbot_release64 = buildbot_release32:Copy()
+    buildbot_release64.config_name = "release_x64"
+    buildbot_release64.config_ext = "_x64"
+
+    buildbot_release32.cc.flags:Add("-m32")
+    buildbot_release64.cc.flags:Add("-m64")
+    buildbot_release32.link.flags:Add("-m elf_i386")
+    buildbot_release32.link.flags:Add("-m32")
+end
 
 if platform == "macosx" then
 	debug_settings_ppc = debug_settings:Copy()
@@ -435,8 +458,20 @@ if platform == "macosx" then
 else
 	build(debug_settings)
 	build(release_settings)
-	build(release_settings_hide)
+	if family == "windows" then
+        build(release_settings_hide)
+    end
 	build(release_settings_optimized)
 	DefaultTarget("game_debug")
-	PseudoTarget("all", "debug", "release", "release_hide", "release_optimized")
+	if family == "windows" then
+        PseudoTarget("all", "debug", "release", "release_hide", "release_optimized")
+	else
+        PseudoTarget("all", "debug", "release", "release_optimized")
+	end
+    if family == "unix" then
+        build(buildbot_release32)
+        build(buildbot_release64)
+        PseudoTarget("buildbot_both", "release_x32", "release_x64")
+    end
+
 end

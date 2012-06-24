@@ -39,8 +39,6 @@ void CGameContext::Construct(int Resetting)
 
 	if(Resetting==NO_RESET)
 		m_pVoteOptionHeap = new CHeap();
-
-	m_pLua = new CLua(this);
 }
 
 CGameContext::CGameContext(int Resetting)
@@ -1485,6 +1483,8 @@ void CGameContext::OnConsoleInit()
 	m_pServer = Kernel()->RequestInterface<IServer>();
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 
+    m_pLua = new CLua(this); //have to be done here due to m_pConsole
+
 	Console()->Register("tune", "si", CFGFLAG_SERVER, ConTuneParam, this, "Tune variable to value");
 	Console()->Register("tune_reset", "", CFGFLAG_SERVER, ConTuneReset, this, "Reset tuning");
 	Console()->Register("tune_dump", "", CFGFLAG_SERVER, ConTuneDump, this, "Dump tuning");
@@ -1537,6 +1537,8 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 			m_pLua->m_pMapLuaData = 0;	
 	}
 	
+
+	m_AutoRespawn = true;
 
 	// reset everything here
 	//world = new GAMEWORLD;

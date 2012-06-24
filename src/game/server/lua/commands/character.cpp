@@ -114,7 +114,7 @@ int CLuaFile::CharacterSpawn(lua_State *L)
             if (lua_isnumber(L, 2) && lua_isnumber(L, 3))
                 pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->Spawn(vec2(lua_tonumber(L, 2), lua_tonumber(L, 3)));
             else
-                pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->TryRespawn();
+                pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->TryRespawn(true);
 			return 0;
         }
     }

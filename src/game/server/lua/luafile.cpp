@@ -31,6 +31,10 @@
 #include "commands/entities.cpp"
 #include "commands/dummy.cpp"
 
+#define NON_HASED_VERSION
+#include <game/version.h>
+#undef NON_HASED_VERSION
+
 CLuaFile::CLuaFile()
 {
     mem_zero(this, sizeof(CLuaFile));
@@ -295,6 +299,10 @@ void CLuaFile::Init(const char *pFile)
 	lua_register(m_pLua, "DummyCreate", this->DummyCreate);
 	lua_register(m_pLua, "IsDummy", this->IsDummy);
 
+    //version
+    lua_register(m_pLua, "CheckVersion", this->CheckVersion);
+    lua_register(m_pLua, "GetVersion", this->GetVersion);
+
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");
@@ -529,4 +537,31 @@ int CLuaFile::SetScriptInfo(lua_State *L)
         return 0;
     str_copy(pSelf->m_aInfo, lua_tostring(L, 1), sizeof(pSelf->m_aInfo));
     return 0;
+}
+
+int CLuaFile::CheckVersion(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isstring(L, 1))
+        lua_pushboolean(L, str_comp(GAME_LUA_VERSION, lua_tostring(L, 1)) == 0);
+    else
+        lua_pushboolean(L, false);
+    return 1;
+}
+
+int CLuaFile::GetVersion(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    lua_pushstring(L, GAME_LUA_VERSION);
+    return 1;
 }

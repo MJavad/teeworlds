@@ -22,13 +22,13 @@ public:
 	};
 
 	void OnInit();
-	
+
 	vec3 GetColorV3(int v);
 	vec4 GetColorV4(int v);
 	int Num();
 	const CSkin *Get(int Index);
 	int Find(const char *pName);
-    void LoadSkin(CSkin *pSkin);
+    void LoadSkin(CSkin *pSkin, bool UseSkinDir = true);
 
 private:
 	sorted_array<CSkin> m_aSkins;

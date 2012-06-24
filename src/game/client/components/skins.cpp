@@ -153,7 +153,8 @@ int CSkins::Num()
 
 const CSkins::CSkin *CSkins::Get(int Index)
 {
-    LoadSkin(&m_aSkins[Index%m_aSkins.size()]);
+    if (!m_aSkins[Index%m_aSkins.size()].m_Loaded)
+        LoadSkin(&m_aSkins[Index%m_aSkins.size()]);
 	return &m_aSkins[max(0, Index%m_aSkins.size())];
 }
 
@@ -178,19 +179,43 @@ vec4 CSkins::GetColorV4(int v)
 	return vec4(r.r, r.g, r.b, 1.0f);
 }
 //Loader
-void CSkins::LoadSkin(CSkins::CSkin *pSkin)
+void CSkins::LoadSkin(CSkins::CSkin *pSkin, bool UseSkinDir)
 {
+    bool AlreadyExist = false;
+    for(int i = 0; i < m_aSkins.size(); i++)
+	{
+		if(str_comp(m_aSkins[i].m_aFilename, pSkin->m_aFilename) == 0)
+		{
+            if (m_aSkins[i].m_Loaded)
+                return;
+		    AlreadyExist = true;
+		}
+	}
     if (pSkin->m_Loaded)
         return;
     pSkin->m_Loaded = true;
 
     char aBuf[512];
-    str_format(aBuf, sizeof(aBuf), "skins/%s", pSkin->m_aFilename);
+    if (UseSkinDir)
+        str_format(aBuf, sizeof(aBuf), "skins/%s", pSkin->m_aFilename);
+    else
+        str_copy(aBuf, pSkin->m_aFilename, sizeof(aBuf));
     CImageInfo Info;
-    if(!Graphics()->LoadPNG(&Info, aBuf, gDirType))
+    if (UseSkinDir)
     {
-        dbg_msg("game", "failed to load skin from %s", aBuf);
-        return;
+        if(!Graphics()->LoadPNG(&Info, aBuf, gDirType))
+        {
+            dbg_msg("game", "failed to load skin from %s", aBuf);
+            return;
+        }
+    }
+    else
+    {
+        if(!Graphics()->LoadPNG(&Info, aBuf, IStorage::TYPE_ALL))
+        {
+            dbg_msg("game", "failed to load skin from %s", aBuf);
+            return;
+        }
     }
 
     pSkin->m_OrgTexture = Graphics()->LoadTextureRaw(Info.m_Width, Info.m_Height, Info.m_Format, Info.m_pData, Info.m_Format, 0);
@@ -270,4 +295,10 @@ void CSkins::LoadSkin(CSkins::CSkin *pSkin)
 
     pSkin->m_ColorTexture = Graphics()->LoadTextureRaw(Info.m_Width, Info.m_Height, Info.m_Format, Info.m_pData, Info.m_Format, 0);
     mem_free(Info.m_pData);
+    if (!AlreadyExist)
+    {
+        CSkin Skin = *pSkin;
+        m_aSkins.add(Skin);
+    }
+
 }

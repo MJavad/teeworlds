@@ -9,6 +9,10 @@
 #include <base/tl/array.h>
 #include <base/tl/sorted_array.h>
 
+#define NON_HASED_VERSION
+#include <game/version.h>
+#undef NON_HASED_VERSION
+
 extern "C" { // lua
     #define LUA_CORE /* make sure that we don't try to import these functions */
     #include <engine/external/lua/lua.h>
@@ -64,6 +68,9 @@ public:
 
     //Keys
     IInput::CEvent m_KeyEvent;
+
+	//OnConsole and OnConsoleRemote
+	char *m_pLine;
 };
 
 class CLuaBinding
@@ -193,6 +200,7 @@ public:
     void Close();
     void Init(const char *pFile);
 
+
     //Some Error and Lua stuff
     //Error
     static int ErrorFunc(lua_State *L);
@@ -239,6 +247,28 @@ public:
     //Eventlistener stuff
     static inline int AddEventListener(lua_State *L);
     static inline int RemoveEventListener(lua_State *L);
+    //All Eventlistener
+    //OnChat
+    //OnStateChange
+    //OnControlChange
+    //OnRenderLevelItem1
+    //OnRenderLevelItem2
+    //OnKill
+    //OnRenderLevel1
+    //OnRenderLevel2
+    //OnRenderLevel3
+    //OnRenderLevel4
+    //OnRenderLevel5
+    //OnRenderBackground
+    //OnServerBrowserGameTypeRender
+    //OnScoreboardRender
+    //OnKeyEvent
+    //OnNetData
+    //OnConsoleRemote
+    //OnConsole
+    //OnMusicChange
+
+
 
     //Menu Browser Things
     static inline int SetMenuBrowserGameTypeColor(lua_State *L);
@@ -461,11 +491,21 @@ public:
     static inline int TimeGet(lua_State *L);
     static inline int FPS(lua_State *L);
 
+    //Version
+    static inline int CheckVersion(lua_State *L);
+    static inline int GetVersion(lua_State *L);
+
     //sound hook
     static inline int GetWaveFrameSize(lua_State *L);
     static inline int AddWaveToStream(lua_State *L);
     static inline int FloatToShortChars(lua_State *L);
     static inline int GetWaveBufferSpace(lua_State *L);
+
+    //OnConsole
+    static inline int OnConsoleGetText(lua_State *L);
+
+    //load skin
+    static inline int LoadSkin(lua_State *L);
 };
 
 class CLua
@@ -491,6 +531,8 @@ public:
     int GetFileId(char *pFilename);
 
     int m_OriginalGameTexture;
+
+    static void ConsolePrintCallback(const char *pLine, void *pUserData);
 };
 
 

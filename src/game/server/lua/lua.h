@@ -100,7 +100,9 @@ public:
 	//OnPlayerJoinTeam	
 	int m_SelectedTeam;
 	bool m_AbortTeamJoin;
-	
+
+	//OnConsole
+	char *m_pLine;
 };
 
 class CLuaFile
@@ -157,6 +159,22 @@ public:
     //Eventlistener stuff
     static inline int AddEventListener(lua_State *L);
     static inline int RemoveEventListener(lua_State *L);
+    //All Eventlistener
+    //OnWeaponFire
+    //OnJump
+    //OnJump
+    //OnDie
+    //OnExplosion
+    //OnClientEnter
+    //OnClientConnect
+    //OnChat
+    //OnPlayerJoinTeam
+    //OnNetData
+    //OnCanSpawn
+    //OnEntity
+    //OnConsole
+
+
 
     //Menu Browser Things
     static inline int SetMenuBrowserGameTypeColor(lua_State *L);
@@ -292,6 +310,7 @@ public:
     //OnCanSpawn
     static inline int SpawnGetTeam(lua_State *L);
     static inline int AbortSpawn(lua_State *L);
+    static inline int SetAutoRespawn(lua_State *L);
 
     //OnDie
     static inline int DieGetKillerID(lua_State *L);
@@ -338,6 +357,14 @@ public:
 	//OnPlayerJoinTeam	
 	static inline int GetSelectedTeam(lua_State *L);
 	static inline int AbortTeamJoin(lua_State *L);
+
+	//OnConsole
+    static inline int OnConsoleGetText(lua_State *L);
+
+    //Version
+    static inline int CheckVersion(lua_State *L);
+    static inline int GetVersion(lua_State *L);
+
 };
 
 class CLua
@@ -363,6 +390,7 @@ public:
 	
 	char *m_pMapLuaData;
 
+    static void ConsolePrintCallback(const char *pLine, void *pUserData);
 };
 
 
