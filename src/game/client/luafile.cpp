@@ -3066,8 +3066,8 @@ int CLuaFile::UiDirectLabel(lua_State *L)
         pSelf->m_pClient->TextRender()->Text(0, x-tw/2.0f, y, Size, pText, -1);
     if (Align == 1) //right
         pSelf->m_pClient->TextRender()->Text(0, x-tw, y, Size, pText, -1);
-    pSelf->m_pClient->TextRender()->TextOutlineColor(1.0f, 1.0f, 1.0f, 1.0f);
-    pSelf->m_pClient->TextRender()->TextColor(0.0f, 0.0f, 0.0f, 0.3f);
+    pSelf->m_pClient->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
+    pSelf->m_pClient->TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
     return 0;
 }
 
