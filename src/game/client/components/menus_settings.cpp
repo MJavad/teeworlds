@@ -339,10 +339,10 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 
 	// skin selector
 	MainView.HSplitTop(20.0f, 0, &MainView);
-	static bool s_InitSkinlist = true;
+	static int s_SkinlistSize = 0;
 	static sorted_array<const CSkins::CSkin *> s_paSkinList;
 	static float s_ScrollValue = 0.0f;
-	if(s_InitSkinlist)
+	if(s_SkinlistSize != m_pClient->m_pSkins->Num())
 	{
 		s_paSkinList.clear();
 		for(int i = 0; i < m_pClient->m_pSkins->Num(); ++i)
@@ -353,11 +353,11 @@ void CMenus::RenderSettingsTee(CUIRect MainView)
 				continue;
 			s_paSkinList.add(s);
 		}
-		s_InitSkinlist = false;
+		s_SkinlistSize = m_pClient->m_pSkins->Num();
 	}
 
 	int OldSelected = -1;
-	UiDoListboxStart(&s_InitSkinlist, &MainView, 50.0f, Localize("Skins"), "", s_paSkinList.size(), 4, OldSelected, s_ScrollValue);
+	UiDoListboxStart(&s_SkinlistSize, &MainView, 50.0f, Localize("Skins"), "", s_paSkinList.size(), 4, OldSelected, s_ScrollValue);
 
 	for(int i = 0; i < s_paSkinList.size(); ++i)
 	{

@@ -1015,8 +1015,6 @@ int CLuaFile::UiGetScreenWidth(lua_State *L)
     lua_getinfo(L, "nlSf", &Frame);
 
     CUIRect Screen = *pSelf->m_pClient->UI()->Screen();
-    dbg_msg("meth1", "%i", pSelf->m_pClient->Graphics()->ScreenWidth());
-    dbg_msg("meth2", "%f", Screen.w);
     lua_pushnumber(L, Screen.w);
     return 1;
 }
@@ -4052,7 +4050,7 @@ int CLuaFile::LoadSkin(lua_State *L)
         str_copy(Skin.m_aName, pName , min((int)sizeof(Skin.m_aName), l-3));
         str_copy(Skin.m_aFilename, lua_tostring(L, 1), (int)sizeof(Skin.m_aFilename));
         Skin.m_Loaded = false;
-        pSelf->m_pClient->m_pSkins->LoadSkin(&Skin);
+        pSelf->m_pClient->m_pSkins->LoadSkin(&Skin, false);
     }
     return 0;
 }

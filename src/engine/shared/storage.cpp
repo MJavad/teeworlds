@@ -268,6 +268,13 @@ public:
 
 			if(Type == TYPE_ALL)
 			{
+			    //try cwd
+                Handle = io_open(pFilename, Flags);
+                if(Handle)
+                {
+                    str_copy(pBuffer, pFilename, BufferSize);
+                    return Handle;
+                }
 				// check all available directories
 				for(int i = 0; i < m_NumPaths; ++i)
 				{
