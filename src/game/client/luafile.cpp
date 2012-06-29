@@ -337,6 +337,10 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("StatGetNumber"), this->StatGetNumber);
     lua_register(m_pLua, ToLower("StatGetInfo"), this->StatGetInfo);
     lua_register(m_pLua, ToLower("StatGetRow"), this->StatGetRow);
+	
+	//editor
+	lua_register(m_pLua, "SetMapLuaData", this->SetMapLuaData);
+	lua_register(m_pLua, "GetMapLuaData", this->GetMapLuaData);
 
 
     lua_register(m_pLua, ToLower("TimeGet"), this->TimeGet);

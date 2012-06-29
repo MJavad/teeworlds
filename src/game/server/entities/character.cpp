@@ -75,8 +75,11 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	GameServer()->m_World.InsertEntity(this);
 	m_Alive = true;
 
-	GameServer()->m_pController->OnCharacterSpawn(this);
-
+	GameServer()->m_pController->OnCharacterSpawn(this);	
+	
+	GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
+    GameServer()->m_pLua->m_EventListener.OnEvent("OnCharacterSpawn");	
+	
 	return true;
 }
 
@@ -261,7 +264,8 @@ void CCharacter::FireWeapon()
 
     if (m_aWeapons[m_ActiveWeapon].m_Ammo && (WillFire || (m_LatestInput.m_Fire&1)))
     {
-        GameServer()->m_pLua->m_EventListener.m_OnWeaponFireClientID = m_pPlayer->GetCID();
+       // GameServer()->m_pLua->m_EventListener.m_OnWeaponFireClientID = m_pPlayer->GetCID();
+		GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
         GameServer()->m_pLua->m_EventListener.m_OnWeaponFireWeaponID = m_ActiveWeapon;
         GameServer()->m_pLua->m_EventListener.m_OnWeaponFireDir = Direction;
         GameServer()->m_pLua->m_EventListener.m_OnWeaponFireReloadTimer = -1;
@@ -581,14 +585,16 @@ void CCharacter::Tick()
 	{
 		if((m_Core.m_TriggeredEvents&COREEVENT_GROUND_JUMP))
 		{
-			GameServer()->m_pLua->m_EventListener.m_OnJumpClientID = m_pPlayer->GetCID();
+			//GameServer()->m_pLua->m_EventListener.m_OnJumpClientID = m_pPlayer->GetCID();
+			GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
 			GameServer()->m_pLua->m_EventListener.m_OnJumpJumpID = 0;
 			GameServer()->m_pLua->m_EventListener.OnEvent("OnJump");
 		}
 		else if((m_Core.m_TriggeredEvents&COREEVENT_AIR_JUMP))
 		{
 
-			GameServer()->m_pLua->m_EventListener.m_OnJumpClientID = m_pPlayer->GetCID();
+			//GameServer()->m_pLua->m_EventListener.m_OnJumpClientID = m_pPlayer->GetCID();
+			GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
 			GameServer()->m_pLua->m_EventListener.m_OnJumpJumpID = 1;
 			GameServer()->m_pLua->m_EventListener.OnEvent("OnJump");
 		}
@@ -714,7 +720,8 @@ void CCharacter::Die(int Killer, int Weapon)
 {
 	// we got to wait 0.5 secs before respawning
     GameServer()->m_pLua->m_EventListener.m_OnDieKillerID = Killer;
-    GameServer()->m_pLua->m_EventListener.m_OnDieVictimID = m_pPlayer->GetCID();
+	GameServer()->m_pLua->m_EventListener.m_OnDieVictimID = m_pPlayer->GetCID();
+	GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
     GameServer()->m_pLua->m_EventListener.m_OnDieWeaponID = Weapon;
     GameServer()->m_pLua->m_EventListener.OnEvent("OnDie");
 

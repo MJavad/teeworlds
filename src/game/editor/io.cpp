@@ -379,7 +379,16 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 	}
 
 	df.AddItem(MAPITEMTYPE_ENVPOINTS, 0, TotalSize, pPoints);
-
+	
+	
+	//add Lua-item
+	if(m_pLuaData != 0)
+	{
+		CMapItemLua Item;
+		Item.m_pData = m_pLuaData;
+		df.AddItem(MAPITEMTYPE_LUA, 0, sizeof(Item), &Item);
+	}
+		
 	// finish the data file
 	df.Finish();
 	m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "editor", "saving done");
@@ -632,6 +641,15 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 					pEnv->m_Synchronized = pItem->m_Synchronized;
 			}
 		}
+		
+		//load Lua-item
+		CMapItemLua *pItem = (CMapItemLua *)DataFile.FindItem(MAPITEMTYPE_LUA, 0);
+		if(pItem)
+		{
+			m_pLuaData = (char *)pItem->m_pData;	
+		}
+		else
+			m_pLuaData = 0;	
 	}
 
 	return 1;
