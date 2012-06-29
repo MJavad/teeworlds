@@ -208,6 +208,43 @@ int CLuaFile::GetPlayerSkin(lua_State *L)
     return 0;
 }
 
+/*int CLuaFile::GetPlayerColorSkin(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1))
+    {
+        if (lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
+        {
+            if (pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_UseCustomColor)
+            {
+                lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).r);
+                lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).g);
+                lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).b);
+                lua_pushnumber(L, 1.0f);
+                return 4;
+            }
+            else
+            {
+                const CSkins::CSkin *s = pSelf->m_pClient->m_pSkins->Get(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_SkinID);
+                if (s)
+                {
+                    lua_pushnumber(L, s->m_BloodColor.r);
+                    lua_pushnumber(L, s->m_BloodColor.g);
+                    lua_pushnumber(L, s->m_BloodColor.b);
+                    lua_pushnumber(L, 1.0f);
+                    return 4;
+                }
+            }
+        }
+    }
+    return 0;
+}*/
+
 //SetPlayerScore(ClientID, Score)
 int CLuaFile::SetPlayerScore(lua_State *L)
 {

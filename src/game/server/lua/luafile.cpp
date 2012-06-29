@@ -120,194 +120,194 @@ void CLuaFile::Init(const char *pFile)
     lua_atpanic(m_pLua, &Panic);
 
     //include
-    lua_register(m_pLua, "Include", this->Include);
+    lua_register(m_pLua, ToLower("Include"), this->Include);
     luaL_dostring(m_pLua, "package.path = \"./lua/?.lua;./lua/lib/?.lua\"\n");
 
     //config
-    lua_register(m_pLua, "SetScriptUseSettingPage", this->SetScriptUseSettingPage);
-    lua_register(m_pLua, "SetScriptTitle", this->SetScriptTitle);
-    lua_register(m_pLua, "SetScriptInfo", this->SetScriptInfo);
+    lua_register(m_pLua, ToLower("SetScriptUseSettingPage"), this->SetScriptUseSettingPage);
+    lua_register(m_pLua, ToLower("SetScriptTitle"), this->SetScriptTitle);
+    lua_register(m_pLua, ToLower("SetScriptInfo"), this->SetScriptInfo);
 
     //events
-		lua_register(m_pLua, "AddEventListener", this->AddEventListener);
-		lua_register(m_pLua, "RemoveEventListener", this->RemoveEventListener);
+		lua_register(m_pLua, ToLower("AddEventListener"), this->AddEventListener);
+		lua_register(m_pLua, ToLower("RemoveEventListener"), this->RemoveEventListener);
 		 //chat
-		lua_register(m_pLua, "ChatGetText", this->ChatGetText);
-		lua_register(m_pLua, "ChatGetClientID", this->ChatGetClientID);
-		lua_register(m_pLua, "ChatGetTeam", this->ChatGetTeam);
-		lua_register(m_pLua, "ChatHide", this->ChatHide);
+		lua_register(m_pLua, ToLower("ChatGetText"), this->ChatGetText);
+		lua_register(m_pLua, ToLower("ChatGetClientID"), this->ChatGetClientID);
+		lua_register(m_pLua, ToLower("ChatGetTeam"), this->ChatGetTeam);
+		lua_register(m_pLua, ToLower("ChatHide"), this->ChatHide);
 
 		//kill
-		lua_register(m_pLua, "KillGetKillerID", this->KillGetKillerID);
-		lua_register(m_pLua, "KillGetVictimID", this->KillGetVictimID);
-		lua_register(m_pLua, "KillGetWeapon", this->KillGetWeapon);
+		lua_register(m_pLua, ToLower("KillGetKillerID"), this->KillGetKillerID);
+		lua_register(m_pLua, ToLower("KillGetVictimID"), this->KillGetVictimID);
+		lua_register(m_pLua, ToLower("KillGetWeapon"), this->KillGetWeapon);
 
 		//WeaponFire
-		lua_register(m_pLua, "WeaponFireGetClientID", this->WeaponFireGetClientID);
-		lua_register(m_pLua, "WeaponFireGetWeaponID", this->WeaponFireGetWeaponID);
-		lua_register(m_pLua, "WeaponFireGetDir", this->WeaponFireGetDir);
-		lua_register(m_pLua, "WeaponFireSetReloadTime", this->WeaponFireSetReloadTime);
-		lua_register(m_pLua, "WeaponFireDisableSound", this->WeaponFireDisableSound);
-		lua_register(m_pLua, "WeaponFireAutoFire", this->WeaponFireAutoFire);
+		lua_register(m_pLua, ToLower("WeaponFireGetClientID"), this->WeaponFireGetClientID);
+		lua_register(m_pLua, ToLower("WeaponFireGetWeaponID"), this->WeaponFireGetWeaponID);
+		lua_register(m_pLua, ToLower("WeaponFireGetDir"), this->WeaponFireGetDir);
+		lua_register(m_pLua, ToLower("WeaponFireSetReloadTime"), this->WeaponFireSetReloadTime);
+		lua_register(m_pLua, ToLower("WeaponFireDisableSound"), this->WeaponFireDisableSound);
+		lua_register(m_pLua, ToLower("WeaponFireAutoFire"), this->WeaponFireAutoFire);
 
 		//OnJump
-		lua_register(m_pLua, "JumpGetClientID", this->JumpGetClientID);
-		lua_register(m_pLua, "JumpGetJumpID", this->JumpGetJumpID);
+		lua_register(m_pLua, ToLower("JumpGetClientID"), this->JumpGetClientID);
+		lua_register(m_pLua, ToLower("JumpGetJumpID"), this->JumpGetJumpID);
 
 		//OnTile
-		//lua_register(m_pLua, "GetOnTileIndex", this->GetOnTileIndex);
-		//lua_register(m_pLua, "GetOnTilePosIndex", this->GetOnTilePosIndex);
-		//lua_register(m_pLua, "SettOnTileIndex", this->SetOnTileIndex);
+		//lua_register(m_pLua, ToLower("GetOnTileIndex"), this->GetOnTileIndex);
+		//lua_register(m_pLua, ToLower("GetOnTilePosIndex"), this->GetOnTilePosIndex);
+		//lua_register(m_pLua, ToLower("SettOnTileIndex"), this->SetOnTileIndex);
 
 		//OnEntity
-		lua_register(m_pLua, "GetOnEntityIndex", this->GetOnEntityIndex);
-		lua_register(m_pLua, "GetOnEntityPosIndex", this->GetOnEntityPosIndex);
-		lua_register(m_pLua, "SetOnEntityIndex", this->SetOnEntityIndex);
+		lua_register(m_pLua, ToLower("GetOnEntityIndex"), this->GetOnEntityIndex);
+		lua_register(m_pLua, ToLower("GetOnEntityPosIndex"), this->GetOnEntityPosIndex);
+		lua_register(m_pLua, ToLower("SetOnEntityIndex"), this->SetOnEntityIndex);
 
     //player
-    lua_register(m_pLua, "GetPlayerName", this->GetPlayerName);
-    lua_register(m_pLua, "GetPlayerClan", this->GetPlayerClan);
-    lua_register(m_pLua, "GetPlayerCountry", this->GetPlayerCountry);
-    lua_register(m_pLua, "GetPlayerScore", this->GetPlayerScore);
-    lua_register(m_pLua, "GetPlayerPing", this->GetPlayerPing);
-    lua_register(m_pLua, "GetPlayerTeam", this->GetPlayerTeam);
-    lua_register(m_pLua, "GetPlayerSkin", this->GetPlayerSkin);
-	lua_register(m_pLua, "GetPlayerColorFeet", this->GetPlayerColorFeet);
-	lua_register(m_pLua, "GetPlayerColorBody", this->GetPlayerColorBody);
-	lua_register(m_pLua, "SetPlayerScore", this->SetPlayerScore);
-	lua_register(m_pLua, "SetPlayerName", this->SetPlayerName);
-	lua_register(m_pLua, "SetPlayerTeam", this->SetPlayerTeam);
-	lua_register(m_pLua, "SetPlayerClan", this->SetPlayerClan);
-	lua_register(m_pLua, "SetPlayerCountry", this->SetPlayerCountry);
+    lua_register(m_pLua, ToLower("GetPlayerName"), this->GetPlayerName);
+    lua_register(m_pLua, ToLower("GetPlayerClan"), this->GetPlayerClan);
+    lua_register(m_pLua, ToLower("GetPlayerCountry"), this->GetPlayerCountry);
+    lua_register(m_pLua, ToLower("GetPlayerScore"), this->GetPlayerScore);
+    lua_register(m_pLua, ToLower("GetPlayerPing"), this->GetPlayerPing);
+    lua_register(m_pLua, ToLower("GetPlayerTeam"), this->GetPlayerTeam);
+    lua_register(m_pLua, ToLower("GetPlayerSkin"), this->GetPlayerSkin);
+	lua_register(m_pLua, ToLower("GetPlayerColorFeet"), this->GetPlayerColorFeet);
+	lua_register(m_pLua, ToLower("GetPlayerColorBody"), this->GetPlayerColorBody);
+	lua_register(m_pLua, ToLower("SetPlayerScore"), this->SetPlayerScore);
+	lua_register(m_pLua, ToLower("SetPlayerName"), this->SetPlayerName);
+	lua_register(m_pLua, ToLower("SetPlayerTeam"), this->SetPlayerTeam);
+	lua_register(m_pLua, ToLower("SetPlayerClan"), this->SetPlayerClan);
+	lua_register(m_pLua, ToLower("SetPlayerCountry"), this->SetPlayerCountry);
 
-	lua_register(m_pLua, "SetPlayerColorBody", this->SetPlayerColorBody);
-	lua_register(m_pLua, "SetPlayerColorFeet", this->SetPlayerColorFeet);
+	lua_register(m_pLua, ToLower("SetPlayerColorBody"), this->SetPlayerColorBody);
+	lua_register(m_pLua, ToLower("SetPlayerColorFeet"), this->SetPlayerColorFeet);
 
     //character
-    lua_register(m_pLua, "Emote", this->Emote);
-    lua_register(m_pLua, "GetCharacterPos", this->GetCharacterPos);
-    lua_register(m_pLua, "GetCharacterVel", this->GetCharacterVel);
-	lua_register(m_pLua, "SetCharacterPos", this->SetCharacterPos);
-    lua_register(m_pLua, "SetCharacterVel", this->SetCharacterVel);
+    lua_register(m_pLua, ToLower("Emote"), this->Emote);
+    lua_register(m_pLua, ToLower("GetCharacterPos"), this->GetCharacterPos);
+    lua_register(m_pLua, ToLower("GetCharacterVel"), this->GetCharacterVel);
+	lua_register(m_pLua, ToLower("SetCharacterPos"), this->SetCharacterPos);
+    lua_register(m_pLua, ToLower("SetCharacterVel"), this->SetCharacterVel);
 
 	//config
-    lua_register(m_pLua, "GetConfigValue", this->GetConfigValue);
-    lua_register(m_pLua, "SetConfigValue", this->SetConfigValue);
+    lua_register(m_pLua, ToLower("GetConfigValue"), this->GetConfigValue);
+    lua_register(m_pLua, ToLower("SetConfigValue"), this->SetConfigValue);
 
     //console
-    lua_register(m_pLua, "Print", this->Print);
-    lua_register(m_pLua, "Console", this->Console);
+    lua_register(m_pLua, ToLower("Print"), this->Print);
+    lua_register(m_pLua, ToLower("Console"), this->Console);
 
     //game
-    lua_register(m_pLua, "GetGameType", this->GetGameType);
-    lua_register(m_pLua, "IsTeamplay", this->IsTeamplay);
+    lua_register(m_pLua, ToLower("GetGameType"), this->GetGameType);
+    lua_register(m_pLua, ToLower("IsTeamplay"), this->IsTeamplay);
 
     //message
-	//  lua_register(m_pLua, "GetNetError", this->GetNetError);
-	lua_register(m_pLua, "SendPacket", this->SendPacket);
-	lua_register(m_pLua, "FetchPacket", this->FetchPacket);
-	lua_register(m_pLua, "GetPacketClientID", this->GetPacketClientID);
-	lua_register(m_pLua, "AddModFile", this->AddModFile);
-	lua_register(m_pLua, "DeleteModFile", this->DeleteModFile);
-	lua_register(m_pLua, "SendFile", this->SendFile);
+	//  lua_register(m_pLua, ToLower("GetNetError"), this->GetNetError);
+	lua_register(m_pLua, ToLower("SendPacket"), this->SendPacket);
+	lua_register(m_pLua, ToLower("FetchPacket"), this->FetchPacket);
+	lua_register(m_pLua, ToLower("GetPacketClientID"), this->GetPacketClientID);
+	lua_register(m_pLua, ToLower("AddModFile"), this->AddModFile);
+	lua_register(m_pLua, ToLower("DeleteModFile"), this->DeleteModFile);
+	lua_register(m_pLua, ToLower("SendFile"), this->SendFile);
 
 
     //collision
-    lua_register(m_pLua, "IntersectLine", this->IntersectLine);
-    lua_register(m_pLua, "GetTile", this->GetTile);
-    lua_register(m_pLua, "SetTile", this->SetTile);
-    lua_register(m_pLua, "GetMapWidth", this->GetMapWidth);
-    lua_register(m_pLua, "GetMapHeight", this->GetMapHeight);
+    lua_register(m_pLua, ToLower("IntersectLine"), this->IntersectLine);
+    lua_register(m_pLua, ToLower("GetTile"), this->GetTile);
+    lua_register(m_pLua, ToLower("SetTile"), this->SetTile);
+    lua_register(m_pLua, ToLower("GetMapWidth"), this->GetMapWidth);
+    lua_register(m_pLua, ToLower("GetMapHeight"), this->GetMapHeight);
 
     //Chat
-    lua_register(m_pLua, "SendBroadcast", this->SendBroadcast);
-    lua_register(m_pLua, "SendChat", this->SendChat);
-    lua_register(m_pLua, "SendChatTarget", this->SendChatTarget);
+    lua_register(m_pLua, ToLower("SendBroadcast"), this->SendBroadcast);
+    lua_register(m_pLua, ToLower("SendChat"), this->SendChat);
+    lua_register(m_pLua, ToLower("SendChatTarget"), this->SendChatTarget);
 
     //Entities
-    lua_register(m_pLua, "EntityFind", this->EntityFind);
-    lua_register(m_pLua, "EntityGetCharacterId", this->EntityGetCharacterId);
-    lua_register(m_pLua, "EntityGetPos", this->EntityGetPos);
-    lua_register(m_pLua, "EntitySetPos", this->EntitySetPos);
-    lua_register(m_pLua, "EntityDestroy", this->EntityDestroy);
-    lua_register(m_pLua, "ProjectileFind", this->ProjectileFind);
-    lua_register(m_pLua, "ProjectileGetWeapon", this->ProjectileGetWeapon);
-    lua_register(m_pLua, "ProjectileGetOwner", this->ProjectileGetOwner);
-    lua_register(m_pLua, "ProjectileGetPos", this->ProjectileGetPos);
-    lua_register(m_pLua, "ProjectileGetDir", this->ProjectileGetDir);
-    lua_register(m_pLua, "ProjectileGetLifespan", this->ProjectileGetLifespan);
-    lua_register(m_pLua, "ProjectileGetExplosive", this->ProjectileGetExplosive);
-    lua_register(m_pLua, "ProjectileGetSoundImpact", this->ProjectileGetSoundImpact);
-    lua_register(m_pLua, "ProjectileCreate", this->ProjectileCreate);
-	lua_register(m_pLua, "LaserCreate", this->LaserCreate);
+    lua_register(m_pLua, ToLower("EntityFind"), this->EntityFind);
+    lua_register(m_pLua, ToLower("EntityGetCharacterId"), this->EntityGetCharacterId);
+    lua_register(m_pLua, ToLower("EntityGetPos"), this->EntityGetPos);
+    lua_register(m_pLua, ToLower("EntitySetPos"), this->EntitySetPos);
+    lua_register(m_pLua, ToLower("EntityDestroy"), this->EntityDestroy);
+    lua_register(m_pLua, ToLower("ProjectileFind"), this->ProjectileFind);
+    lua_register(m_pLua, ToLower("ProjectileGetWeapon"), this->ProjectileGetWeapon);
+    lua_register(m_pLua, ToLower("ProjectileGetOwner"), this->ProjectileGetOwner);
+    lua_register(m_pLua, ToLower("ProjectileGetPos"), this->ProjectileGetPos);
+    lua_register(m_pLua, ToLower("ProjectileGetDir"), this->ProjectileGetDir);
+    lua_register(m_pLua, ToLower("ProjectileGetLifespan"), this->ProjectileGetLifespan);
+    lua_register(m_pLua, ToLower("ProjectileGetExplosive"), this->ProjectileGetExplosive);
+    lua_register(m_pLua, ToLower("ProjectileGetSoundImpact"), this->ProjectileGetSoundImpact);
+    lua_register(m_pLua, ToLower("ProjectileCreate"), this->ProjectileCreate);
+	lua_register(m_pLua, ToLower("LaserCreate"), this->LaserCreate);
 
     //game
-    lua_register(m_pLua, "CreateExplosion", this->CreateExplosion);
-    lua_register(m_pLua, "CreateDeath", this->CreateDeath);
-    lua_register(m_pLua, "CreateDamageIndicator", this->CreateDamageIndicator);
+    lua_register(m_pLua, ToLower("CreateExplosion"), this->CreateExplosion);
+    lua_register(m_pLua, ToLower("CreateDeath"), this->CreateDeath);
+    lua_register(m_pLua, ToLower("CreateDamageIndicator"), this->CreateDamageIndicator);
 
     //event
-    lua_register(m_pLua, "ExplosionGetPos", this->ExplosionGetPos);
-    lua_register(m_pLua, "ExplosionGetDamage", this->ExplosionGetDamage);
-    lua_register(m_pLua, "ExplosionGetOwner", this->ExplosionGetOwner);
-    lua_register(m_pLua, "ExplosionGetDamage", this->ExplosionGetDamage);
-    lua_register(m_pLua, "ExplosionAbort", this->ExplosionAbort);
+    lua_register(m_pLua, ToLower("ExplosionGetPos"), this->ExplosionGetPos);
+    lua_register(m_pLua, ToLower("ExplosionGetDamage"), this->ExplosionGetDamage);
+    lua_register(m_pLua, ToLower("ExplosionGetOwner"), this->ExplosionGetOwner);
+    lua_register(m_pLua, ToLower("ExplosionGetDamage"), this->ExplosionGetDamage);
+    lua_register(m_pLua, ToLower("ExplosionAbort"), this->ExplosionAbort);
 
-    lua_register(m_pLua, "GetClientConnectClientID", this->GetClientConnectClientID);
+    lua_register(m_pLua, ToLower("GetClientConnectClientID"), this->GetClientConnectClientID);
 
-    lua_register(m_pLua, "GetClientEnterClientID", this->GetClientEnterClientID);
-
-
-    lua_register(m_pLua, "CharacterTakeDamage", this->CharacterTakeDamage);
-    lua_register(m_pLua, "CharacterGetHealth", this->CharacterGetHealth);
-    lua_register(m_pLua, "CharacterGetArmor", this->CharacterGetArmor);
-    lua_register(m_pLua, "CharacterSetInputDirection", this->CharacterSetInputDirection);
-    lua_register(m_pLua, "CharacterSetInputJump", this->CharacterSetInputJump);
-    lua_register(m_pLua, "CharacterSetInputWeapon", this->CharacterSetInputWeapon);
-    lua_register(m_pLua, "CharacterSetInputTarget", this->CharacterSetInputTarget);
-    lua_register(m_pLua, "CharacterSetInputHook", this->CharacterSetInputHook);
-    lua_register(m_pLua, "CharacterSetInputFire", this->CharacterSetInputFire);
-    lua_register(m_pLua, "CharacterGetCoreJumped", this->CharacterGetCoreJumped);
-    lua_register(m_pLua, "CharacterSpawn", this->CharacterSpawn);
-    lua_register(m_pLua, "CharacterIsAlive", this->CharacterIsAlive);
-    lua_register(m_pLua, "CharacterKill", this->CharacterKill);
-    lua_register(m_pLua, "CharacterIsGrounded", this->CharacterIsGrounded);
-    lua_register(m_pLua, "CharacterIncreaseHealth", this->CharacterIncreaseHealth);
-    lua_register(m_pLua, "CharacterIncreaseArmor", this->CharacterIncreaseArmor);
-    lua_register(m_pLua, "CharacterSetAmmo", this->CharacterSetAmmo);
-    lua_register(m_pLua, "CharacterGetAmmo", this->CharacterGetAmmo);
-    lua_register(m_pLua, "CharacterGetInputTarget", this->CharacterGetInputTarget);
-    lua_register(m_pLua, "CharacterGetActiveWeapon", this->CharacterGetActiveWeapon);
-    lua_register(m_pLua, "CharacterDirectInput", this->CharacterDirectInput);
-    lua_register(m_pLua, "CharacterPredictedInput", this->CharacterPredictedInput);
-
-    lua_register(m_pLua, "DieGetVictimID", this->DieGetVictimID);
-    lua_register(m_pLua, "DieGetKillerID", this->DieGetKillerID);
-    lua_register(m_pLua, "DieGetWeaponID", this->DieGetWeaponID);
-
-    lua_register(m_pLua, "AbortSpawn", this->AbortSpawn);
-    lua_register(m_pLua, "SpawnGetTeam", this->SpawnGetTeam);
+    lua_register(m_pLua, ToLower("GetClientEnterClientID"), this->GetClientEnterClientID);
 
 
-    lua_register(m_pLua, "Win", this->Win);
-    lua_register(m_pLua, "SetGametype", this->SetGametype);
+    lua_register(m_pLua, ToLower("CharacterTakeDamage"), this->CharacterTakeDamage);
+    lua_register(m_pLua, ToLower("CharacterGetHealth"), this->CharacterGetHealth);
+    lua_register(m_pLua, ToLower("CharacterGetArmor"), this->CharacterGetArmor);
+    lua_register(m_pLua, ToLower("CharacterSetInputDirection"), this->CharacterSetInputDirection);
+    lua_register(m_pLua, ToLower("CharacterSetInputJump"), this->CharacterSetInputJump);
+    lua_register(m_pLua, ToLower("CharacterSetInputWeapon"), this->CharacterSetInputWeapon);
+    lua_register(m_pLua, ToLower("CharacterSetInputTarget"), this->CharacterSetInputTarget);
+    lua_register(m_pLua, ToLower("CharacterSetInputHook"), this->CharacterSetInputHook);
+    lua_register(m_pLua, ToLower("CharacterSetInputFire"), this->CharacterSetInputFire);
+    lua_register(m_pLua, ToLower("CharacterGetCoreJumped"), this->CharacterGetCoreJumped);
+    lua_register(m_pLua, ToLower("CharacterSpawn"), this->CharacterSpawn);
+    lua_register(m_pLua, ToLower("CharacterIsAlive"), this->CharacterIsAlive);
+    lua_register(m_pLua, ToLower("CharacterKill"), this->CharacterKill);
+    lua_register(m_pLua, ToLower("CharacterIsGrounded"), this->CharacterIsGrounded);
+    lua_register(m_pLua, ToLower("CharacterIncreaseHealth"), this->CharacterIncreaseHealth);
+    lua_register(m_pLua, ToLower("CharacterIncreaseArmor"), this->CharacterIncreaseArmor);
+    lua_register(m_pLua, ToLower("CharacterSetAmmo"), this->CharacterSetAmmo);
+    lua_register(m_pLua, ToLower("CharacterGetAmmo"), this->CharacterGetAmmo);
+    lua_register(m_pLua, ToLower("CharacterGetInputTarget"), this->CharacterGetInputTarget);
+    lua_register(m_pLua, ToLower("CharacterGetActiveWeapon"), this->CharacterGetActiveWeapon);
+    lua_register(m_pLua, ToLower("CharacterDirectInput"), this->CharacterDirectInput);
+    lua_register(m_pLua, ToLower("CharacterPredictedInput"), this->CharacterPredictedInput);
 
-	lua_register(m_pLua, "GetJoinTeamClientID", this->GetJoinTeamClientID);
-	lua_register(m_pLua, "GetSelectedTeam", this->GetSelectedTeam);
-	lua_register(m_pLua, "AbortTeamJoin", this->AbortTeamJoin);
+    lua_register(m_pLua, ToLower("DieGetVictimID"), this->DieGetVictimID);
+    lua_register(m_pLua, ToLower("DieGetKillerID"), this->DieGetKillerID);
+    lua_register(m_pLua, ToLower("DieGetWeaponID"), this->DieGetWeaponID);
 
-	lua_register(m_pLua, "DummyCreate", this->DummyCreate);
-	lua_register(m_pLua, "IsDummy", this->IsDummy);
+    lua_register(m_pLua, ToLower("AbortSpawn"), this->AbortSpawn);
+    lua_register(m_pLua, ToLower("SpawnGetTeam"), this->SpawnGetTeam);
+
+
+    lua_register(m_pLua, ToLower("Win"), this->Win);
+    lua_register(m_pLua, ToLower("SetGametype"), this->SetGametype);
+
+	lua_register(m_pLua, ToLower("GetJoinTeamClientID"), this->GetJoinTeamClientID);
+	lua_register(m_pLua, ToLower("GetSelectedTeam"), this->GetSelectedTeam);
+	lua_register(m_pLua, ToLower("AbortTeamJoin"), this->AbortTeamJoin);
+
+	lua_register(m_pLua, ToLower("DummyCreate"), this->DummyCreate);
+	lua_register(m_pLua, ToLower("IsDummy"), this->IsDummy);
 
     //version
-    lua_register(m_pLua, "CheckVersion", this->CheckVersion);
-    lua_register(m_pLua, "GetVersion", this->GetVersion);
+    lua_register(m_pLua, ToLower("CheckVersion"), this->CheckVersion);
+    lua_register(m_pLua, ToLower("GetVersion"), this->GetVersion);
 
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");
 
-    lua_register(m_pLua, "errorfunc", this->ErrorFunc); //TODO: fix me
+    lua_register(m_pLua, ToLower("errorfunc"), this->ErrorFunc); //TODO: fix me
 	lua_getglobal(m_pLua, "errorfunc");
 
 
@@ -441,7 +441,7 @@ bool CLuaFile::FunctionExist(const char *pFunctionName)
     bool Ret = false;
     if (m_pLua == 0)
         return false;
-    lua_getglobal(m_pLua, pFunctionName);
+    lua_getglobal(m_pLua, ToLower(pFunctionName));
     Ret = lua_isfunction(m_pLua, -1);
     lua_pop(m_pLua, 1);
     return Ret;
@@ -452,9 +452,7 @@ void CLuaFile::FunctionPrepare(const char *pFunctionName)
     if (m_pLua == 0 || m_aFilename[0] == 0)
         return;
 
-    //lua_pushstring (m_pLua, pFunctionName);
-    //lua_gettable (m_pLua, LUA_GLOBALSINDEX);
-    lua_getglobal(m_pLua, pFunctionName);
+    lua_getglobal(m_pLua, ToLower(pFunctionName));
     m_FunctionVarNum = 0;
 }
 
