@@ -12,7 +12,7 @@ class CLineInput
 	int m_Len;
 	int m_CursorPos;
 public:
-	static bool Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int *pStrLenPtr, int *pCursorPosPtr);
+	static bool Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int *pStrLenPtr, int *pCursorPosPtr, bool MultiLine = false);
 
 	class CCallback
 	{

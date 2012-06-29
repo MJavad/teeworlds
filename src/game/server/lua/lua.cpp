@@ -7,6 +7,11 @@
 #include <engine/console.h>
 void CLua::Tick()
 {
+    if (m_ConsoleInit == false)
+    {
+        m_pServer->Console()->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_DEBUG, ConsolePrintCallback, this);
+        m_ConsoleInit = true;
+    }
     for (int i = 0; i < MAX_LUA_FILES; i++)
     {
         if (m_aLuaFiles[i].GetScriptName()[0] == 0 && m_pServer->m_pLuaCore->GetFileDir(i)[0])
@@ -51,8 +56,6 @@ CLua::CLua(CGameContext *pServer)
     Close();
 
     m_pServer = pServer;
-
-    m_pServer->Console()->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_DEBUG, ConsolePrintCallback, this);
 
     for (int i = 0; i < MAX_LUA_FILES; i++)
     {

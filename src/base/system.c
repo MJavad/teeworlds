@@ -1827,7 +1827,27 @@ char str_uppercase(char c)
 int str_toint(const char *str) { return atoi(str); }
 float str_tofloat(const char *str) { return atof(str); }
 
+char *str_tolower(char *str)
+{
+    int i = 0;
+    int len = str_length(str);
+    for (i = 0; i < len; i++)
+    {
+        str[i] = tolower(str[i]);
+    }
+    return str;
+}
 
+char *str_toupper(char *str)
+{
+    int i = 0;
+    int len = str_length(str);
+    for (i = 0; i < len; i++)
+    {
+        str[i] = toupper(str[i]);
+    }
+    return str;
+}
 
 static int str_utf8_isstart(char c)
 {
@@ -1987,7 +2007,6 @@ unsigned str_quickhash(const char *str)
 		hash = ((hash << 5) + hash) + (*str); /* hash * 33 + c */
 	return hash;
 }
-
 
 #if defined(__cplusplus)
 }

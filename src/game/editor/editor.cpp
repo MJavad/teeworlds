@@ -3048,6 +3048,12 @@ void CEditor::RenderStatusbar(CUIRect View)
 	if(DoButton_Editor(&s_UndolistButton, "Undolist", m_ShowUndo, &Button, 0, "Toggles the undo list."))
 		m_ShowUndo = (m_ShowUndo + 1) % 2;
 
+	View.VSplitRight(5.0f, &View, &Button);
+	View.VSplitRight(60.0f, &View, &Button);
+	static int s_LualistButton = 0;
+	if(DoButton_Editor(&s_LualistButton, "Lua", m_ShowLua, &Button, 0, "Toggles the lua editor."))
+		m_ShowLua = (m_ShowLua + 1) % 2;
+
 	if(m_pTooltip)
 	{
 		if(ms_pUiGotContext && ms_pUiGotContext == UI()->HotItem())
@@ -3111,6 +3117,172 @@ void CEditor::RenderUndoList(CUIRect View)
             Graphics()->QuadsEnd();
         }
     }
+}
+
+void CEditor::RenderLuaEditor(CUIRect View)
+{
+    CLayer *pLayer = GetSelectedLayer(0);
+    if (pLayer->m_Type != LAYERTYPE_TILES)
+        return;
+    CLayerTiles *pLayerTiles = (CLayerTiles *)pLayer;
+    char *pStr = pLayerTiles->m_LuaLayer.m_aLuaCode;
+    int StrSize = sizeof(pLayerTiles->m_LuaLayer.m_aLuaCode);
+    static int s_LuaEditBox = 0;
+    float Offset = 0.0f;
+
+    dbg_msg("", "%f %f", View.w, View.h);
+
+	int Inside = UI()->MouseInside(&View);
+	bool ReturnValue = false;
+	bool UpdateOffset = false;
+	static int s_AtIndex = 0;
+	static bool s_DoScroll = false;
+	static float s_ScrollStart = 0.0f;
+
+    float FontSize = 12.0f;
+    static int Lines = 0;
+	FontSize *= UI()->Scale();
+
+	if(UI()->LastActiveItem() == &s_LuaEditBox)
+	{
+		int Len = str_length(pStr);
+		if(Len == 0)
+			s_AtIndex = 0;
+
+		if(Inside && UI()->MouseButton(0))
+		{
+			s_DoScroll = true;
+			s_ScrollStart = UI()->MouseX();
+			int MxRel = (int)(UI()->MouseX() - View.x);
+			int MyRel = (int)(UI()->MouseY() - View.y);
+			MyRel /= FontSize;
+
+            const char *pTmp = pStr;
+            for (int i = 0; i < MyRel; i++)
+            {
+                Lines = 0;
+                if (str_find(pTmp, "\n"))
+                {
+                    Lines++;
+                    pTmp = str_find(pTmp, "\n");
+                }
+                else
+                    break;
+            }
+            int Start = pStr - pTmp;
+
+            dbg_msg("", "%i", Lines);
+
+			for(int i = Start; i <= Len && pStr[i] != '\n'; i++)
+			{
+				if(TextRender()->TextWidth(0, FontSize, pTmp, i - Start) - Offset > MxRel)
+				{
+					s_AtIndex = i - 1;
+					break;
+				}
+
+				if(i == Len)
+					s_AtIndex = Len;
+			}
+		}
+		else if(!UI()->MouseButton(0))
+			s_DoScroll = false;
+		else if(s_DoScroll)
+		{
+			// do scrolling
+			if(UI()->MouseX() < View.x && s_ScrollStart-UI()->MouseX() > 10.0f)
+			{
+				s_AtIndex = max(0, s_AtIndex-1);
+				s_ScrollStart = UI()->MouseX();
+				UpdateOffset = true;
+			}
+			else if(UI()->MouseX() > View.x+View.w && UI()->MouseX()-s_ScrollStart > 10.0f)
+			{
+				s_AtIndex = min(Len, s_AtIndex+1);
+				s_ScrollStart = UI()->MouseX();
+				UpdateOffset = true;
+			}
+		}
+
+		for(int i = 0; i < Input()->NumEvents(); i++)
+		{
+			Len = str_length(pStr);
+			ReturnValue |= CLineInput::Manipulate(Input()->GetEvent(i), pStr, StrSize, &Len, &s_AtIndex, true);
+		}
+	}
+
+	bool JustGotActive = false;
+
+	if(UI()->ActiveItem() == &s_LuaEditBox)
+	{
+		if(!UI()->MouseButton(0))
+		{
+			s_AtIndex = min(s_AtIndex, str_length(pStr));
+			s_DoScroll = false;
+			UI()->SetActiveItem(0);
+		}
+	}
+	else if(UI()->HotItem() == &s_LuaEditBox)
+	{
+		if(UI()->MouseButton(0))
+		{
+			if (UI()->LastActiveItem() != &s_LuaEditBox)
+				JustGotActive = true;
+			UI()->SetActiveItem(&s_LuaEditBox);
+		}
+	}
+
+	if(Inside)
+		UI()->SetHotItem(&s_LuaEditBox);
+
+	CUIRect Textbox = View;
+	RenderTools()->DrawUIRect(&Textbox, vec4(1, 1, 1, 0.5f), CUI::CORNER_ALL, 3.0f);
+	Textbox.VMargin(2.0f, &Textbox);
+
+	const char *pDisplayStr = pStr;
+
+	// check if the text has to be moved
+	if(UI()->LastActiveItem() == &s_LuaEditBox && !JustGotActive && (UpdateOffset || Input()->NumEvents()))
+	{
+		float w = TextRender()->TextWidth(0, FontSize, pDisplayStr, s_AtIndex);
+		if(w-Offset > Textbox.w)
+		{
+			// move to the left
+			float wt = TextRender()->TextWidth(0, FontSize, pDisplayStr, -1);
+			do
+			{
+				Offset += min(wt-Offset-Textbox.w, Textbox.w/3);
+			}
+			while(w-Offset > Textbox.w);
+		}
+		else if(w-Offset < 0.0f)
+		{
+			// move to the right
+			do
+			{
+				Offset = max(0.0f, Offset-Textbox.w/3);
+			}
+			while(w-Offset < 0.0f);
+		}
+	}
+	UI()->ClipEnable(&View);
+	Textbox.x -= Offset;
+
+	UI()->DoLabel(&Textbox, pDisplayStr, FontSize, -1);
+
+	// render the cursor
+	if(UI()->LastActiveItem() == &s_LuaEditBox && !JustGotActive)
+	{
+		float w = TextRender()->TextWidth(0, FontSize, pDisplayStr, s_AtIndex);
+		Textbox = View;
+		Textbox.VSplitLeft(2.0f, 0, &Textbox);
+		Textbox.x += (w-Offset-TextRender()->TextWidth(0, FontSize, "|", -1)/2);
+		Textbox.y += Lines * FontSize;
+
+		if((2*time_get()/time_freq()) % 2)	// make it blink
+			UI()->DoLabel(&Textbox, "|", FontSize, -1);
+	}
+	UI()->ClipDisable();
 }
 
 void CEditor::RenderEnvelopeEditor(CUIRect View)
@@ -3662,8 +3834,8 @@ void CEditor::Render()
 	// render checker
 	RenderBackground(View, ms_CheckerTexture, 32.0f, 1.0f);
 
-	CUIRect MenuBar, CModeBar, ToolBar, StatusBar, EnvelopeEditor, UndoList, ToolBox;
-	m_ShowPicker = Input()->KeyPressed(KEY_SPACE) != 0 && m_Dialog == DIALOG_NONE;
+	CUIRect MenuBar, CModeBar, ToolBar, StatusBar, EnvelopeEditor, UndoList, LuaList, ToolBox;
+	m_ShowPicker = Input()->KeyPressed(KEY_SPACE) != 0 && m_Dialog == DIALOG_NONE && !m_ShowLua;
 
 	if(m_GuiActive)
 	{
@@ -3682,6 +3854,10 @@ void CEditor::Render()
 		if (m_ShowUndo && !m_ShowPicker)
 		{
 			View.HSplitBottom(250.0f, &View, &UndoList);
+		}
+		if (m_ShowLua && !m_ShowPicker)
+		{
+			View.HSplitBottom(250.0f, &View, &LuaList);
 		}
 	}
 
@@ -3741,6 +3917,11 @@ void CEditor::Render()
 			RenderBackground(UndoList, ms_BackgroundTexture, 128.0f, Brightness);
 			UndoList.Margin(2.0f, &UndoList);
 		}
+		if(m_ShowLua)
+		{
+			RenderBackground(LuaList, ms_BackgroundTexture, 128.0f, Brightness);
+			LuaList.Margin(2.0f, &LuaList);
+		}
 	}
 
 
@@ -3760,6 +3941,8 @@ void CEditor::Render()
 			RenderEnvelopeEditor(EnvelopeEditor);
 		if(m_ShowUndo)
 			RenderUndoList(UndoList);
+		if(m_ShowLua && !m_ShowPicker)
+			RenderLuaEditor(LuaList);
 	}
 
 	if(m_Dialog == DIALOG_FILE)

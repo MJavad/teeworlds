@@ -22,7 +22,7 @@ void CLineInput::Set(const char *pString)
 	m_CursorPos = m_Len;
 }
 
-bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int *pStrLenPtr, int *pCursorPosPtr)
+bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int *pStrLenPtr, int *pCursorPosPtr, bool MultiLine)
 {
 	int CursorPos = *pCursorPosPtr;
 	int Len = *pStrLenPtr;
@@ -78,7 +78,18 @@ bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int *p
 			CursorPos = 0;
 		else if (k == KEY_END)
 			CursorPos = Len;
-	}
+		else if (k == KEY_RETURN && MultiLine)
+        {
+            if (Len < StrMaxSize - 1 && CursorPos < StrMaxSize - 1)
+            {
+                mem_move(pStr + CursorPos + 1, pStr + CursorPos, Len-CursorPos+1); // +1 == null term
+                pStr[CursorPos] = '\n';
+                CursorPos += 1;
+                Len += 1;
+                Changes = true;
+            }
+        }
+    }
 
 	*pCursorPosPtr = CursorPos;
 	*pStrLenPtr = Len;

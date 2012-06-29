@@ -26,7 +26,9 @@ void CGameContext::Construct(int Resetting)
 {
 	m_Resetting = 0;
 	m_pServer = 0;
-	m_pLua = 0;
+	m_Reload = false;
+    m_pLua = new CLua(this);
+
 
 	for(int i = 0; i < MAX_CLIENTS; i++)
 		m_apPlayers[i] = 0;
@@ -420,6 +422,13 @@ void CGameContext::OnTick()
 
 	// copy tuning
 	m_pLua->Tick();
+
+	if (m_Reload)
+	{
+	    for (int i = 0; i < MAX_CLIENTS; i++)
+            Server()->SendFile(i);
+        m_Reload = false;
+	}
 
 	m_World.m_Core.m_Tuning = m_Tuning;
 	m_World.Tick();
@@ -1482,8 +1491,6 @@ void CGameContext::OnConsoleInit()
 	m_pServer = Kernel()->RequestInterface<IServer>();
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 
-    m_pLua = new CLua(this); //have to be done here due to m_pConsole
-
 	Console()->Register("tune", "si", CFGFLAG_SERVER, ConTuneParam, this, "Tune variable to value");
 	Console()->Register("tune_reset", "", CFGFLAG_SERVER, ConTuneReset, this, "Reset tuning");
 	Console()->Register("tune_dump", "", CFGFLAG_SERVER, ConTuneDump, this, "Dump tuning");
@@ -1593,6 +1600,9 @@ void CGameContext::OnShutdown()
 {
 	if(m_pLua)
 	{
+        Server()->DeleteAllModFile();
+        for (int i = 0; i < MAX_LUA_FILES; i++)
+            m_pLua->m_EventListener.RemoveAllEventListeners(&m_pLua->m_aLuaFiles[i]);
 		delete m_pLua;
 		m_pLua = 0;
 	}
@@ -1618,6 +1628,11 @@ void CGameContext::OnPreSnap() {}
 void CGameContext::OnPostSnap()
 {
 	m_Events.Clear();
+}
+
+void CGameContext::SetReloadFlag()
+{
+    m_Reload = true;
 }
 
 bool CGameContext::IsClientReady(int ClientID)

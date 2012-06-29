@@ -222,6 +222,7 @@ public:
 
 	void AddModFile(const char *pFileDir, const char *pFileName, int Type, int Flags);
 	void DeleteModFile(const char *pFileDir);
+	void DeleteAllModFile();
 
 	void InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, IConsole *pConsole);
 	int Run();

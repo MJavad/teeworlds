@@ -767,9 +767,9 @@ void CServer::SendMap(int ClientID)
 
 void CServer::SendFile(int ClientID)
 {
+    dbg_msg("y", "y");
     if (m_lModFiles.size() == 0)
         return;
-    dbg_msg("Mod", "Now we scares the client. Buuuh");
 	CMsgPacker Msg(NETMSG_FILE_CHANGE);
 	Msg.AddInt(m_lModFiles.size());
 	int size = 0;
@@ -1375,6 +1375,11 @@ void CServer::DeleteModFile(const char *pFileDir)
 	}
 }
 
+void CServer::DeleteAllModFile()
+{
+    m_lModFiles.clear();
+}
+
 void CServer::InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, IConsole *pConsole)
 {
 	m_Register.Init(pNetServer, pMasterServer, pConsole);
@@ -1483,6 +1488,7 @@ int CServer::Run()
 					m_CurrentGameTick = 0;
 					Kernel()->ReregisterInterface(GameServer());
 					GameServer()->OnInit();
+					GameServer()->SetReloadFlag(); //little hack for lua
 					UpdateServerInfo();
 				}
 				else

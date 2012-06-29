@@ -540,4 +540,10 @@ public:
 int StrIsInteger(const char *pStr);
 int StrIsFloat(const char *pStr);
 
+static char *ToLower(const char *str)
+{
+    static char saTmp[8192];
+    str_copy(saTmp, str, sizeof(saTmp));
+    return str_tolower(saTmp);
+}
 #endif

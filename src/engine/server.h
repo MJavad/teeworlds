@@ -38,6 +38,7 @@ public:
 
 	virtual void AddModFile(const char *pFileDir, const char *pFileName, int Type, int Flags) = 0;
 	virtual void DeleteModFile(const char *pFileDir) = 0;
+	virtual void DeleteAllModFile() = 0;
 	virtual void SendFile(int ClientID) = 0;
 
 	template<class T>
@@ -89,6 +90,7 @@ public:
 
 	virtual void OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID) = 0;
 
+    virtual void SetReloadFlag() = 0;
 	virtual void OnLuaPacket(CUnpacker *pUnpacker, int ClientID) = 0;
 
 	virtual void OnClientConnected(int ClientID, bool IsDummy = false) = 0;

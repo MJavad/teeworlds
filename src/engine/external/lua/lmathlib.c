@@ -1,5 +1,5 @@
 /*
-** $Id: lmathlib.c,v 1.80 2011/07/05 12:49:35 roberto Exp $
+** $Id: lmathlib.c,v 1.81 2012/05/18 17:47:53 roberto Exp $
 ** Standard mathematical library
 ** See Copyright Notice in lua.h
 */
@@ -17,15 +17,15 @@
 #include "lualib.h"
 
 
-#undef PI
-#define PI (3.14159265358979323846)
-#define RADIANS_PER_DEGREE (PI/180.0)
-
-
 /* macro 'l_tg' allows the addition of an 'l' or 'f' to all math operations */
 #if !defined(l_tg)
 #define l_tg(x)		(x)
 #endif
+
+
+#undef PI
+#define PI (l_tg(3.1415926535897932384626433832795))
+#define RADIANS_PER_DEGREE (PI/180.0)
 
 
 
@@ -233,19 +233,6 @@ static int math_randomseed (lua_State *L) {
   return 0;
 }
 
-static int math_round (lua_State *L) {
-  int n = lua_gettop(L);  /* number of arguments */
-  lua_Number num = luaL_checknumber(L, 1);
-  int precision = 0;
-  if (n > 1)
-    precision = luaL_checkint(L, 2);
-
-  num = ((int)(num<0?num * pow(10, precision)-.5:num * pow(10, precision)+.5)) / pow(10, precision);
-
-  lua_pushnumber(L, num);
-  return 1;
-}
-
 
 static const luaL_Reg mathlib[] = {
   {"abs",   math_abs},
@@ -278,7 +265,6 @@ static const luaL_Reg mathlib[] = {
   {"sqrt",  math_sqrt},
   {"tanh",   math_tanh},
   {"tan",   math_tan},
-  {"round",   math_round},
   {NULL, NULL}
 };
 

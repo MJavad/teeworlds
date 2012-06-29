@@ -33,6 +33,7 @@ class CLuaEventListener
 public:
     void AddEventListener(class CLuaFile *pLuaFile, char *pEvent, char *pLuaFunction);
     void RemoveEventListener(class CLuaFile *pLuaFile, char *pEvent);
+    void RemoveAllEventListeners(class CLuaFile *pLuaFile);
 
     void OnEvent(char *pEvent);
 
@@ -255,13 +256,15 @@ public:
     static inline int GetPlayerColorFeet(lua_State *L);
     static inline int GetPlayerColorBody(lua_State *L);
     static inline int GetPlayerColorSkin(lua_State *L); //Todo: implement me
-    static inline int SetPlayerScore(lua_State *L);
-    static inline int SetPlayerColorFeet(lua_State *L);
-    static inline int SetPlayerColorBody(lua_State *L);
+
     static inline int SetPlayerName(lua_State *L);
     static inline int SetPlayerClan(lua_State *L);
     static inline int SetPlayerCountry(lua_State *L);
+    static inline int SetPlayerScore(lua_State *L);
     static inline int SetPlayerTeam(lua_State *L);
+    static inline int SetPlayerSkin(lua_State *L);
+    static inline int SetPlayerColorFeet(lua_State *L);
+    static inline int SetPlayerColorBody(lua_State *L);
 
 
     //Config
@@ -379,6 +382,8 @@ public:
     void End();
     void Close();
 
+    bool m_ConsoleInit;
+
     CLuaFile m_aLuaFiles[MAX_LUA_FILES];
     CLuaEventListener m_EventListener;
 
@@ -413,4 +418,10 @@ static int StrIsFloat(const char *pStr)
 	return 1;
 }
 
+static char *ToLower(const char *str)
+{
+    static char saTmp[8192];
+    str_copy(saTmp, str, sizeof(saTmp));
+    return str_tolower(saTmp);
+}
 #endif

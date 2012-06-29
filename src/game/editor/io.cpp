@@ -299,10 +299,23 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 				// save layer name
 				StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), pLayer->m_aName);
 
-				df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(Item), &Item);
+				int i = df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(Item), &Item);
+                dbg_msg("index_lua", "%i - %i", i, LayerCount);
 
 				GItem.m_NumLayers++;
 				LayerCount++;
+
+				if (pLayer->m_LuaLayer.m_aLuaCode[0]) //save lua code
+				{
+                    CMapItemLayerLua ItemLua;
+                    Item.m_Layer.m_Flags = 0;
+                    Item.m_Layer.m_Type = 0xbaadc0de; //LAYERTYPE_LUA;
+                    ItemLua.m_Version = 1;
+                    ItemLua.m_Data = df.AddData(str_length(pLayer->m_LuaLayer.m_aLuaCode), pLayer->m_LuaLayer.m_aLuaCode);
+                    df.AddItem(MAPITEMTYPE_LUA, LayerCount, sizeof(ItemLua), &ItemLua);
+                    GItem.m_NumLayers++;
+                    LayerCount++;
+				}
 			}
 			else if(pGroup->m_lLayers[l]->m_Type == LAYERTYPE_QUADS)
 			{
@@ -502,10 +515,13 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 				if(pGItem->m_Version >= 3)
 					IntsToStr(pGItem->m_aName, sizeof(pGroup->m_aName)/sizeof(int), pGroup->m_aName);
 
+                CLayerTiles *pLastTiles = 0;
 				for(int l = 0; l < pGItem->m_NumLayers; l++)
 				{
 					CLayer *pLayer = 0;
 					CMapItemLayer *pLayerItem = (CMapItemLayer *)DataFile.GetItem(LayersStart+pGItem->m_StartLayer+l, 0, 0);
+                    dbg_msg("index", "%i", LayersStart+pGItem->m_StartLayer+l);
+                    dbg_msg("type", "%i", pLayerItem->m_Type);
 					if(!pLayerItem)
 						continue;
 
@@ -552,6 +568,16 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						}
 
 						DataFile.UnloadData(pTilemapItem->m_Data);
+
+						pLastTiles = pTiles;
+					}
+					else if(pLayerItem->m_Type == 0xbaadc0de /*LAYERTYPE_LUA */&& pLastTiles)
+					{
+					    dbg_msg("got", "lua");
+                        CMapItemLayerLua *pLayerLua = (CMapItemLayerLua *)pLayerItem;
+                        dbg_msg("data idx", "%i", pLayerLua->m_Data);
+                        void *pData = DataFile.GetData(pLayerLua->m_Data);
+                        str_copy(pLastTiles->m_LuaLayer.m_aLuaCode, (const char *)pData, sizeof(pLastTiles->m_LuaLayer.m_aLuaCode));
 					}
 					else if(pLayerItem->m_Type == LAYERTYPE_QUADS)
 					{
