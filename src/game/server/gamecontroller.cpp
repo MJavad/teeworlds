@@ -393,6 +393,13 @@ void IGameController::DoWarmup(int Seconds)
 
 bool IGameController::IsFriendlyFire(int ClientID1, int ClientID2)
 {
+    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID1);
+    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID2);
+    m_pGameServer->m_pLua->m_pEventListener->OnEvent("OnFriendlyFire");
+    if (m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].IsNumeric())
+    {
+        return m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger();
+    }
 	if(ClientID1 == ClientID2)
 		return false;
     if (ClientID1 < 0 || ClientID1 >= MAX_CLIENTS || ClientID2 < 0 || ClientID2 >= MAX_CLIENTS)

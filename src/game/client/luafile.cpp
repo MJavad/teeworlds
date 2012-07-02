@@ -130,7 +130,8 @@ void CLuaFile::Init(const char *pFile)
     for (int i = 0; i < LUAMAXUIELEMENTS; i++)
         m_aUiElements[i].m_pClient = m_pClient;
 
-    str_copy(m_aFilename, pFile, sizeof(m_aFilename));
+    if (pFile)
+        str_copy(m_aFilename, pFile, sizeof(m_aFilename));
 
     m_pLua = luaL_newstate();
     luaL_openlibs(m_pLua);
@@ -355,26 +356,29 @@ void CLuaFile::Init(const char *pFile)
 	//lua_getglobal(m_pLua, "errorfunc"); //could this line stay commented out
 	//if this line is used the stack contains one function which would leeds to problems with return values
 
-    IOHANDLE File = io_open(m_aFilename, IOFLAG_READ);
-    if (!File)
+    if (pFile)
     {
-        dbg_msg("Lua", "File not found");
-        return;
-    }
-    if (luaL_loadfile(m_pLua, m_aFilename) == 0)
-    {
-        if (lua_pcall(m_pLua, 0, LUA_MULTRET, 0))
+        IOHANDLE File = io_open(m_aFilename, IOFLAG_READ);
+        if (!File)
+        {
+            dbg_msg("Lua", "File not found");
+            return;
+        }
+        if (luaL_loadfile(m_pLua, m_aFilename) == 0)
+        {
+            if (lua_pcall(m_pLua, 0, LUA_MULTRET, 0))
+            {
+                dbg_msg("Error", "Fail");
+                ErrorFunc(m_pLua);
+                m_Error = 1;
+            }
+        }
+        else
         {
             dbg_msg("Error", "Fail");
-            ErrorFunc(m_pLua);
             m_Error = 1;
+            ErrorFunc(m_pLua);
         }
-    }
-    else
-    {
-        dbg_msg("Error", "Fail");
-        m_Error = 1;
-        ErrorFunc(m_pLua);
     }
 }
 
