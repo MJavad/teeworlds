@@ -10,7 +10,7 @@ enum
 	LAYERTYPE_GAME, // not used
 	LAYERTYPE_TILES,
 	LAYERTYPE_QUADS,
-	LAYERTYPE_LUA = 255, //space for the devs
+	LAYERTYPE_LUA = 64, //space for the devs
 
 	MAPITEMTYPE_VERSION=0,
 	MAPITEMTYPE_INFO,
@@ -19,7 +19,6 @@ enum
 	MAPITEMTYPE_GROUP,
 	MAPITEMTYPE_LAYER,
 	MAPITEMTYPE_ENVPOINTS,
-	MAPITEMTYPE_LUA = 255, //space for the devs
 
 
 	CURVETYPE_STEP=0,
@@ -159,7 +158,18 @@ struct CMapItemLayerLua
 	CMapItemLayer m_Layer;
 	int m_Version;
 
+	int m_Width;
+	int m_Height;
+	int m_Flags;
+
+	CColor m_Color;
+	int m_ColorEnv;
+	int m_ColorEnvOffset;
+
+	int m_Image;
 	int m_Data;
+
+	int m_aName[3];
 } ;
 
 struct CMapItemLayerQuads

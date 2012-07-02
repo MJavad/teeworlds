@@ -140,8 +140,7 @@ bool IGameController::OnEntity(int Index, vec2 Pos)
 {
 	int Type = -1;
 	int SubType = 0;
-	GameServer()->m_pLua->m_EventListener.m_OnEntityPosIndex= ((int)(Pos.y/32))*GameServer()->Collision()->GetWidth()+(int)(Pos.x/32);
-	GameServer()->m_pLua->m_EventListener.m_OnEntityPosition= Pos;
+	GameServer()->m_pLua->m_EventListener.m_OnEntityPosition = Pos;
 	GameServer()->m_pLua->m_EventListener.m_OnEntityIndex = Index;
 	GameServer()->m_pLua->m_EventListener.OnEvent("OnEntity");
 	Index = GameServer()->m_pLua->m_EventListener.m_OnEntityIndex;

@@ -336,7 +336,7 @@ public:
 	// io
 	int Save(class IStorage *pStorage, const char *pFilename);
 	int Load(class IStorage *pStorage, const char *pFilename, int StorageType);
-	
+
 	//Lua
 	char *m_pLuaData;
 };
@@ -631,6 +631,7 @@ public:
 	{
 		FILETYPE_MAP,
 		FILETYPE_IMG,
+		FILETYPE_LUA,
 
 		MAX_PATH_LENGTH = 512
 	};
@@ -757,6 +758,7 @@ public:
 	static void CallbackOpenMap(const char *pFileName, int StorageType, void *pUser);
 	static void CallbackAppendMap(const char *pFileName, int StorageType, void *pUser);
 	static void CallbackSaveMap(const char *pFileName, int StorageType, void *pUser);
+	static void CallbackOpenLua(const char *pFileName, int StorageType, void *pUser);
 
 	void PopupSelectImageInvoke(int Current, float x, float y);
 	int PopupSelectImageResult();

@@ -565,7 +565,7 @@ void CGameContext::OnClientEnter(int ClientID)
 	Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
 	m_VoteUpdate = true;
-    
+
     m_pLua->m_EventListener.m_EventCID = ClientID;
 	m_pLua->m_EventListener.OnEvent("OnClientEnter");
 	m_pLua->m_EventListener.m_EventCID = -1;
@@ -1533,17 +1533,7 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	m_Layers.Init(Kernel());
 	m_Collision.Init(&m_Layers);
-	if(m_pLua)
-	{
-		CMapItemLua *pItem = (CMapItemLua *)Kernel()->RequestInterface<IMap>()->FindItem(MAPITEMTYPE_LUA, 0);
-		if(pItem)
-		{
-			m_pLua->m_pMapLuaData = (char *)pItem->m_pData;	
-		}
-		else
-			m_pLua->m_pMapLuaData = 0;	
-	}
-	
+
 
 	m_AutoRespawn = true;
 

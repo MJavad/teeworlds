@@ -737,6 +737,40 @@ void CEditor::CallbackSaveMap(const char *pFileName, int StorageType, void *pUse
 
 	pEditor->m_Dialog = DIALOG_NONE;
 }
+void CEditor::CallbackOpenLua(const char *pFileName, int StorageType, void *pUser)
+{
+	CEditor *pEditor = (CEditor*)pUser;
+    CLayer *pLayer = pEditor->GetSelectedLayer(0);
+    if (pLayer->m_Type != LAYERTYPE_TILES)
+        return;
+    CLayerTiles *pLayerTiles = (CLayerTiles *)pLayer;
+
+	IOHANDLE LuaFile = pEditor->Storage()->OpenFile(pFileName, IOFLAG_READ, StorageType);
+	if (!LuaFile)
+	    return;
+    if (io_length(LuaFile) == 0)
+    {
+        io_close(LuaFile);
+        return;
+    }
+
+    int Size = io_length(LuaFile);
+    char *pData = new char[Size];
+    mem_zero(pData, Size);
+    io_read(LuaFile, pData, Size);
+    for (int i = 0, x = 0; i < Size; i++)
+    {
+        if (pData[i] == '\r') //filter out \r
+            continue;
+        if (pData[i] == 0)
+            break;
+        pLayerTiles->m_LuaLayer.m_aLuaCode[x++] = pData[i];
+    }
+    delete []pData;
+	io_close(LuaFile);
+    pEditor->m_Dialog = DIALOG_NONE;
+    pEditor->m_Map.m_Modified = true;
+}
 
 void CEditor::DoToolbar(CUIRect ToolBar)
 {
@@ -2716,6 +2750,7 @@ static int EditorListdirCallback(const char *pName, int IsDir, int StorageType, 
 	if((pName[0] == '.' && (pName[1] == 0 ||
 		(pName[1] == '.' && pName[2] == 0 && (!str_comp(pEditor->m_pFileDialogPath, "maps") || !str_comp(pEditor->m_pFileDialogPath, "mapres"))))) ||
 		(!IsDir && ((pEditor->m_FileDialogFileType == CEditor::FILETYPE_MAP && (Length < 4 || str_comp(pName+Length-4, ".map"))) ||
+        (pEditor->m_FileDialogFileType == CEditor::FILETYPE_LUA && (Length < 4 || str_comp(pName+Length-4, ".lua"))) ||
 		(pEditor->m_FileDialogFileType == CEditor::FILETYPE_IMG && (Length < 4 || str_comp(pName+Length-4, ".png"))))))
 		return 0;
 
@@ -3125,12 +3160,18 @@ void CEditor::RenderLuaEditor(CUIRect View)
     if (pLayer->m_Type != LAYERTYPE_TILES)
         return;
     CLayerTiles *pLayerTiles = (CLayerTiles *)pLayer;
-    char *pStr = pLayerTiles->m_LuaLayer.m_aLuaCode;
-    int StrSize = sizeof(pLayerTiles->m_LuaLayer.m_aLuaCode);
+    CUIRect ButtonBar, Button;
+    View.HSplitTop(14.0f, &ButtonBar, &View);
+    ButtonBar.VSplitLeft(100.0f, &Button, &ButtonBar);
+    static int ButtonLoad = 0;
+    if (DoButton_Editor(&ButtonLoad, Localize("Load"), 0, &Button, 0, Localize("Load a lua file")))
+    {
+        InvokeFileDialog(IStorage::TYPE_ALL, FILETYPE_LUA, "Load lua", "Load", "lua", "", CallbackOpenLua, this);
+    }
+    UI()->DoLabel(&View, pLayerTiles->m_LuaLayer.m_aLuaCode, 12.0f, -1);
+    /*int StrSize = sizeof(pLayerTiles->m_LuaLayer.m_aLuaCode);
     static int s_LuaEditBox = 0;
     float Offset = 0.0f;
-
-    dbg_msg("", "%f %f", View.w, View.h);
 
 	int Inside = UI()->MouseInside(&View);
 	bool ReturnValue = false;
@@ -3282,7 +3323,7 @@ void CEditor::RenderLuaEditor(CUIRect View)
 		if((2*time_get()/time_freq()) % 2)	// make it blink
 			UI()->DoLabel(&Textbox, "|", FontSize, -1);
 	}
-	UI()->ClipDisable();
+	UI()->ClipDisable();*/
 }
 
 void CEditor::RenderEnvelopeEditor(CUIRect View)

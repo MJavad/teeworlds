@@ -7,6 +7,7 @@
 #include "kernel.h"
 
 #define MAX_LUA_FILES 64
+#define LUA_CONSOLE_ID MAX_LUA_FILES - 1
 
 class ILua : public IInterface
 {

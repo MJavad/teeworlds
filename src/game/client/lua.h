@@ -8,6 +8,7 @@
 #include <engine/input.h>
 #include <base/tl/array.h>
 #include <base/tl/sorted_array.h>
+#include <game/luaevent.h>
 
 #define NON_HASED_VERSION
 #include <game/version.h>
@@ -38,10 +39,13 @@ public:
 
     void OnEvent(const char *pEvent);
 
+    CEvent m_Parameters;
+    CEvent m_Returns;
+
     CLuaEventListener();
     ~CLuaEventListener();
 
-    //values
+    /*remove this
     //Menu Browser GameType OnRender Color
     char *m_pBrowserActiveGameTypeName;
     vec4 m_BrowserActiveGameTypeColor;
@@ -70,7 +74,7 @@ public:
     IInput::CEvent m_KeyEvent;
 
 	//OnConsole and OnConsoleRemote
-	char *m_pLine;
+	char *m_pLine; */
 };
 
 class CLuaBinding
@@ -230,6 +234,7 @@ public:
     int FunctionExec(const char *pFunctionName = 0);
     void FunctionPrepare(const char *pFunctionName);
     void PushString(const char *pString);
+    void PushData(const char *pData, int Size);
     void PushInteger(int value);
     void PushFloat(float value);
     void PushBoolean(bool value);
@@ -268,12 +273,6 @@ public:
     //OnConsole
     //OnMusicChange
 
-
-
-    //Menu Browser Things
-    static inline int SetMenuBrowserGameTypeColor(lua_State *L);
-    static inline int GetMenuBrowserGameTypeName(lua_State *L);
-
     //Menu
     static inline int MenuActive(lua_State *L);
     static inline int MenuGameActive(lua_State *L);
@@ -291,17 +290,6 @@ public:
 
     //Scoreboard
     static inline int ScoreboardAbortRender(lua_State *L);
-
-    //Chat
-    static inline int ChatGetText(lua_State *L);
-    static inline int ChatGetClientID(lua_State *L);
-    static inline int ChatGetTeam(lua_State *L);
-    static inline int ChatHide(lua_State *L);
-
-    //Kill
-    static inline int KillGetKillerID(lua_State *L);
-    static inline int KillGetVictimID(lua_State *L);
-    static inline int KillGetWeapon(lua_State *L);
 
     //
     //Include
@@ -366,7 +354,6 @@ public:
     static inline int RconExecute(lua_State *L);
 
     //States
-    static inline int StateGetOld(lua_State *L);
     static inline int StateGet(lua_State *L);
     static inline int StateOnline(lua_State *L);
     static inline int StateOffline(lua_State *L);
@@ -464,15 +451,11 @@ public:
     static inline int PlaySound(lua_State *L);
 
     //LuaNetWork
-    static inline int FetchPacket(lua_State *L);
     static inline int SendPacket(lua_State *L);
 
     //Replace Texture
     static inline int ReplaceGameTexture(lua_State *L);
 
-    //keys
-    static inline int GetKeyFlags(lua_State *L);
-    static inline int GetKeyCode(lua_State *L);
     static inline int GetKeyUnicode(lua_State *L);
 
     //demo
@@ -500,9 +483,6 @@ public:
     static inline int AddWaveToStream(lua_State *L);
     static inline int FloatToShortChars(lua_State *L);
     static inline int GetWaveBufferSpace(lua_State *L);
-
-    //OnConsole
-    static inline int OnConsoleGetText(lua_State *L);
 
     //load skin
     static inline int LoadSkin(lua_State *L);

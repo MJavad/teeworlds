@@ -6,6 +6,7 @@
 #include <game/server/gameworld.h>
 #include <game/server/entities/projectile.h>
 #include <game/server/entities/laser.h>
+#include <game/luaevent.h>
 #include <engine/shared/config.h>
 #include <engine/external/zlib/zlib.h>
 #include <engine/config.h>
@@ -39,7 +40,7 @@ public:
 
     CLuaEventListener();
     ~CLuaEventListener();
-	
+
 	int m_EventCID;
     //Chat OnChat
     char *m_pChatText;
@@ -54,10 +55,10 @@ public:
 
     //OnNetData
     char *m_pNetData;
-    
+
 
 	//OnWeaponFire
-	
+
 	int m_OnWeaponFireWeaponID;
 	vec2 m_OnWeaponFireDir;
 	int m_OnWeaponFireReloadTimer;
@@ -65,7 +66,7 @@ public:
 	bool m_OnWeaponFireAutoFire;
 
 	//Jump
-	
+
 	int m_OnJumpJumpID;
 
 	//Die
@@ -82,23 +83,21 @@ public:
 
 	//OnTile
 	//int m_OnTileIndex;
-	//int m_OnTilePosIndex;
 	//OnEntity
 	int m_OnEntityIndex;
-	int m_OnEntityPosIndex;
 	vec2 m_OnEntityPosition;
 
 	//OnConnect
-	
+
 
 	//OnEnter
-	
+
 
 	//OnCanSpawn
 	int m_SpawnTeam;
 	bool m_AbortSpawn;
 
-	//OnPlayerJoinTeam	
+	//OnPlayerJoinTeam
 	int m_SelectedTeam;
 	bool m_AbortTeamJoin;
 
@@ -147,11 +146,11 @@ public:
     int m_FunctionVarNum;
 
     //Functions:
-	
-	
+
+
 	//general events:
 	static inline int EventGetCID(lua_State *L);
-	
+
     //Settings
     static inline int SetScriptUseSettingPage(lua_State *L);
     static inline int SetScriptTitle(lua_State *L);
@@ -188,9 +187,9 @@ public:
     static inline int ChatHide(lua_State *L);
 
     //Kill
-   // static inline int KillGetKillerID(lua_State *L);
-   // static inline int KillGetVictimID(lua_State *L);
-   // static inline int KillGetWeapon(lua_State *L);
+    //static inline int KillGetKillerID(lua_State *L);
+    //static inline int KillGetVictimID(lua_State *L);
+    //static inline int KillGetWeapon(lua_State *L);
 
 
 	//WeaponFire
@@ -201,7 +200,8 @@ public:
     static inline int WeaponFireDisableSound(lua_State *L);
     static inline int WeaponFireAutoFire(lua_State *L);
 
-	//Jump    
+	//Jump
+    static inline int JumpGetClientID(lua_State *L);
     static inline int JumpGetJumpID(lua_State *L);
 
     static inline int ExplosionGetDamage(lua_State *L);
@@ -215,7 +215,7 @@ public:
 	//OnEntity
 	static inline int OnEntityGetIndex(lua_State *L);
 	static inline int OnEntitySetIndex(lua_State *L);
-	static inline int OnEntityGetPosIndex(lua_State *L);
+	static inline int OnEntityGetPos(lua_State *L);
     //
     //Include
     static inline int Include(lua_State *L);
@@ -276,7 +276,7 @@ public:
     static inline int SetConfigValue(lua_State *L);
 
     //LuaNetWork
-    static inline int FetchPacket(lua_State *L);    
+    static inline int FetchPacket(lua_State *L);
     static inline int SendPacket(lua_State *L);
     static inline int AddModFile(lua_State *L);
     static inline int DeleteModFile(lua_State *L);
@@ -308,7 +308,7 @@ public:
     static inline int CreateDamageIndicator(lua_State *L);
 
     //Client join
-   
+
 
     //OnCanSpawn
     static inline int SpawnGetTeam(lua_State *L);
@@ -357,7 +357,7 @@ public:
     static inline int DummyCreate(lua_State *L);
     static inline int IsDummy(lua_State *L);
 
-	//OnPlayerJoinTeam	
+	//OnPlayerJoinTeam
 	static inline int GetSelectedTeam(lua_State *L);
 	static inline int AbortTeamJoin(lua_State *L);
 
@@ -392,7 +392,7 @@ public:
     void ConfigClose(char *pFilename);
 
     int GetFileId(char *pFilename);
-	
+
 	char *m_pMapLuaData;
 
     static void ConsolePrintCallback(const char *pLine, void *pUserData);

@@ -75,13 +75,50 @@ void CGameConsole::CInstance::ExecuteLine(const char *pLine)
 {
 	if(m_Type == CGameConsole::CONSOLETYPE_LOCAL)
 		m_pGameConsole->m_pConsole->ExecuteLine(pLine);
-	else
+	if(m_Type == CGameConsole::CONSOLETYPE_REMOTE)
 	{
 		if(m_pGameConsole->Client()->RconAuthed())
 			m_pGameConsole->Client()->Rcon(pLine);
 		else
 			m_pGameConsole->Client()->RconAuth("", pLine);
 	}
+	if(m_Type == CGameConsole::CONSOLETYPE_LUA)
+	{
+	    if (!m_pGameConsole->m_pClient->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].m_pLua)
+            m_pGameConsole->m_pClient->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].Init(0);
+        if (str_comp(pLine, "lua_exec") == 0)
+        {
+            CInstance::CBacklogEntry *pEntry = m_Backlog.First();
+            int Size = 1;
+            while(pEntry)
+            {
+                Size += str_length(pEntry->m_aText);
+                Size += 1; // \n;
+                pEntry = m_Backlog.Next(pEntry);
+            }
+
+            char *pCode = new char[Size];
+            mem_zero(pCode, Size);
+            pEntry = m_Backlog.First();
+            while(pEntry)
+            {
+                str_append(pCode, pEntry->m_aText, Size);
+                str_append(pCode, "\n", Size);
+                pEntry = m_Backlog.Next(pEntry);
+            }
+            if (luaL_dostring(m_pGameConsole->m_pClient->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].m_pLua, pCode))
+            {
+                m_pGameConsole->m_pClient->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].ErrorFunc(m_pGameConsole->m_pClient->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].m_pLua);
+            }
+
+            delete []pCode;
+        }
+        else
+        {
+            PrintLine(pLine);
+        }
+	}
+
 }
 
 void CGameConsole::CInstance::PossibleCommandsCompleteCallback(const char *pStr, void *pUser)
@@ -221,7 +258,7 @@ void CGameConsole::CInstance::PrintLine(const char *pLine)
 }
 
 CGameConsole::CGameConsole()
-: m_LocalConsole(CONSOLETYPE_LOCAL), m_RemoteConsole(CONSOLETYPE_REMOTE)
+: m_LocalConsole(CONSOLETYPE_LOCAL), m_RemoteConsole(CONSOLETYPE_REMOTE), m_LuaConsole(CONSOLETYPE_LUA)
 {
 	m_ConsoleType = CONSOLETYPE_LOCAL;
 	m_ConsoleState = CONSOLE_CLOSED;
@@ -239,6 +276,8 @@ CGameConsole::CInstance *CGameConsole::CurrentConsole()
 {
     if(m_ConsoleType == CONSOLETYPE_REMOTE)
     	return &m_RemoteConsole;
+    if(m_ConsoleType == CONSOLETYPE_LUA)
+    	return &m_LuaConsole;
     return &m_LocalConsole;
 }
 
@@ -369,6 +408,8 @@ void CGameConsole::OnRender()
     Graphics()->SetColor(0.2f, 0.2f, 0.2f,0.9f);
     if(m_ConsoleType == CONSOLETYPE_REMOTE)
 	    Graphics()->SetColor(0.4f, 0.2f, 0.2f,0.9f);
+    if(m_ConsoleType == CONSOLETYPE_LUA)
+	    Graphics()->SetColor(0.2f, 0.2f, 0.4f,0.9f);
     Graphics()->QuadsSetSubset(0,-ConsoleHeight*0.075f,Screen.w*0.075f*0.5f,0);
 	QuadItem = IGraphics::CQuadItem(0, 0, Screen.w, ConsoleHeight);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
@@ -606,12 +647,17 @@ void CGameConsole::Toggle(int Type)
 
 void CGameConsole::Dump(int Type)
 {
-	CInstance *pConsole = Type == CONSOLETYPE_REMOTE ? &m_RemoteConsole : &m_LocalConsole;
+	CInstance *pConsole = CurrentConsole(); //Type == CONSOLETYPE_REMOTE ? &m_RemoteConsole : &m_LocalConsole;
 	char aFilename[128];
 	char aDate[20];
 
 	str_timestamp(aDate, sizeof(aDate));
-	str_format(aFilename, sizeof(aFilename), "dumps/%s_dump_%s.txt", Type==CONSOLETYPE_REMOTE?"remote_console":"local_console", aDate);
+	if (Type == CONSOLETYPE_REMOTE)
+        str_format(aFilename, sizeof(aFilename), "dumps/remote_console_dump_%s.txt", aDate);
+	if (Type == CONSOLETYPE_LOCAL)
+        str_format(aFilename, sizeof(aFilename), "dumps/local_console_dump_%s.txt", aDate);
+	if (Type == CONSOLETYPE_LUA)
+        str_format(aFilename, sizeof(aFilename), "dumps/lua_console_dump_%s.txt", aDate);
 	IOHANDLE io = Storage()->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
 	if(io)
 	{
@@ -634,6 +680,11 @@ void CGameConsole::ConToggleRemoteConsole(IConsole::IResult *pResult, void *pUse
 	((CGameConsole *)pUserData)->Toggle(CONSOLETYPE_REMOTE);
 }
 
+void CGameConsole::ConToggleLuaConsole(IConsole::IResult *pResult, void *pUserData)
+{
+	((CGameConsole *)pUserData)->Toggle(CONSOLETYPE_LUA);
+}
+
 void CGameConsole::ConClearLocalConsole(IConsole::IResult *pResult, void *pUserData)
 {
 	((CGameConsole *)pUserData)->m_LocalConsole.ClearBacklog();
@@ -644,6 +695,11 @@ void CGameConsole::ConClearRemoteConsole(IConsole::IResult *pResult, void *pUser
 	((CGameConsole *)pUserData)->m_RemoteConsole.ClearBacklog();
 }
 
+void CGameConsole::ConClearLuaConsole(IConsole::IResult *pResult, void *pUserData)
+{
+	((CGameConsole *)pUserData)->m_LuaConsole.ClearBacklog();
+}
+
 void CGameConsole::ConDumpLocalConsole(IConsole::IResult *pResult, void *pUserData)
 {
 	((CGameConsole *)pUserData)->Dump(CONSOLETYPE_LOCAL);
@@ -652,6 +708,11 @@ void CGameConsole::ConDumpLocalConsole(IConsole::IResult *pResult, void *pUserDa
 void CGameConsole::ConDumpRemoteConsole(IConsole::IResult *pResult, void *pUserData)
 {
 	((CGameConsole *)pUserData)->Dump(CONSOLETYPE_REMOTE);
+}
+
+void CGameConsole::ConDumpLuaConsole(IConsole::IResult *pResult, void *pUserData)
+{
+	((CGameConsole *)pUserData)->Dump(CONSOLETYPE_LUA);
 }
 
 void CGameConsole::ClientConsolePrintCallback(const char *pStr, void *pUserData)
@@ -675,6 +736,8 @@ void CGameConsole::PrintLine(int Type, const char *pLine)
 		m_LocalConsole.PrintLine(pLine);
 	else if(Type == CONSOLETYPE_REMOTE)
 		m_RemoteConsole.PrintLine(pLine);
+	else if(Type == CONSOLETYPE_LUA)
+		m_LuaConsole.PrintLine(pLine);
 }
 
 void CGameConsole::OnConsoleInit()
@@ -682,6 +745,7 @@ void CGameConsole::OnConsoleInit()
 	// init console instances
 	m_LocalConsole.Init(this);
 	m_RemoteConsole.Init(this);
+	m_LuaConsole.Init(this);
 
 	m_pConsole = Kernel()->RequestInterface<IConsole>();
 
@@ -690,10 +754,13 @@ void CGameConsole::OnConsoleInit()
 
 	Console()->Register("toggle_local_console", "", CFGFLAG_CLIENT, ConToggleLocalConsole, this, "Toggle local console");
 	Console()->Register("toggle_remote_console", "", CFGFLAG_CLIENT, ConToggleRemoteConsole, this, "Toggle remote console");
+	Console()->Register("toggle_lua_console", "", CFGFLAG_CLIENT, ConToggleLuaConsole, this, "Toggle lua console");
 	Console()->Register("clear_local_console", "", CFGFLAG_CLIENT, ConClearLocalConsole, this, "Clear local console");
 	Console()->Register("clear_remote_console", "", CFGFLAG_CLIENT, ConClearRemoteConsole, this, "Clear remote console");
+	Console()->Register("clear_lua_console", "", CFGFLAG_CLIENT, ConClearLuaConsole, this, "Clear remote console");
 	Console()->Register("dump_local_console", "", CFGFLAG_CLIENT, ConDumpLocalConsole, this, "Dump local console");
 	Console()->Register("dump_remote_console", "", CFGFLAG_CLIENT, ConDumpRemoteConsole, this, "Dump remote console");
+	Console()->Register("dump_lua_console", "", CFGFLAG_CLIENT, ConDumpLocalConsole, this, "Dump remote console");
 
 	Console()->Chain("console_output_level", ConchainConsoleOutputLevelUpdate, this);
 }
@@ -702,6 +769,8 @@ void CGameConsole::OnStateChange(int NewState, int OldState)
 {
 	if(NewState == IClient::STATE_OFFLINE)
 		m_RemoteConsole.ClearHistory();
-    m_pClient->m_pLua->m_EventListener.m_StateOld = OldState;
-    m_pClient->m_pLua->m_EventListener.OnEvent("OnStateChange");
+
+	m_pClient->m_pLua->m_EventListener.m_Parameters.FindFree()->Set(NewState);
+	m_pClient->m_pLua->m_EventListener.m_Parameters.FindFree()->Set(OldState);
+	m_pClient->m_pLua->m_EventListener.OnEvent("OnStateChange");
 }

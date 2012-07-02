@@ -75,11 +75,11 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	GameServer()->m_World.InsertEntity(this);
 	m_Alive = true;
 
-	GameServer()->m_pController->OnCharacterSpawn(this);	
-	
+	GameServer()->m_pController->OnCharacterSpawn(this);
+
 	GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
-    GameServer()->m_pLua->m_EventListener.OnEvent("OnCharacterSpawn");	
-	
+    GameServer()->m_pLua->m_EventListener.OnEvent("OnCharacterSpawn");
+
 	return true;
 }
 
@@ -585,7 +585,6 @@ void CCharacter::Tick()
 	{
 		if((m_Core.m_TriggeredEvents&COREEVENT_GROUND_JUMP))
 		{
-			//GameServer()->m_pLua->m_EventListener.m_OnJumpClientID = m_pPlayer->GetCID();
 			GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
 			GameServer()->m_pLua->m_EventListener.m_OnJumpJumpID = 0;
 			GameServer()->m_pLua->m_EventListener.OnEvent("OnJump");
@@ -593,7 +592,6 @@ void CCharacter::Tick()
 		else if((m_Core.m_TriggeredEvents&COREEVENT_AIR_JUMP))
 		{
 
-			//GameServer()->m_pLua->m_EventListener.m_OnJumpClientID = m_pPlayer->GetCID();
 			GameServer()->m_pLua->m_EventListener.m_EventCID = m_pPlayer->GetCID();
 			GameServer()->m_pLua->m_EventListener.m_OnJumpJumpID = 1;
 			GameServer()->m_pLua->m_EventListener.OnEvent("OnJump");

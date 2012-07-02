@@ -57,6 +57,7 @@ class CGameConsole : public CComponent
 
 	CInstance m_LocalConsole;
 	CInstance m_RemoteConsole;
+	CInstance m_LuaConsole;
 
 	CInstance *CurrentConsole();
 	float TimeNow();
@@ -74,10 +75,13 @@ class CGameConsole : public CComponent
 	static void ClientConsolePrintCallback(const char *pStr, void *pUserData);
 	static void ConToggleLocalConsole(IConsole::IResult *pResult, void *pUserData);
 	static void ConToggleRemoteConsole(IConsole::IResult *pResult, void *pUserData);
+	static void ConToggleLuaConsole(IConsole::IResult *pResult, void *pUserData);
 	static void ConClearLocalConsole(IConsole::IResult *pResult, void *pUserData);
 	static void ConClearRemoteConsole(IConsole::IResult *pResult, void *pUserData);
+	static void ConClearLuaConsole(IConsole::IResult *pResult, void *pUserData);
 	static void ConDumpLocalConsole(IConsole::IResult *pResult, void *pUserData);
 	static void ConDumpRemoteConsole(IConsole::IResult *pResult, void *pUserData);
+	static void ConDumpLuaConsole(IConsole::IResult *pResult, void *pUserData);
 	static void ConchainConsoleOutputLevelUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 public:
@@ -85,6 +89,7 @@ public:
 	{
 		CONSOLETYPE_LOCAL=0,
 		CONSOLETYPE_REMOTE,
+		CONSOLETYPE_LUA,
 	};
 
 	CGameConsole();

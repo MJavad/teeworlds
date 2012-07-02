@@ -356,7 +356,7 @@ int CLuaFile::SetOnTileIndex(lua_State *L)
 	pSelf->m_pLuaHandler->m_EventListener.m_OnTileIndex = lua_tointeger(L, 1);
 	return 0;
 }*/
-int CLuaFile::OnEntityGetPosIndex(lua_State *L)
+int CLuaFile::OnEntityGetPos(lua_State *L)
 {
 	lua_getglobal(L, "pLUA");
 	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
@@ -364,7 +364,8 @@ int CLuaFile::OnEntityGetPosIndex(lua_State *L)
 	lua_getstack(L, 1, &Frame);
 	lua_getinfo(L, "nlSf", &Frame);
 
-	lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnEntityPosIndex);
+	lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnEntityPosition.x);
+	lua_pushinteger(L, pSelf->m_pLuaHandler->m_EventListener.m_OnEntityPosition.y);
 
 	return 1;
 }

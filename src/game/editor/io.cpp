@@ -299,20 +299,19 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 				// save layer name
 				StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), pLayer->m_aName);
 
-				int i = df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(Item), &Item);
-                dbg_msg("index_lua", "%i - %i", i, LayerCount);
+				df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(Item), &Item);
 
 				GItem.m_NumLayers++;
 				LayerCount++;
 
 				if (pLayer->m_LuaLayer.m_aLuaCode[0]) //save lua code
 				{
-                    CMapItemLayerLua ItemLua;
-                    Item.m_Layer.m_Flags = 0;
-                    Item.m_Layer.m_Type = 0xbaadc0de; //LAYERTYPE_LUA;
-                    ItemLua.m_Version = 1;
-                    ItemLua.m_Data = df.AddData(str_length(pLayer->m_LuaLayer.m_aLuaCode), pLayer->m_LuaLayer.m_aLuaCode);
-                    df.AddItem(MAPITEMTYPE_LUA, LayerCount, sizeof(ItemLua), &ItemLua);
+                    CMapItemLayerLua LuaItem;
+                    LuaItem.m_Version = 1;
+                    LuaItem.m_Layer.m_Flags = 0;
+                    LuaItem.m_Layer.m_Type = LAYERTYPE_LUA;
+                    LuaItem.m_Data = df.AddData(str_length(pLayer->m_LuaLayer.m_aLuaCode) + 1, pLayer->m_LuaLayer.m_aLuaCode);
+                    df.AddItem(MAPITEMTYPE_LAYER, LayerCount, sizeof(LuaItem), &LuaItem);
                     GItem.m_NumLayers++;
                     LayerCount++;
 				}
@@ -379,16 +378,8 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 	}
 
 	df.AddItem(MAPITEMTYPE_ENVPOINTS, 0, TotalSize, pPoints);
-	
-	
-	//add Lua-item
-	if(m_pLuaData != 0)
-	{
-		CMapItemLua Item;
-		Item.m_pData = m_pLuaData;
-		df.AddItem(MAPITEMTYPE_LUA, 0, sizeof(Item), &Item);
-	}
-		
+
+
 	// finish the data file
 	df.Finish();
 	m_pEditor->Console()->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "editor", "saving done");
@@ -529,8 +520,6 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 				{
 					CLayer *pLayer = 0;
 					CMapItemLayer *pLayerItem = (CMapItemLayer *)DataFile.GetItem(LayersStart+pGItem->m_StartLayer+l, 0, 0);
-                    dbg_msg("index", "%i", LayersStart+pGItem->m_StartLayer+l);
-                    dbg_msg("type", "%i", pLayerItem->m_Type);
 					if(!pLayerItem)
 						continue;
 
@@ -580,7 +569,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 
 						pLastTiles = pTiles;
 					}
-					else if(pLayerItem->m_Type == 0xbaadc0de /*LAYERTYPE_LUA */&& pLastTiles)
+					else if(pLayerItem->m_Type == LAYERTYPE_LUA && pLastTiles)
 					{
 					    dbg_msg("got", "lua");
                         CMapItemLayerLua *pLayerLua = (CMapItemLayerLua *)pLayerItem;
@@ -641,15 +630,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 					pEnv->m_Synchronized = pItem->m_Synchronized;
 			}
 		}
-		
-		//load Lua-item
-		CMapItemLua *pItem = (CMapItemLua *)DataFile.FindItem(MAPITEMTYPE_LUA, 0);
-		if(pItem)
-		{
-			m_pLuaData = (char *)pItem->m_pData;	
-		}
-		else
-			m_pLuaData = 0;	
+
 	}
 
 	return 1;

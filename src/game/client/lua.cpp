@@ -110,7 +110,6 @@ void CLua::ConfigClose(char *pFileDir)
 void CLua::ConsolePrintCallback(const char *pLine, void *pUserData)
 {
     CLua *pSelf = (CLua *)pUserData;
-    pSelf->m_EventListener.m_pLine = (char *)pLine;
+    pSelf->m_EventListener.m_Parameters.FindFree()->Set((char *)pLine);
     pSelf->m_EventListener.OnEvent("OnConsole");
-    pSelf->m_EventListener.m_pLine = 0;
 }
