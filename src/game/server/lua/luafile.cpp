@@ -1,23 +1,22 @@
 /* (c) MAP94 and Patafix. See www.n-lvl.com/ndc/nclient/ for more information. */
+    /*DGI:Doc-Gen-Info*/
+    /*DGI:Type:Server*/
+    /*DGI:Exception:errorfunc*/
+    /*DGI:Event:OnWeaponFire*/
+    /*DGI:Event:OnJump*/
+    /*DGI:Event:OnJump*/
+    /*DGI:Event:OnDie*/
+    /*DGI:Event:OnExplosion*/
+    /*DGI:Event:OnClientEnter*/
+    /*DGI:Event:OnClientConnect*/
+    /*DGI:Event:OnChat*/
+    /*DGI:Event:OnPlayerJoinTeam*/
+    /*DGI:Event:OnNetData*/
+    /*DGI:Event:OnCanSpawn*/
+    /*DGI:Event:OnEntity*/
+    /*DGI:Event:OnConsole*/
+
 #include "lua.h"
-/*
-#include "components/flow.h"
-#include "components/particles.h"
-#include "components/menus.h"
-#include <game/generated/client_data.h>
-
-#include <engine/serverbrowser.h>
-#include <engine/textrender.h>
-#include <engine/sound.h>
-#include <engine/graphics.h>
-#include <engine/storage.h>
-#include <engine/server/server.h>
-
-#include <game/client/lineinput.h>
-#include <game/client/components/menus.h>
-#include <game/client/components/chat.h>
-#include <game/client/components/countryflags.h>
-#include <game/client/components/skins.h>*/
 
 #include "commands/character.cpp"
 #include "commands/chat.cpp"

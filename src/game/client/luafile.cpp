@@ -1,4 +1,26 @@
 /* (c) MAP94. See www.n-lvl.com/ndc/nclient/ for more information. */
+    /*DGI:Doc-Gen-Info*/
+    /*DGI:Type:Client*/
+    /*DGI:Exception:errorfunc*/
+    /*DGI:Event:OnChat*/
+    /*DGI:Event:OnStateChange*/
+    /*DGI:Event:OnControlChange*/
+    /*DGI:Event:OnRenderLevelItem1*/
+    /*DGI:Event:OnRenderLevelItem2*/
+    /*DGI:Event:OnKill*/
+    /*DGI:Event:OnRenderLevel1*/
+    /*DGI:Event:OnRenderLevel2*/
+    /*DGI:Event:OnRenderLevel3*/
+    /*DGI:Event:OnRenderLevel4*/
+    /*DGI:Event:OnRenderLevel5*/
+    /*DGI:Event:OnRenderBackground*/
+    /*DGI:Event:OnServerBrowserGameTypeRender*/
+    /*DGI:Event:OnScoreboardRender*/
+    /*DGI:Event:OnKeyEvent*/
+    /*DGI:Event:OnNetData*/
+    /*DGI:Event:OnConsoleRemote*/
+    /*DGI:Event:OnConsole*/
+    /*DGI:Event:OnMusicChange*/
 #include "lua.h"
 #include "components/flow.h"
 #include "components/particles.h"
