@@ -756,6 +756,16 @@ void CCharacter::Die(int Killer, int Weapon)
 
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
+    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(From);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnTakeDamage");
+    dbg_msg("Value", "%i", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger());
+    if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger())
+    {
+        dbg_msg("FF", "%i", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger());
+        return false;
+    }
+
 	m_Core.m_Vel += Force;
 
 	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)

@@ -254,7 +254,7 @@ void CLuaFile::Init(const char *pFile)
     lua_setglobal(m_pLua, "pLUA");
 
     lua_register(m_pLua, ToLower("errorfunc"), this->ErrorFunc); //TODO: fix me
-	lua_getglobal(m_pLua, "errorfunc");
+	//lua_getglobal(m_pLua, "errorfunc");
 
 
     if (luaL_loadfile(m_pLua, m_aFilename) == 0)
@@ -269,8 +269,6 @@ void CLuaFile::Init(const char *pFile)
         Close();
         return;
     }
-    lua_getglobal(m_pLua, "errorfunc");
-    ErrorFunc(m_pLua);
 }
 
 void CLuaFile::Close()
@@ -423,8 +421,8 @@ void CLuaFile::FunctionExec(const char *pFunctionName)
             return;
         FunctionPrepare(pFunctionName);
     }
-    lua_pcall(m_pLua, m_FunctionVarNum, LUA_MULTRET, 0);
-    ErrorFunc(m_pLua);
+    if (lua_pcall(m_pLua, m_FunctionVarNum, LUA_MULTRET, 0))
+        ErrorFunc(m_pLua);
     m_FunctionVarNum = 0;
 }
 
