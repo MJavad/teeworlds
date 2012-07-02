@@ -132,7 +132,7 @@ AddDependency(client_content_source, client_content_header)
 AddDependency(server_content_source, server_content_header)
 
 nethash = CHash("src/game/generated/nethash.cpp", "src/engine/shared/protocol.h", "src/game/generated/protocol.h", "src/game/tuning.h", "src/game/gamecore.cpp", network_header)
-luahash = CHashLua("src/game/generated/luahash.cpp", "src/game/client/lua.h", "src/game/client/lua.cpp", "src/game/client/luabinding.cpp", "src/game/client/luaeventlistener.cpp", "src/game/client/luaui.cpp", "src/game/client/luafile.cpp")
+luahash = CHashLua("src/game/generated/luahash.cpp", "src/game/client/lua.h", "src/game/client/lua.cpp", "src/game/client/luabinding.cpp", "src/game/client/luaui.cpp", "src/game/client/luafile.cpp")
 
 client_link_other = {}
 client_depends = {}

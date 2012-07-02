@@ -68,6 +68,8 @@ CLua::CLua(CGameClient *pClient)
 
     m_pClient = pClient;
 
+    m_pEventListener = new CLuaEventListener<CLuaFile>();
+
     m_pClient->Console()->RegisterPrintCallback(IConsole::OUTPUT_LEVEL_DEBUG, ConsolePrintCallback, this);
 
     for (int i = 0; i < MAX_LUA_FILES; i++)
@@ -110,6 +112,6 @@ void CLua::ConfigClose(char *pFileDir)
 void CLua::ConsolePrintCallback(const char *pLine, void *pUserData)
 {
     CLua *pSelf = (CLua *)pUserData;
-    pSelf->m_EventListener.m_Parameters.FindFree()->Set((char *)pLine);
-    pSelf->m_EventListener.OnEvent("OnConsole");
+    pSelf->m_pEventListener->m_Parameters.FindFree()->Set((char *)pLine);
+    pSelf->m_pEventListener->OnEvent("OnConsole");
 }

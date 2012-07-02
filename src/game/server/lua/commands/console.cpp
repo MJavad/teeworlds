@@ -28,19 +28,3 @@ int CLuaFile::Print(lua_State *L)
         dbg_msg(lua_tostring(L, 1), lua_tostring(L, 2));
     return 0;
 }
-
-int CLuaFile::OnConsoleGetText(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (pSelf->m_pLuaHandler->m_EventListener.m_pLine)
-    {
-        lua_pushstring(L, pSelf->m_pLuaHandler->m_EventListener.m_pLine);
-        return 1;
-    }
-    return 0;
-}

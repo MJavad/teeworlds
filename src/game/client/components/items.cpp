@@ -269,7 +269,7 @@ void CItems::OnRender()
 	if(Client()->State() < IClient::STATE_ONLINE)
 		return;
 
-    m_pClient->m_pLua->m_EventListener.OnEvent("OnRenderLevelItem1");
+    m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderLevelItem1");
 
 	int Num = Client()->SnapNumItems(IClient::SNAP_CURRENT);
 	for(int i = 0; i < Num; i++)
@@ -323,7 +323,7 @@ void CItems::OnRender()
 			RenderProjectile(&m_aExtraProjectiles[i], 0);
 	}
 
-	m_pClient->m_pLua->m_EventListener.OnEvent("OnRenderLevelItem2");
+	m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderLevelItem2");
 }
 
 void CItems::AddExtraProjectile(CNetObj_Projectile *pProj)

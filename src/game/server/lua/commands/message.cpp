@@ -30,21 +30,6 @@ int CLuaFile::SendPacket(lua_State *L)
     return 0;
 }
 
-int CLuaFile::FetchPacket(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (!pSelf->m_pLuaHandler->m_EventListener.m_pNetData)
-        return 0;
-
-    lua_pushstring(L, pSelf->m_pLuaHandler->m_EventListener.m_pNetData);
-
-    return 1;
-}
 int CLuaFile::AddModFile(lua_State *L)
 {
 	lua_getglobal(L, "pLUA");
@@ -60,6 +45,7 @@ int CLuaFile::AddModFile(lua_State *L)
 	pSelf->m_pServer->Server()->AddModFile((char *)lua_tostring(L, 1), (char *)lua_tostring(L, 2), lua_tointeger(L, 3), lua_isnumber(L, 4)?lua_tointeger(L, 4):0);
 	return 0;
 }
+
 int CLuaFile::DeleteModFile(lua_State *L)
 {
 	lua_getglobal(L, "pLUA");
@@ -73,6 +59,7 @@ int CLuaFile::DeleteModFile(lua_State *L)
 	pSelf->m_pServer->Server()->DeleteModFile((char *)lua_tostring(L, 1));
 	return 0;
 }
+
 int CLuaFile::SendFile(lua_State *L)
 {
 	lua_getglobal(L, "pLUA");

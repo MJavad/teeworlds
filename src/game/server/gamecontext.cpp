@@ -123,24 +123,24 @@ void CGameContext::CreateHammerHit(vec2 Pos)
 void CGameContext::CreateExplosion(vec2 Pos, int Owner, int Weapon, bool NoDamage, int Damage)
 {
 	// create the event
-	m_pLua->m_EventListener.m_ExplosionDamage = Damage;
-	m_pLua->m_EventListener.m_ExplosionOwner = Owner;
-	m_pLua->m_EventListener.m_EventCID = Owner;
-	m_pLua->m_EventListener.m_ExplosionWeapon = Weapon;
-	m_pLua->m_EventListener.m_ExplosionPos = Pos;
-	m_pLua->m_EventListener.m_ExplosionAbort = false;
-	m_pLua->m_EventListener.OnEvent("OnExplosion");
-	Damage = m_pLua->m_EventListener.m_ExplosionDamage;
-	Owner = m_pLua->m_EventListener.m_ExplosionOwner;
-	Weapon = m_pLua->m_EventListener.m_ExplosionWeapon;
-	Pos = m_pLua->m_EventListener.m_ExplosionPos;
-
-	m_pLua->m_EventListener.m_ExplosionDamage = 0;
-	m_pLua->m_EventListener.m_ExplosionOwner = 0;
-	m_pLua->m_EventListener.m_ExplosionWeapon = 0;
-	m_pLua->m_EventListener.m_ExplosionPos = vec2(0, 0);
-
-	if (m_pLua->m_EventListener.m_ExplosionAbort)
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Damage);
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Owner);
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Weapon);
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Pos.x);
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Pos.y);
+	m_pLua->m_pEventListener->OnEvent("OnExplosion");
+    if (m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetInteger())
+        Damage = m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetInteger();
+    if (m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger())
+        Owner = m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger();
+    if (m_pLua->m_pEventListener->m_Returns.m_aVars[3].GetInteger())
+        Weapon = m_pLua->m_pEventListener->m_Returns.m_aVars[3].GetInteger();
+    if (m_pLua->m_pEventListener->m_Returns.m_aVars[4].GetInteger() && m_pLua->m_pEventListener->m_Returns.m_aVars[5].GetInteger())
+    {
+        Pos.x = m_pLua->m_pEventListener->m_Returns.m_aVars[4].GetFloat();
+        Pos.y = m_pLua->m_pEventListener->m_Returns.m_aVars[5].GetFloat();
+    }
+    if (m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger())
         return;
 
 	CNetEvent_Explosion *pEvent = (CNetEvent_Explosion *)m_Events.Create(NETEVENTTYPE_EXPLOSION, sizeof(CNetEvent_Explosion));
@@ -566,9 +566,8 @@ void CGameContext::OnClientEnter(int ClientID)
 
 	m_VoteUpdate = true;
 
-    m_pLua->m_EventListener.m_EventCID = ClientID;
-	m_pLua->m_EventListener.OnEvent("OnClientEnter");
-	m_pLua->m_EventListener.m_EventCID = -1;
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID);
+	m_pLua->m_pEventListener->OnEvent("OnClientEnter");
 }
 
 void CGameContext::OnClientConnected(int ClientID, bool IsDummy)
@@ -605,15 +604,20 @@ void CGameContext::OnClientConnected(int ClientID, bool IsDummy)
 	Msg.m_pMessage = g_Config.m_SvMotd;
 	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, ClientID);
 
-    m_pLua->m_EventListener.m_EventCID = ClientID;
-	m_pLua->m_EventListener.OnEvent("OnClientConnect");
-	m_pLua->m_EventListener.m_EventCID = -1;
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID);
+	m_pLua->m_pEventListener->OnEvent("OnClientConnect");
 }
 
 void CGameContext::OnClientDrop(int ClientID, const char *pReason)
 {
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID);
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pReason);
+	m_pLua->m_pEventListener->OnEvent("OnClientDrop");
 	AbortVoteKickOnDisconnect(ClientID);
-	m_apPlayers[ClientID]->OnDisconnect(pReason);
+	if (m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_STRING)
+        m_apPlayers[ClientID]->OnDisconnect(m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetString());
+    else
+        m_apPlayers[ClientID]->OnDisconnect(pReason);
 	delete m_apPlayers[ClientID];
 	m_apPlayers[ClientID] = 0;
 
@@ -664,14 +668,18 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				*pMessage = ' ';
 			pMessage++;
 		}
-		m_pLua->m_EventListener.m_pChatText = (char *)pMsg->m_pMessage;
-		m_pLua->m_EventListener.m_EventCID = ClientID;
-		m_pLua->m_EventListener.m_ChatTeam = Team;
-		m_pLua->m_EventListener.m_ChatHide = false;
-		m_pLua->m_EventListener.OnEvent("OnChat");
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pMsg->m_pMessage);
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID);
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Team);
+		m_pLua->m_pEventListener->OnEvent("OnChat");
 
-		if (m_pLua->m_EventListener.m_ChatHide == false)
-            SendChat(ClientID, Team, pMsg->m_pMessage);
+		if (m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+		{
+		    if (m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetType() == CEventVariable::EVENT_TYPE_STRING)
+                SendChat(ClientID, Team, m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetString());
+            else
+                SendChat(ClientID, Team, pMsg->m_pMessage);
+		}
 
 
 	}
@@ -846,12 +854,11 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		if(pPlayer->GetTeam() == pMsg->m_Team || (g_Config.m_SvSpamprotection && pPlayer->m_LastSetTeam && pPlayer->m_LastSetTeam+Server()->TickSpeed()*3 > Server()->Tick()))
 			return;
 
-		m_pLua->m_EventListener.m_EventCID = ClientID;
-		m_pLua->m_EventListener.m_SelectedTeam = pMsg->m_Team;
-		m_pLua->m_EventListener.m_AbortTeamJoin = false;
-		m_pLua->m_EventListener.OnEvent("OnPlayerJoinTeam");
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID);
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(pMsg->m_Team);
+		m_pLua->m_pEventListener->OnEvent("OnPlayerJoinTeam");
 
-		if(m_pLua->m_EventListener.m_AbortTeamJoin)
+		if(m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger())
 		{
 			//prevent spam
 			pPlayer->m_LastSetTeam = Server()->Tick();
@@ -1051,7 +1058,7 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 void CGameContext::OnLuaPacket(CUnpacker *pUnpacker, int ClientID)
 {
 	//TODO Check if this row is working without pSelf
-    char aData[4000];
+    char aData[8192];
 	int Size = sizeof(aData);
 
 	int RawSize = pUnpacker->GetInt();
@@ -1070,10 +1077,9 @@ void CGameContext::OnLuaPacket(CUnpacker *pUnpacker, int ClientID)
 	}
 
 
-    m_pLua->m_EventListener.m_pNetData = aData; //Fetch Data
-    m_pLua->m_EventListener.m_EventCID = ClientID; //Fetch Data
-	m_pLua->m_EventListener.OnEvent("OnNetData"); //Call lua
-	m_pLua->m_EventListener.m_pNetData = 0; //Null-Pointer
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(aData);
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID);
+	m_pLua->m_pEventListener->OnEvent("OnNetData"); //Call lua
 }
 
 void CGameContext::ConTuneParam(IConsole::IResult *pResult, void *pUserData)
@@ -1604,7 +1610,7 @@ void CGameContext::OnShutdown()
 	{
         Server()->DeleteAllModFile();
         for (int i = 0; i < MAX_LUA_FILES; i++)
-            m_pLua->m_EventListener.RemoveAllEventListeners(&m_pLua->m_aLuaFiles[i]);
+            m_pLua->m_pEventListener->RemoveAllEventListeners(&m_pLua->m_aLuaFiles[i]);
 		delete m_pLua;
 		m_pLua = 0;
 	}

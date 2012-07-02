@@ -56,6 +56,7 @@ CLua::CLua(CGameContext *pServer)
     Close();
 
     m_pServer = pServer;
+    m_pEventListener = new CLuaEventListener<CLuaFile>();
 
     for (int i = 0; i < MAX_LUA_FILES; i++)
     {
@@ -95,7 +96,6 @@ void CLua::ConfigClose(char *pFileDir)
 void CLua::ConsolePrintCallback(const char *pLine, void *pUserData)
 {
     CLua *pSelf = (CLua *)pUserData;
-    pSelf->m_EventListener.m_pLine = (char *)pLine;
-    pSelf->m_EventListener.OnEvent("OnConsole");
-    pSelf->m_EventListener.m_pLine = 0;
+    pSelf->m_pEventListener->m_Parameters.FindFree()->Set((char *)pLine);
+    pSelf->m_pEventListener->OnEvent("OnConsole");
 }

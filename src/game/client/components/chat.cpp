@@ -312,12 +312,12 @@ void CChat::OnMessage(int MsgType, void *pRawMsg)
 	if(MsgType == NETMSGTYPE_SV_CHAT)
 	{
 		CNetMsg_Sv_Chat *pMsg = (CNetMsg_Sv_Chat *)pRawMsg;
-		m_pClient->m_pLua->m_EventListener.m_Parameters.FindFree()->Set((char *)pMsg->m_pMessage);
-		m_pClient->m_pLua->m_EventListener.m_Parameters.FindFree()->Set(pMsg->m_ClientID);
-		m_pClient->m_pLua->m_EventListener.m_Parameters.FindFree()->Set(pMsg->m_Team);
-		m_pClient->m_pLua->m_EventListener.OnEvent("OnChat");
+		m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pMsg->m_pMessage);
+		m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(pMsg->m_ClientID);
+		m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(pMsg->m_Team);
+		m_pClient->m_pLua->m_pEventListener->OnEvent("OnChat");
 
-		if (m_pClient->m_pLua->m_EventListener.m_Returns.m_aVars[0].GetInteger() == 0)
+		if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
             AddLine(pMsg->m_ClientID, pMsg->m_Team, pMsg->m_pMessage);
 	}
 }

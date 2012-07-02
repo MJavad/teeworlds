@@ -132,38 +132,8 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("SetScriptInfo"), this->SetScriptInfo);
 
     //events
-		lua_register(m_pLua, ToLower("AddEventListener"), this->AddEventListener);
-		lua_register(m_pLua, ToLower("RemoveEventListener"), this->RemoveEventListener);
-		lua_register(m_pLua, ToLower("EventGetCID"), this->EventGetCID);
-		 //chat
-		lua_register(m_pLua, ToLower("ChatGetText"), this->ChatGetText);
-		lua_register(m_pLua, ToLower("ChatGetTeam"), this->ChatGetTeam);
-		lua_register(m_pLua, ToLower("ChatHide"), this->ChatHide);
-
-		//kill
-		//lua_register(m_pLua, ToLower("KillGetKillerID"), this->KillGetKillerID);
-		//lua_register(m_pLua, ToLower("KillGetVictimID"), this->KillGetVictimID);
-		//lua_register(m_pLua, ToLower("KillGetWeapon"), this->KillGetWeapon);
-
-		//WeaponFire
-		lua_register(m_pLua, ToLower("WeaponFireGetWeaponID"), this->WeaponFireGetWeaponID);
-		lua_register(m_pLua, ToLower("WeaponFireGetDir"), this->WeaponFireGetDir);
-		lua_register(m_pLua, ToLower("WeaponFireSetReloadTime"), this->WeaponFireSetReloadTime);
-		lua_register(m_pLua, ToLower("WeaponFireDisableSound"), this->WeaponFireDisableSound);
-		lua_register(m_pLua, ToLower("WeaponFireAutoFire"), this->WeaponFireAutoFire);
-
-		//OnJump
-		lua_register(m_pLua, ToLower("JumpGetJumpID"), this->JumpGetJumpID);
-
-		//OnTile
-		//lua_register(m_pLua, ToLower("GetOnTileIndex"), this->GetOnTileIndex);
-		//lua_register(m_pLua, ToLower("GetOnTilePosIndex"), this->GetOnTilePosIndex);
-		//lua_register(m_pLua, ToLower("SettOnTileIndex"), this->SetOnTileIndex);
-
-		//OnEntity
-		lua_register(m_pLua, ToLower("OnEntityGetPos"), this->OnEntityGetPos);
-		lua_register(m_pLua, ToLower("OnEntityGetIndex"), this->OnEntityGetIndex);
-		lua_register(m_pLua, ToLower("OnEntitySetIndex"), this->OnEntitySetIndex);
+    lua_register(m_pLua, ToLower("AddEventListener"), this->AddEventListener);
+    lua_register(m_pLua, ToLower("RemoveEventListener"), this->RemoveEventListener);
 
     //player
     lua_register(m_pLua, ToLower("GetPlayerName"), this->GetPlayerName);
@@ -206,7 +176,6 @@ void CLuaFile::Init(const char *pFile)
     //message
 	//  lua_register(m_pLua, ToLower("GetNetError"), this->GetNetError);
 	lua_register(m_pLua, ToLower("SendPacket"), this->SendPacket);
-	lua_register(m_pLua, ToLower("FetchPacket"), this->FetchPacket);
 	lua_register(m_pLua, ToLower("AddModFile"), this->AddModFile);
 	lua_register(m_pLua, ToLower("DeleteModFile"), this->DeleteModFile);
 	lua_register(m_pLua, ToLower("SendFile"), this->SendFile);
@@ -246,13 +215,6 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CreateDeath"), this->CreateDeath);
     lua_register(m_pLua, ToLower("CreateDamageIndicator"), this->CreateDamageIndicator);
 
-    //event
-    lua_register(m_pLua, ToLower("ExplosionGetPos"), this->ExplosionGetPos);
-    lua_register(m_pLua, ToLower("ExplosionGetDamage"), this->ExplosionGetDamage);
-    lua_register(m_pLua, ToLower("ExplosionGetOwner"), this->ExplosionGetOwner);
-    lua_register(m_pLua, ToLower("ExplosionGetDamage"), this->ExplosionGetDamage);
-    lua_register(m_pLua, ToLower("ExplosionAbort"), this->ExplosionAbort);
-
     lua_register(m_pLua, ToLower("CharacterTakeDamage"), this->CharacterTakeDamage);
     lua_register(m_pLua, ToLower("CharacterGetHealth"), this->CharacterGetHealth);
     lua_register(m_pLua, ToLower("CharacterGetArmor"), this->CharacterGetArmor);
@@ -276,19 +238,10 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CharacterDirectInput"), this->CharacterDirectInput);
     lua_register(m_pLua, ToLower("CharacterPredictedInput"), this->CharacterPredictedInput);
 
-    lua_register(m_pLua, ToLower("DieGetVictimID"), this->DieGetVictimID);
-    lua_register(m_pLua, ToLower("DieGetKillerID"), this->DieGetKillerID);
-    lua_register(m_pLua, ToLower("DieGetWeaponID"), this->DieGetWeaponID);
-
-    lua_register(m_pLua, ToLower("AbortSpawn"), this->AbortSpawn);
-    lua_register(m_pLua, ToLower("SpawnGetTeam"), this->SpawnGetTeam);
-
+    lua_register(m_pLua, ToLower("SetAutoRespawn"), this->SetAutoRespawn);
 
     lua_register(m_pLua, ToLower("Win"), this->Win);
     lua_register(m_pLua, ToLower("SetGametype"), this->SetGametype);
-
-	lua_register(m_pLua, ToLower("GetSelectedTeam"), this->GetSelectedTeam);
-	lua_register(m_pLua, ToLower("AbortTeamJoin"), this->AbortTeamJoin);
 
 	lua_register(m_pLua, ToLower("DummyCreate"), this->DummyCreate);
 	lua_register(m_pLua, ToLower("IsDummy"), this->IsDummy);
@@ -384,6 +337,14 @@ void CLuaFile::PushString(const char *pString)
     if (m_pLua == 0)
         return;
     lua_pushstring(m_pLua, pString);
+    m_FunctionVarNum++;
+}
+
+void CLuaFile::PushData(const char *pData, int Size)
+{
+    if (m_pLua == 0)
+        return;
+    lua_pushlstring(m_pLua, pData, Size);
     m_FunctionVarNum++;
 }
 

@@ -1,6 +1,6 @@
 /* (c) MAP94. See www.n-lvl.com/ndc/nclient/ for more information. */
-#ifndef GAME_LUA_H
-#define GAME_LUA_H
+#ifndef GAME_CLIENT_LUA_H
+#define GAME_CLIENT_LUA_H
 
 #include "gameclient.h"
 #include <engine/shared/config.h>
@@ -20,62 +20,6 @@ extern "C" { // lua
     #include <engine/external/lua/lualib.h> /* luaL_openlibs */
     #include <engine/external/lua/lauxlib.h> /* luaL_loadfile */
 }
-
-class CLuaEventListener
-{
-    struct CLuaListenerData
-    {
-        class CLuaFile *m_pLuaFile;
-        char m_aLuaFunction[256];
-        char m_aEvent[256];
-        bool operator==(const CLuaListenerData &Other) { return this == &Other; }
-    };
-
-    array<CLuaListenerData> m_aListeners;
-public:
-    void AddEventListener(class CLuaFile *pLuaFile, char *pEvent, char *pLuaFunction);
-    void RemoveEventListener(class CLuaFile *pLuaFile, char *pEvent);
-    void RemoveAllEventListeners(class CLuaFile *pLuaFile);
-
-    void OnEvent(const char *pEvent);
-
-    CEvent m_Parameters;
-    CEvent m_Returns;
-
-    CLuaEventListener();
-    ~CLuaEventListener();
-
-    /*remove this
-    //Menu Browser GameType OnRender Color
-    char *m_pBrowserActiveGameTypeName;
-    vec4 m_BrowserActiveGameTypeColor;
-
-    //Scoreboard On Render
-    bool m_ScoreboardSkipRender;
-
-    //Chat OnChat
-    char *m_pChatText;
-    int m_ChatClientID;
-    int m_ChatTeam;
-    bool m_ChatHide;
-
-    //Kill
-    int m_KillKillerID;
-    int m_KillVictimID;
-    int m_KillWeapon;
-
-    //OnStateChange
-    int m_StateOld;
-
-    //OnNetData
-    char *m_pNetData;
-
-    //Keys
-    IInput::CEvent m_KeyEvent;
-
-	//OnConsole and OnConsoleRemote
-	char *m_pLine; */
-};
 
 class CLuaBinding
 {
@@ -500,7 +444,7 @@ public:
     void Close();
 
     CLuaFile m_aLuaFiles[MAX_LUA_FILES];
-    CLuaEventListener m_EventListener;
+    class CLuaEventListener<CLuaFile> *m_pEventListener;
 
     //Mouse
     bool m_MouseModeAbsolute;

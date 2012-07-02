@@ -8,5 +8,5 @@ CLuaRender::CLuaRender(int Level)
 
 void CLuaRender::OnRender()
 {
-    m_pClient->m_pLua->m_EventListener.OnEvent(m_aEventString);
+    m_pClient->m_pLua->m_pEventListener->OnEvent(m_aEventString);
 }

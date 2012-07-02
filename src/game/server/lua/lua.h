@@ -1,17 +1,16 @@
 /* (c) MAP94 and Patafix. See www.n-lvl.com/ndc/nclient/ for more information. */
-#ifndef GAME_LUA_SERVER_H
-#define GAME_LUA_SERVER_H
+#ifndef GAME_SERVER_LUA_H
+#define GAME_SERVER_LUA_H
 
 #include <game/server/gamecontext.h>
 #include <game/server/gameworld.h>
 #include <game/server/entities/projectile.h>
 #include <game/server/entities/laser.h>
-#include <game/luaevent.h>
 #include <engine/shared/config.h>
 #include <engine/external/zlib/zlib.h>
 #include <engine/config.h>
 #include <base/tl/sorted_array.h>
-//#include <engine/lua.h>
+#include <game/luaevent.h>
 
 extern "C" { // lua
     #define LUA_CORE /* make sure that we don't try to import these functions */
@@ -19,91 +18,6 @@ extern "C" { // lua
     #include <engine/external/lua/lualib.h> /* luaL_openlibs */
     #include <engine/external/lua/lauxlib.h> /* luaL_loadfile */
 }
-
-class CLuaEventListener
-{
-    struct CLuaListenerData
-    {
-        class CLuaFile *m_pLuaFile;
-        char m_aLuaFunction[256];
-        char m_aEvent[256];
-        bool operator==(const CLuaListenerData &Other) { return this == &Other; }
-    };
-
-    array<CLuaListenerData> m_aListeners;
-public:
-    void AddEventListener(class CLuaFile *pLuaFile, char *pEvent, char *pLuaFunction);
-    void RemoveEventListener(class CLuaFile *pLuaFile, char *pEvent);
-    void RemoveAllEventListeners(class CLuaFile *pLuaFile);
-
-    void OnEvent(char *pEvent);
-
-    CLuaEventListener();
-    ~CLuaEventListener();
-
-	int m_EventCID;
-    //Chat OnChat
-    char *m_pChatText;
-    int m_ChatClientID;
-    int m_ChatTeam;
-    bool m_ChatHide;
-
-    //Kill
-    //int m_KillKillerID;
-   //int m_KillVictimID;
-   // int m_KillWeapon;
-
-    //OnNetData
-    char *m_pNetData;
-
-
-	//OnWeaponFire
-
-	int m_OnWeaponFireWeaponID;
-	vec2 m_OnWeaponFireDir;
-	int m_OnWeaponFireReloadTimer;
-	bool m_OnWeaponFireDisableSound;
-	bool m_OnWeaponFireAutoFire;
-
-	//Jump
-
-	int m_OnJumpJumpID;
-
-	//Die
-	int m_OnDieKillerID;
-	int m_OnDieVictimID;
-	int m_OnDieWeaponID;
-
-	//OnExplosion
-	int m_ExplosionDamage;
-	int m_ExplosionOwner;
-	int m_ExplosionWeapon;
-	vec2 m_ExplosionPos;
-	bool m_ExplosionAbort;
-
-	//OnTile
-	//int m_OnTileIndex;
-	//OnEntity
-	int m_OnEntityIndex;
-	vec2 m_OnEntityPosition;
-
-	//OnConnect
-
-
-	//OnEnter
-
-
-	//OnCanSpawn
-	int m_SpawnTeam;
-	bool m_AbortSpawn;
-
-	//OnPlayerJoinTeam
-	int m_SelectedTeam;
-	bool m_AbortTeamJoin;
-
-	//OnConsole
-	char *m_pLine;
-};
 
 class CLuaFile
 {
@@ -139,6 +53,7 @@ public:
     void FunctionExec(const char *pFunctionName = 0);
     void FunctionPrepare(const char *pFunctionName);
     void PushString(const char *pString);
+    void PushData(const char *pData, int Size);
     void PushInteger(int value);
     void PushFloat(float value);
     void PushBoolean(bool value);
@@ -176,46 +91,6 @@ public:
 
 
 
-    //Menu Browser Things
-    static inline int SetMenuBrowserGameTypeColor(lua_State *L);
-    static inline int GetMenuBrowserGameTypeName(lua_State *L);
-
-    //Chat
-    static inline int ChatGetText(lua_State *L);
-    static inline int ChatGetClientID(lua_State *L);
-    static inline int ChatGetTeam(lua_State *L);
-    static inline int ChatHide(lua_State *L);
-
-    //Kill
-    //static inline int KillGetKillerID(lua_State *L);
-    //static inline int KillGetVictimID(lua_State *L);
-    //static inline int KillGetWeapon(lua_State *L);
-
-
-	//WeaponFire
-    static inline int WeaponFireGetClientID(lua_State *L);
-    static inline int WeaponFireGetWeaponID(lua_State *L);
-    static inline int WeaponFireGetDir(lua_State *L);
-    static inline int WeaponFireSetReloadTime(lua_State *L);
-    static inline int WeaponFireDisableSound(lua_State *L);
-    static inline int WeaponFireAutoFire(lua_State *L);
-
-	//Jump
-    static inline int JumpGetClientID(lua_State *L);
-    static inline int JumpGetJumpID(lua_State *L);
-
-    static inline int ExplosionGetDamage(lua_State *L);
-    static inline int ExplosionGetOwner(lua_State *L);
-    static inline int ExplosionGetWeapon(lua_State *L);
-    static inline int ExplosionGetPos(lua_State *L);
-    static inline int ExplosionAbort(lua_State *L);
-	//OnTile
-	//static inline int GetOnTileIndex(lua_State *L);
-	//static inline int SetOnTileIndex(lua_State *L);
-	//OnEntity
-	static inline int OnEntityGetIndex(lua_State *L);
-	static inline int OnEntitySetIndex(lua_State *L);
-	static inline int OnEntityGetPos(lua_State *L);
     //
     //Include
     static inline int Include(lua_State *L);
@@ -276,7 +151,6 @@ public:
     static inline int SetConfigValue(lua_State *L);
 
     //LuaNetWork
-    static inline int FetchPacket(lua_State *L);
     static inline int SendPacket(lua_State *L);
     static inline int AddModFile(lua_State *L);
     static inline int DeleteModFile(lua_State *L);
@@ -310,15 +184,8 @@ public:
     //Client join
 
 
-    //OnCanSpawn
-    static inline int SpawnGetTeam(lua_State *L);
-    static inline int AbortSpawn(lua_State *L);
+    //Spawn
     static inline int SetAutoRespawn(lua_State *L);
-
-    //OnDie
-    static inline int DieGetKillerID(lua_State *L);
-    static inline int DieGetVictimID(lua_State *L);
-    static inline int DieGetWeaponID(lua_State *L);
 
     static inline int CharacterTakeDamage(lua_State *L);
     static inline int CharacterGetHealth(lua_State *L);
@@ -357,13 +224,6 @@ public:
     static inline int DummyCreate(lua_State *L);
     static inline int IsDummy(lua_State *L);
 
-	//OnPlayerJoinTeam
-	static inline int GetSelectedTeam(lua_State *L);
-	static inline int AbortTeamJoin(lua_State *L);
-
-	//OnConsole
-    static inline int OnConsoleGetText(lua_State *L);
-
     //Version
     static inline int CheckVersion(lua_State *L);
     static inline int GetVersion(lua_State *L);
@@ -386,7 +246,7 @@ public:
     bool m_ConsoleInit;
 
     CLuaFile m_aLuaFiles[MAX_LUA_FILES];
-    CLuaEventListener m_EventListener;
+    class CLuaEventListener<CLuaFile> *m_pEventListener;
 
     //Search the file and execs the function
     void ConfigClose(char *pFilename);

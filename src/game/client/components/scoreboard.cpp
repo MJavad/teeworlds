@@ -331,8 +331,8 @@ void CScoreboard::OnRender()
 
 	Graphics()->MapScreen(0, 0, Width, Height);
 
-	m_pClient->m_pLua->m_EventListener.OnEvent("OnScoreboardRender");
-	if (m_pClient->m_pLua->m_EventListener.m_Returns.m_aVars[0].GetInteger() == 1)
+	m_pClient->m_pLua->m_pEventListener->OnEvent("OnScoreboardRender");
+	if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 1)
         return;
 
 	float w = 700.0f;

@@ -316,10 +316,10 @@ void CGameClient::DispatchInput()
 	{
 		IInput::CEvent e = Input()->GetEvent(i);
 
-        m_pLua->m_EventListener.m_Parameters.FindFree()->Set(e.m_Key);
-        m_pLua->m_EventListener.m_Parameters.FindFree()->Set(e.m_Unicode);
-        m_pLua->m_EventListener.m_Parameters.FindFree()->Set(e.m_Flags);
-        m_pLua->m_EventListener.OnEvent("OnKeyEvent");
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(e.m_Key);
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(e.m_Unicode);
+        m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(e.m_Flags);
+        m_pLua->m_pEventListener->OnEvent("OnKeyEvent");
 
 		for(int h = 0; h < m_Input.m_Num; h++)
 		{
@@ -623,8 +623,8 @@ void CGameClient::OnLuaPacket(CUnpacker *pUnpacker)
 	    str_copy(aData, pUnpacker->GetString(), sizeof(aData));
 	}
 
-    g_GameClient.m_pLua->m_EventListener.m_Parameters.FindFree()->Set(aData);
-    g_GameClient.m_pLua->m_EventListener.OnEvent("OnNetData"); //Call lua
+    g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(aData);
+    g_GameClient.m_pLua->m_pEventListener->OnEvent("OnNetData"); //Call lua
 }
 
 void CGameClient::OnMessage(int MsgId, CUnpacker *pUnpacker)
@@ -737,8 +737,8 @@ void CGameClient::OnStartGame()
 
 void CGameClient::OnRconLine(const char *pLine)
 {
-    m_pLua->m_EventListener.m_Parameters.FindFree()->Set(pLine);
-    m_pLua->m_EventListener.OnEvent("OnConsoleRemote");
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(pLine);
+    m_pLua->m_pEventListener->OnEvent("OnConsoleRemote");
 	m_pGameConsole->PrintLine(CGameConsole::CONSOLETYPE_REMOTE, pLine);
 }
 

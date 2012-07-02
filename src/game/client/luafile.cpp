@@ -59,16 +59,10 @@ void CLuaFile::Tick()
 
     ErrorFunc(m_pLua);
 
-    dbg_msg("Stack size", "%i", lua_gettop(m_pLua));
-
-
     FunctionPrepare("Tick");
     PushInteger((int)(time_get() * 1000 / time_freq())); //time in ms
     PushInteger(m_pClient->GetPredictedTick());
     FunctionExec();
-
-    dbg_msg("Stack size post", "%i", lua_gettop(m_pLua));
-
 }
 
 void CLuaFile::End()
@@ -82,7 +76,7 @@ void CLuaFile::End()
 
     //free everything
 
-    m_pLuaHandler->m_EventListener.RemoveAllEventListeners(this);
+    m_pLuaHandler->m_pEventListener->RemoveAllEventListeners(this);
 
     for (array<int>::range r = m_lTextures.all(); !r.empty(); r.pop_front())
     {
@@ -133,16 +127,6 @@ void CLuaFile::Init(const char *pFile)
     //Eventlistener stuff
     lua_register(m_pLua, ToLower("AddEventListener"), this->AddEventListener);
     lua_register(m_pLua, ToLower("RemoveEventListener"), this->RemoveEventListener);
-
-    //menu these functions are used in some scripts even if the names are wrong. delete this?
-    lua_register(m_pLua, ToLower("MenuActiv"), this->MenuActive);
-    lua_register(m_pLua, ToLower("MenuGameActiv"), this->MenuGameActive);
-    lua_register(m_pLua, ToLower("MenuPlayersActiv"), this->MenuPlayersActive);
-    lua_register(m_pLua, ToLower("MenuServerInfoActiv"), this->MenuServerInfoActive);
-    lua_register(m_pLua, ToLower("MenuCallVoteActiv"), this->MenuCallVoteActive);
-    lua_register(m_pLua, ToLower("MenuServersActiv"), this->MenuServersActive);
-    lua_register(m_pLua, ToLower("MenuMusicActiv"), this->MenuMusicActive);
-    lua_register(m_pLua, ToLower("MenuDemosActiv"), this->MenuDemosActive);
 
     //menu
     lua_register(m_pLua, ToLower("MenuActive"), this->MenuActive);
@@ -620,7 +604,7 @@ int CLuaFile::AddEventListener(lua_State *L)
 
     if (!lua_isstring(L, 1) && !lua_isstring(L, 2))
         return 0;
-    pSelf->m_pLuaHandler->m_EventListener.AddEventListener(pSelf, (char *)lua_tostring(L, 1), (char *)lua_tostring(L, 2));
+    pSelf->m_pLuaHandler->m_pEventListener->AddEventListener(pSelf, (char *)lua_tostring(L, 1), (char *)lua_tostring(L, 2));
     return 0;
 }
 
@@ -635,7 +619,7 @@ int CLuaFile::RemoveEventListener(lua_State *L)
 
     if (!lua_isstring(L, 1))
         return 0;
-    pSelf->m_pLuaHandler->m_EventListener.RemoveEventListener(pSelf, (char *)lua_tostring(L, 1));
+    pSelf->m_pLuaHandler->m_pEventListener->RemoveEventListener(pSelf, (char *)lua_tostring(L, 1));
     return 0;
 }
 
