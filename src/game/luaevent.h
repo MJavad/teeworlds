@@ -184,7 +184,8 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
                 }
                 for (int i = 0; i < Num; i++) //pop values
                 {
-                    lua_remove(r.front().m_pLuaFile->m_pLua, -1);
+                    lua_remove(r.front().m_pLuaFile->m_pLua, -1); //remove value last first
+                    //this solves the recusive-function-call-stack problem
                     //lua_pop(r.front().m_pLuaFile->m_pLua, 1);
                 }
             }

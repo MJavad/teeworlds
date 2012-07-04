@@ -4,19 +4,24 @@
 #include <game/server/gamecontext.h>
 #include "laser.h"
 
-CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEnergy, int Owner, int Damage)
+CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEnergy, int Owner, int Damage, int MaxBounces, int Delay, int FakeEvalTick, bool AutoDestroy, float DecreaseEnergyFactor)
 : CEntity(pGameWorld, CGameWorld::ENTTYPE_LASER)
 {
 	m_Pos = Pos;
 	m_Owner = Owner;
 	m_Energy = StartEnergy;
-	if (Damage == -2)
-        m_Damage = GameServer()->Tuning()->m_LaserDamage;
-    else
-        m_Damage = Damage;
+    m_Damage = (Damage != -1) ? Damage : GameServer()->Tuning()->m_LaserDamage;
 	m_Dir = Direction;
 	m_Bounces = 0;
+	m_MaxBounces = (MaxBounces != -1) ? MaxBounces : GameServer()->Tuning()->m_LaserBounceNum;
+	m_Delay = (Delay != -1) ? Delay : GameServer()->Tuning()->m_LaserBounceDelay;
+	m_AutoDestroy = AutoDestroy;
+	m_DecreaseEnergyFactor = DecreaseEnergyFactor;
 	m_EvalTick = 0;
+	m_FakeEvalTick = FakeEvalTick;
+	dbg_msg("MB", "%i", m_MaxBounces);
+	dbg_msg("De", "%i", m_Delay);
+	dbg_msg("Da", "%i", m_Damage);
 	GameWorld()->InsertEntity(this);
 	DoBounce();
 }
@@ -41,7 +46,7 @@ void CLaser::DoBounce()
 {
 	m_EvalTick = Server()->Tick();
 
-	if(m_Energy < 0)
+	if(m_Energy < 0 && m_AutoDestroy)
 	{
 		GameServer()->m_World.DestroyEntity(this);
 		return;
@@ -64,10 +69,10 @@ void CLaser::DoBounce()
 			m_Pos = TempPos;
 			m_Dir = normalize(TempDir);
 
-			m_Energy -= distance(m_From, m_Pos) + GameServer()->Tuning()->m_LaserBounceCost;
+			m_Energy -= (distance(m_From, m_Pos) + GameServer()->Tuning()->m_LaserBounceCost) * m_DecreaseEnergyFactor;
 			m_Bounces++;
 
-			if(m_Bounces > GameServer()->Tuning()->m_LaserBounceNum)
+			if(m_Bounces > m_MaxBounces)
 				m_Energy = -1;
 
 			GameServer()->CreateSound(m_Pos, SOUND_RIFLE_BOUNCE);
@@ -91,7 +96,7 @@ void CLaser::Reset()
 
 void CLaser::Tick()
 {
-	if(Server()->Tick() > m_EvalTick+(Server()->TickSpeed()*GameServer()->Tuning()->m_LaserBounceDelay)/1000.0f)
+	if(Server()->Tick() > m_EvalTick+(Server()->TickSpeed()*m_Delay)/1000.0f)
 		DoBounce();
 }
 
@@ -108,5 +113,5 @@ void CLaser::Snap(int SnappingClient)
 	pObj->m_Y = (int)m_Pos.y;
 	pObj->m_FromX = (int)m_From.x;
 	pObj->m_FromY = (int)m_From.y;
-	pObj->m_StartTick = m_EvalTick;
+	pObj->m_StartTick = (m_FakeEvalTick != -1) ? m_FakeEvalTick : m_EvalTick;
 }
