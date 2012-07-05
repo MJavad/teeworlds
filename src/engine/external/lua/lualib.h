@@ -47,6 +47,9 @@ LUAMOD_API int (luaopen_package) (lua_State *L);
 #define LUA_NETLIBNAME  "net"
 LUAMOD_API int (luaopen_net) (lua_State *L);
 
+#define LUA_CRYPTOLIBNAME  "crypto"
+LUAMOD_API int (luaopen_crypto) (lua_State *L);
+
 /* open all previous libraries */
 LUALIB_API void (luaL_openlibs) (lua_State *L);
 
