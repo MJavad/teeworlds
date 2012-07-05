@@ -3717,7 +3717,7 @@ int CLuaFile::TimeGet(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
-    lua_pushnumber(L, (float)time_get() / (float)time_freq());
+    lua_pushnumber(L, ((float)time_get()) / (float)time_freq());
     return 1;
 }
 
