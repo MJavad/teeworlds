@@ -237,6 +237,8 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CharacterDirectInput"), this->CharacterDirectInput);
     lua_register(m_pLua, ToLower("CharacterPredictedInput"), this->CharacterPredictedInput);
 
+    lua_register(m_pLua, ToLower("SendCharacterInfo"), this->SendCharacterInfo);
+
     lua_register(m_pLua, ToLower("SetAutoRespawn"), this->SetAutoRespawn);
 
     lua_register(m_pLua, ToLower("Win"), this->Win);

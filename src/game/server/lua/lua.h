@@ -199,6 +199,7 @@ public:
     static inline int CharacterIncreaseAmmo(lua_State *L);
     static inline int CharacterSetAmmo(lua_State *L);
     static inline int CharacterGetAmmo(lua_State *L);
+    static inline int SendCharacterInfo(lua_State *L);
     //Input
     static inline int CharacterSetInputDirection(lua_State *L);
     static inline int CharacterSetInputJump(lua_State *L);
