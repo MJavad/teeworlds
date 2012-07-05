@@ -76,7 +76,8 @@ class CLuaEventListener
         bool operator==(const CLuaListenerData &Other) { return this == &Other; }
     };
 
-    array<CLuaListenerData> m_aListeners;
+    typedef array<CLuaListenerData> TEventList;
+    TEventList m_aListeners;
 public:
     void AddEventListener(T *pLuaFile, char *pEvent, char *pLuaFunction);
     void RemoveEventListener(T *pLuaFile, char *pEvent);
@@ -117,7 +118,7 @@ template <class T>
 void CLuaEventListener<T>::OnEvent(const char *pEvent)
 {
     m_Returns.Reset();
-	for(array<CLuaListenerData>::range r = m_aListeners.all(); !r.empty(); r.pop_front())
+	for(plain_range<CLuaListenerData> r = m_aListeners.all(); !r.empty(); r.pop_front())
     {
         if (r.front().m_aEvent && str_comp_nocase(r.front().m_aEvent, pEvent) == 0)
         {
@@ -197,7 +198,7 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
 template <class T>
 void CLuaEventListener<T>::RemoveEventListener(T *pLuaFile, char *pEvent)
 {
-	for(array<CLuaListenerData>::range r = m_aListeners.all(); !r.empty(); r.pop_front())
+	for(plain_range<CLuaListenerData> r = m_aListeners.all(); !r.empty(); r.pop_front())
     {
         if (r.front().m_pLuaFile == pLuaFile && str_comp_nocase(r.front().m_aEvent, pEvent) == 0)
         {
@@ -209,7 +210,7 @@ void CLuaEventListener<T>::RemoveEventListener(T *pLuaFile, char *pEvent)
 template <class T>
 void CLuaEventListener<T>::RemoveAllEventListeners(T *pLuaFile)
 {
-	for(array<CLuaListenerData>::range r = m_aListeners.all(); !r.empty(); r.pop_front())
+	for(plain_range<CLuaListenerData> r = m_aListeners.all(); !r.empty(); r.pop_front())
     {
         if (r.front().m_pLuaFile == pLuaFile)
         {
