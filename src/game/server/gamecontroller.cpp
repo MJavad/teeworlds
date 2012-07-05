@@ -104,11 +104,12 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos, bool Force)
         return false;
     if (Force)
     {
-        m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Team);
-        m_pGameServer->m_pLua->m_pEventListener->OnEvent("OnCanSpawn");
-        if (m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
-            return false;
+        return true;
     }
+    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Team);
+    m_pGameServer->m_pLua->m_pEventListener->OnEvent("OnCanSpawn");
+    if (m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+        return false;
 
 	if(IsTeamplay())
 	{
