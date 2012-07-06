@@ -437,6 +437,14 @@ int CLuaFile::CharacterSetAmmo(lua_State *L)
     {
         if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter())
         {
+            if (lua_tointeger(L, 2) == WEAPON_NINJA)
+            {
+                if (lua_isnumber(L, 3) && lua_tointeger(L, 3))
+                    pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->GiveNinja(lua_isnumber(L, 4) ? lua_tointeger(L, 4) : 0);
+                else
+                    pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->TakeNinja();
+
+            }
             pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_aWeapons[lua_tointeger(L, 2)].m_Ammo = lua_isnumber(L, 3) ? lua_tointeger(L, 3) : 10;
             pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_aWeapons[lua_tointeger(L, 2)].m_Got = (pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_aWeapons[lua_tointeger(L, 2)].m_Ammo != 0);
         }

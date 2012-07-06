@@ -59,7 +59,8 @@ public:
 	int GetArmor() { return m_Armor; }
 
 	bool GiveWeapon(int Weapon, int Ammo);
-	void GiveNinja();
+	void GiveNinja(int Sound = 1);
+	void TakeNinja();
 
 	void SetEmote(int Emote, int Tick);
 
