@@ -21,6 +21,12 @@ CCollision::CCollision()
 	m_pOriginalTiles = 0;
 }
 
+CCollision::~CCollision()
+{
+	if (m_pOriginalTiles)
+        delete []m_pOriginalTiles;
+}
+
 void CCollision::Init(class CLayers *pLayers)
 {
 	m_pLayers = pLayers;
