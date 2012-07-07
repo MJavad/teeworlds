@@ -218,6 +218,8 @@ function build(settings)
 	-- build the small libraries
 	settings.cc.includes:Add("src/engine/external/lua")
 	lua = Compile(settings, Collect("src/engine/external/lua/*.c"))
+	settings.cc.includes:Add("src/engine/external/sqlite")
+	sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
 	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
 
@@ -281,11 +283,11 @@ function build(settings)
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "n-client", game_shared, game_client,
-		engine, client, game_editor, zlib, pnglite, wavpack, lua,
+		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite,
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "teeworlds_srv", engine, server,
-		game_shared, game_server, zlib, server_link_other, lua)
+		game_shared, game_server, zlib, server_link_other, lua, sqlite)
 
 	serverlaunch = {}
 	if platform == "macosx" then
