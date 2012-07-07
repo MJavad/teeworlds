@@ -70,8 +70,6 @@ static int sql_query (lua_State *L)
                 lua_pushinteger(L, Values);
                 lua_newtable(L);
                 RowTableIndex = lua_gettop(L);
-                lua_pushinteger(L, 55);
-                lua_pushinteger(L, 55);
                 lua_settable(L, RowTableIndex);
                 for (iCol; iCol < sqlite3_column_count(pStatement); iCol++)
                 {
