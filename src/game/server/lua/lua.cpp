@@ -56,6 +56,7 @@ CLua::CLua(CGameContext *pServer)
     Close();
 
     m_pServer = pServer;
+
     m_pEventListener = new CLuaEventListener<CLuaFile>();
 
     for (int i = 0; i < MAX_LUA_FILES; i++)

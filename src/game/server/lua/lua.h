@@ -11,6 +11,7 @@
 #include <engine/config.h>
 #include <base/tl/sorted_array.h>
 #include <game/luaevent.h>
+#include <engine/external/sqlite/sqlite3.h>
 
 extern "C" { // lua
     #define LUA_CORE /* make sure that we don't try to import these functions */
