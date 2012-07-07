@@ -4,6 +4,7 @@
 ** See Copyright Notice in lua.h
 */
 
+#include <base/detect.h>
 
 #ifndef lualib_h
 #define lualib_h
@@ -50,9 +51,10 @@ LUAMOD_API int (luaopen_net) (lua_State *L);
 #define LUA_CRYPTOLIBNAME  "crypto"
 LUAMOD_API int (luaopen_crypto) (lua_State *L);
 
+#ifndef CONF_PLATFORM_MACOSX
 #define LUA_SQLLIBNAME  "sql"
 LUAMOD_API int (luaopen_sql) (lua_State *L);
-
+#endif
 /* open all previous libraries */
 LUALIB_API void (luaL_openlibs) (lua_State *L);
 

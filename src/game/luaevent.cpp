@@ -29,11 +29,27 @@ void CEventVariable::Allocate(int Size)
 //why?
 //because when we transform this var to something bigger
 //bool -> int
+
+
 void CEventVariable::Set(int Value)
 {
     m_Type = EVENT_TYPE_INTEGER;
     Allocate(16);
     mem_copy(m_pData, &Value, sizeof(Value));
+}
+
+void CEventVariable::Set(long int Value)
+{
+    m_Type = EVENT_TYPE_INTEGER;
+    Allocate(16);
+    mem_copy(m_pData, &Value, sizeof(Value));
+}
+
+void CEventVariable::Set(lua_Number Value)
+{
+    if (Value == (int)Value)
+        Set((int)Value);
+    Set((float)Value);
 }
 
 void CEventVariable::Set(float Value)

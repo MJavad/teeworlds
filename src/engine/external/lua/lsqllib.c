@@ -4,6 +4,8 @@
 ** See Copyright Notice in lua.h
 */
 
+#include <base/detect.h>
+#ifndef CONF_PLATFORM_MACOSX
 #define lsqllib_c
 #define LUA_LIB
 
@@ -141,4 +143,4 @@ LUALIB_API int luaopen_sql (lua_State *L) {
     return 1;
 }
 
-
+#endif

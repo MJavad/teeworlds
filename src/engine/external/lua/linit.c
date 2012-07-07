@@ -37,7 +37,9 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_BITLIBNAME, luaopen_bit32},
   {LUA_MATHLIBNAME, luaopen_math},
   {LUA_NETLIBNAME, luaopen_net},
+  #ifndef CONF_PLATFORM_MACOSX
   {LUA_SQLLIBNAME, luaopen_sql},
+  #endif
   {LUA_CRYPTOLIBNAME, luaopen_crypto},
   {LUA_DBLIBNAME, luaopen_debug},
   {NULL, NULL}

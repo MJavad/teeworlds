@@ -27,6 +27,8 @@ public:
     CEventVariable();
     ~CEventVariable();
     void Set(int Value);
+    void Set(long int Value);
+    void Set(lua_Number Value);
     void Set(float Value);
     void Set(bool Value);
     void Set(char Value);

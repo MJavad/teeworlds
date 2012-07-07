@@ -189,6 +189,7 @@ function build(settings)
 			settings.link.frameworks:Add("AppKit")
 		else
 			settings.link.libs:Add("pthread")
+            settings.link.libs:Add("dl")
 		end
 
 		if platform == "solaris" then
@@ -218,8 +219,16 @@ function build(settings)
 	-- build the small libraries
 	settings.cc.includes:Add("src/engine/external/lua")
 	lua = Compile(settings, Collect("src/engine/external/lua/*.c"))
-	settings.cc.includes:Add("src/engine/external/sqlite")
-	sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
+	if platform ~= "macosx" then
+        settings.cc.includes:Add("src/engine/external/sqlite")
+        sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
+    end
+	settings.cc.includes:Add("src/engine/external/libogg")
+	ogg = Compile(settings, Collect("src/engine/external/libogg/*.c"))
+	settings.cc.includes:Add("src/engine/external/libvorbis")
+	vorbis = Compile(settings, Collect("src/engine/external/libvorbis/*.c"))
+	settings.cc.includes:Add("src/engine/external/libtheora")
+	theora = Compile(settings, Collect("src/engine/external/libtheora/*.c"))
 	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
 
@@ -283,7 +292,7 @@ function build(settings)
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "n-client", game_shared, game_client,
-		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite,
+		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis,
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "teeworlds_srv", engine, server,
