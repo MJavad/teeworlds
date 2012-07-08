@@ -152,6 +152,7 @@ public:
 	virtual int WindowActive() = 0;
 	virtual int WindowOpen() = 0;
 
+	virtual void SetCallback(void (*fpCallback)(unsigned char *pData, void *pUser), void *pUser) = 0;
 };
 
 extern IEngineGraphics *CreateEngineGraphics();

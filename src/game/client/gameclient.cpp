@@ -517,18 +517,6 @@ void CGameClient::OnRender()
         m_pLuaBinding = new CLuaBinding(this);
         Console()->Register("lua", "s?ssssssss", CFGFLAG_CLIENT, ConLua, this, "Exec a lua function");
         Console()->Register("+lua", "s?ssssssss", CFGFLAG_CLIENT, ConPlusLua, this, "Exec a lua function");
-
-        /*static ivec3 Map[] = {
-        ivec3(0, 0, 0), ivec3(1, 0, 0), ivec3(2, 0, 0), ivec3(3, 0, 0), ivec3(4, 0, 0),
-        ivec3(0, 1, 0), ivec3(1, 1, 0), ivec3(2, 1, 0), ivec3(3, 1, 0), ivec3(4, 1, 0),
-        ivec3(0, 2, 0), ivec3(1, 2, 0), ivec3(2, 2, 0), ivec3(3, 2, 0), ivec3(4, 2, 0),
-        ivec3(0, 3, 0), ivec3(1, 3, 0), ivec3(2, 3, 0), ivec3(3, 3, 0), ivec3(4, 3, 0),
-        ivec3(0, 4, 0), ivec3(1, 4, 0), ivec3(2, 4, 0), ivec3(3, 4, 0), ivec3(4, 4, 0),
-        };*/
-        //CPathfinder Finder(ivec2(0, 0), ivec2(4, 4), Map, 5, 5);
-        //thread_sleep(10000);
-        //dbg_break();
-        //Finder.Search();
     }
 
     int64 overalltime = time_get(); //Debug timing

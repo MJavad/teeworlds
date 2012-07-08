@@ -78,6 +78,7 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	class CNetClient m_NetClient;
 	class CDemoPlayer m_DemoPlayer;
 	class CDemoRecorder m_DemoRecorder;
+    class CDemoVideoRecorder m_DemoVideoRecorder;
 	class CServerBrowser m_ServerBrowser;
 	class CLua m_Lua;
 	class CFriends m_Friends;
@@ -315,6 +316,7 @@ public:
 
 	void RegisterCommands();
 
+	const char *DemoPlayer_Record(const char *pFilename, int StorageType);
 	const char *DemoPlayer_Play(const char *pFilename, int StorageType);
 	void DemoRecorder_Start(const char *pFilename, bool WithTimestamp);
 	void DemoRecorder_HandleAutoStart();

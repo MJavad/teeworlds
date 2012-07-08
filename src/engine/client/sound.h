@@ -12,6 +12,7 @@ class CSound : public IEngineSound
 public:
 	IEngineGraphics *m_pGraphics;
 	IStorage *m_pStorage;
+	IDemoPlayer *m_pDemo;
 
 	virtual int Init();
 
@@ -41,6 +42,8 @@ public:
 	virtual int AddWaveToStream(const char *pWave);
 	virtual int GetWaveFrameSize() { return m_MusicFrameCount * 4; }
 	virtual int GetWaveBufferSpace() { return MUSICTMPBUFFERSIZE - m_LuaTmpBufferIn; }
+
+	virtual void MixHook(short *pFinalOut, unsigned Frames);
 };
 
 #endif

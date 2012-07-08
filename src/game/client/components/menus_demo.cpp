@@ -553,10 +553,12 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_ALL, 10.0f);
 	MainView.Margin(10.0f, &MainView);
 
-	CUIRect ButtonBar, RefreshRect, PlayRect, DeleteRect, RenameRect, FileIcon, ListBox;
+	CUIRect ButtonBar, RefreshRect, PlayRect, RecordRect, DeleteRect, RenameRect, FileIcon, ListBox;
 	MainView.HSplitBottom(ms_ButtonHeight+5.0f, &MainView, &ButtonBar);
 	ButtonBar.HSplitTop(5.0f, 0, &ButtonBar);
 	ButtonBar.VSplitRight(130.0f, &ButtonBar, &PlayRect);
+	ButtonBar.VSplitRight(10.0f, &ButtonBar, 0);
+	ButtonBar.VSplitRight(130.0f, &ButtonBar, &RecordRect);
 	ButtonBar.VSplitLeft(130.0f, &RefreshRect, &ButtonBar);
 	ButtonBar.VSplitLeft(10.0f, 0, &ButtonBar);
 	ButtonBar.VSplitLeft(120.0f, &DeleteRect, &ButtonBar);
@@ -688,6 +690,24 @@ void CMenus::RenderDemoList(CUIRect MainView)
 					return;
 				}
 			}
+		}
+	}
+
+	static int s_RecordButton = 0;
+	if(!m_DemolistSelectedIsDir && DoButton_Menu(&s_RecordButton, Localize("Record"), 0, &RecordRect))
+	{
+		if(m_DemolistSelectedIndex >= 0)
+		{
+            char aBuf[512];
+            str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
+            const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType);
+            if(pError)
+                PopupMessage(Localize("Error"), str_comp(pError, "error loading demo") ? pError : Localize("Error loading demo"), Localize("Ok"));
+            else
+            {
+                UI()->SetActiveItem(0);
+                return;
+            }
 		}
 	}
 

@@ -35,6 +35,8 @@
 #include <engine/shared/ringbuffer.h>
 #include <engine/shared/snapshot.h>
 
+#include <engine/client/demo_recorder.h>
+
 #include <mastersrv/mastersrv.h>
 #include <versionsrv/versionsrv.h>
 
@@ -1996,6 +1998,7 @@ void CClient::VersionLuaUpdate()
 void CClient::RegisterInterfaces()
 {
 	Kernel()->RegisterInterface(static_cast<IDemoRecorder*>(&m_DemoRecorder));
+	Kernel()->RegisterInterface(static_cast<IDemoVideoRecorder*>(&m_DemoVideoRecorder));
 	Kernel()->RegisterInterface(static_cast<IDemoPlayer*>(&m_DemoPlayer));
 	Kernel()->RegisterInterface(static_cast<IServerBrowser*>(&m_ServerBrowser));
 	Kernel()->RegisterInterface(static_cast<IFriends*>(&m_Friends));
@@ -2341,6 +2344,18 @@ void CClient::Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData)
 		pSelf->m_ServerBrowser.RemoveFavorite(Addr);
 }
 
+const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType)
+{
+    const char *pRet = DemoPlayer_Play(pFilename, StorageType);
+    if (pRet == 0)
+    {
+        m_DemoPlayer.m_Recording = true;
+        m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight());
+        m_pGraphics->SetCallback(m_DemoVideoRecorder.OnData, &m_DemoVideoRecorder);
+    }
+    return pRet;
+}
+
 const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 {
 	int Crc;
@@ -2348,6 +2363,7 @@ const char *CClient::DemoPlayer_Play(const char *pFilename, int StorageType)
 	Disconnect();
 	m_NetClient.ResetErrorString();
 
+	m_DemoPlayer.m_Recording = false; //reset
 	// try to start playback
 	m_DemoPlayer.SetListner(this);
 

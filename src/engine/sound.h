@@ -32,6 +32,8 @@ public:
     virtual int GetWaveFrameSize() = 0;
     virtual int GetWaveBufferSpace() = 0;
 
+	virtual void MixHook(short *pFinalOut, unsigned Frames) = 0;
+
 //music
 #define MUSICTMPBUFFERSIZE 20
 struct CWaveHeader
@@ -73,12 +75,6 @@ int m_LuaTmpBufferIn;
 int m_LuaTmpBufferRead;
 int m_LuaTmpBufferWrite;
 int m_LuaVolume;
-
-
-
-bool m_RecordAudio;
-CWaveHeader m_RecordWaveFileHeader;
-
 };
 
 

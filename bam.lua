@@ -366,26 +366,6 @@ elseif family == "windows" then
     release_settings_optimized.link.flags:Add("/LTCG")
 end
 
-buildbot_release32 = NewSettings()
-buildbot_release64 = NewSettings()
-if family == "unix" then
-    buildbot_release32 = NewSettings()
-    buildbot_release32.config_name = "release_x32"
-    buildbot_release32.config_ext = "_x32"
-    buildbot_release32.debug = 0
-    buildbot_release32.optimize = 1
-    buildbot_release32.cc.defines:Add("CONF_RELEASE")
-
-    buildbot_release64 = buildbot_release32:Copy()
-    buildbot_release64.config_name = "release_x64"
-    buildbot_release64.config_ext = "_x64"
-
-    buildbot_release32.cc.flags:Add("-m32")
-    buildbot_release64.cc.flags:Add("-m64")
-    buildbot_release32.link.flags:Add("-m elf_i386")
-    buildbot_release32.link.flags:Add("-m32")
-end
-
 if platform == "macosx" then
 	debug_settings_ppc = debug_settings:Copy()
 	debug_settings_ppc.config_name = "debug_ppc"
@@ -479,10 +459,5 @@ else
 	else
         PseudoTarget("all", "debug", "release", "release_optimized")
 	end
-    if family == "unix" then
-        build(buildbot_release32)
-        build(buildbot_release64)
-        PseudoTarget("buildbot_both", "release_x32", "release_x64")
-    end
 
 end

@@ -3,6 +3,7 @@
 #include <base/system.h>
 #include <engine/graphics.h>
 #include <engine/storage.h>
+#include <engine/demo.h>
 #include <engine/shared/config.h>
 
 #include "SDL.h"
@@ -348,55 +349,23 @@ static void Mix(short *pFinalOut, unsigned Frames)
 			pFinalOut[j+1] = Int2Short(vr);
 		}
 	}
-
-    static int sRecordAudio = 0;
-    if (pSelf->m_RecordAudio == 1) //record audio
-    {
-        static IOHANDLE AudioOut;
-        if (sRecordAudio == 0)
-        {
-            AudioOut = pSelf->m_pStorage->OpenFile("tmp/pixelstream/sound.wav", IOFLAG_WRITE, IStorage::TYPE_SAVE);
-        }
-        if (1)
-        {
-            const char x = 0;
-            str_copy(pSelf->m_RecordWaveFileHeader.riff_name, "RIFF", 5);
-            str_copy(pSelf->m_RecordWaveFileHeader.riff_type, "WAVE", 5);
-            str_copy(pSelf->m_RecordWaveFileHeader.fmt_name, "fmt ", 5);
-            pSelf->m_RecordWaveFileHeader.riff_laenge = sRecordAudio * Frames * 2 * 2 + sizeof(pSelf->m_RecordWaveFileHeader);
-            pSelf->m_RecordWaveFileHeader.fmt_laenge = 16;
-            pSelf->m_RecordWaveFileHeader.formattyp = 1;
-            pSelf->m_RecordWaveFileHeader.kanalzahl = 2;
-            pSelf->m_RecordWaveFileHeader.samplerate = 44100;
-            pSelf->m_RecordWaveFileHeader.b_pro_sec = 44100 * 2 * 2;
-            pSelf->m_RecordWaveFileHeader.b_pro_sample = 2;
-            pSelf->m_RecordWaveFileHeader.Bits_per_sample = 16;
-
-            io_seek(AudioOut, 0, IOSEEK_START);
-            io_write(AudioOut, &pSelf->m_RecordWaveFileHeader, sizeof(pSelf->m_RecordWaveFileHeader));
-            io_write(AudioOut, "data", sizeof("data"));
-            io_write(AudioOut, &x, 1);
-            io_write(AudioOut, &x, 1);
-            io_write(AudioOut, &x, 1);
-            io_seek(AudioOut, 0, IOSEEK_END);
-
-            io_write(AudioOut, pFinalOut, Frames * 2 * 2);
-        }
-        sRecordAudio++;
-    }
-    else
-    {
-        sRecordAudio = 0;
-    }
-
 #if defined(CONF_ARCH_ENDIAN_BIG)
 	swap_endian(pFinalOut, sizeof(short), Frames * 2);
 #endif
 }
 
+void CSound::MixHook(short *pFinalOut, unsigned Frames)
+{
+    Mix(pFinalOut, Frames);
+}
+
 static void SdlCallback(void *pUnused, Uint8 *pStream, int Len)
 {
 	(void)pUnused;
+	if (m_pSelf->m_pDemo && m_pSelf->m_pDemo->m_Recording)
+    {
+        return;
+    }
 	Mix((short *)pStream, Len/2/2);
 }
 
@@ -405,6 +374,7 @@ int CSound::Init()
 	m_SoundEnabled = 0;
 	m_pGraphics = Kernel()->RequestInterface<IEngineGraphics>();
 	m_pStorage = Kernel()->RequestInterface<IStorage>();
+	m_pDemo = Kernel()->RequestInterface<IDemoPlayer>();
 
 	SDL_AudioSpec Format;
 

@@ -99,17 +99,6 @@ public:
     virtual int GetTextureHeight(int TextureID);
 
 	void ScreenshotDirect(const char *pFilename);
-    void CapturePixelStreamDirect(const char *pPath, int Frame);
-    static void CapturePixelStreamThread(void *pUser);
-	struct CaptureThreadStruct
-	{
-	    unsigned char *m_pPixelData;
-	    int m_w;
-	    int m_h;
-	    char m_aPath[1024];
-	    int m_Frame;
-	    CGraphics_OpenGL *m_pSelf;
-	};
 	static void ScreenShotThread(void *pUser);
 	struct ScreenshotThreadStruct
 	{
@@ -169,6 +158,10 @@ public:
 	virtual void Swap();
 
 	virtual int GetVideoModes(CVideoMode *pModes, int MaxModes);
+
+	void (*m_fpCallback)(unsigned char *pData, void *pUser);
+	void *m_pCallbackUser;
+	virtual void SetCallback(void (*fpCallback)(unsigned char *pData, void *pUser), void *pUser);
 
 };
 

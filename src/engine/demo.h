@@ -50,6 +50,8 @@ public:
 	virtual void GetDemoName(char *pBuffer, int BufferSize) const = 0;
 	virtual bool GetDemoInfo(class IStorage *pStorage, const char *pFilename, int StorageType, CDemoHeader *pDemoHeader) const = 0;
 	virtual int GetDemoType() const = 0;
+
+    bool m_Recording;
 };
 
 class IDemoRecorder : public IInterface

@@ -713,6 +713,46 @@ int CDemoPlayer::Update()
 	if(!IsPlaying())
 		return 0;
 
+    if (m_Recording)
+    {
+		int64 Freq = time_freq();
+		m_Info.m_CurrentTime += Freq / 25.0f; //fps (?)
+
+		while(1)
+		{
+			int64 CurtickStart = (m_Info.m_Info.m_CurrentTick)*Freq/SERVER_TICK_SPEED;
+
+			// break if we are ready
+			if(CurtickStart > m_Info.m_CurrentTime)
+				break;
+
+			// do one more tick
+			DoTick();
+
+			if(m_Info.m_Info.m_Paused)
+				return 0;
+		}
+
+		// update intratick
+		{
+			int64 CurtickStart = (m_Info.m_Info.m_CurrentTick)*Freq/SERVER_TICK_SPEED;
+			int64 PrevtickStart = (m_Info.m_PreviousTick)*Freq/SERVER_TICK_SPEED;
+			m_Info.m_IntraTick = (m_Info.m_CurrentTime - PrevtickStart) / (float)(CurtickStart-PrevtickStart);
+			m_Info.m_TickTime = (m_Info.m_CurrentTime - PrevtickStart) / (float)Freq;
+		}
+
+		if(m_Info.m_Info.m_CurrentTick == m_Info.m_PreviousTick ||
+			m_Info.m_Info.m_CurrentTick == m_Info.m_NextTick)
+		{
+			char aBuf[256];
+			str_format(aBuf, sizeof(aBuf), "tick error prev=%d cur=%d next=%d",
+				m_Info.m_PreviousTick, m_Info.m_Info.m_CurrentTick, m_Info.m_NextTick);
+			m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "demo_player", aBuf);
+		}
+        return 0;
+    }
+
+
 	if(m_Info.m_Info.m_Paused)
 	{
 

@@ -556,136 +556,6 @@ void CGraphics_OpenGL::ScreenshotDirect(const char *pFilename)
 	}
 }
 
-void CGraphics_OpenGL::CapturePixelStreamDirect(const char *pPath, int Frame)
-{
-	// fetch image data
-    int y;
-    int w = m_ScreenWidth;
-    int h = m_ScreenHeight;
-    static unsigned char *pPixelData = (unsigned char *)mem_alloc(w*(h+1)*3, 1);
-    GLint Alignment;
-    glGetIntegerv(GL_PACK_ALIGNMENT, &Alignment);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0,0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pPixelData);
-    glPixelStorei(GL_PACK_ALIGNMENT, Alignment);
-
-    static int i = 0;
-    if (i == 0)
-    {
-        i = 1;
-        CaptureThreadStruct *CaptureData = new CaptureThreadStruct();
-        str_copy(CaptureData->m_aPath, pPath, sizeof(CaptureData->m_aPath));
-        CaptureData->m_Frame = 0;
-        CaptureData->m_w = w;
-        CaptureData->m_h = h;
-        CaptureData->m_pPixelData = pPixelData;
-        CaptureData->m_pSelf = this;
-        //thread_detach(thread_create(CapturePixelStreamThread, CaptureData));
-    }
-    {//non threaded
-        unsigned int Size = w * h * 3;
-
-        char aFilename[1024];
-        str_format(aFilename, sizeof(aFilename), "%s/video.stream", pPath);
-        static IOHANDLE File = m_pStorage->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
-        if(File)
-        {
-            int64 t = time_get() * 1000 / time_freq();
-            char *pHeader = new char[sizeof(t) + sizeof(Size) + sizeof(w) + sizeof(h)];
-            char *pItem = pHeader;
-
-            mem_copy(pItem, &t, sizeof(t));
-            pItem = pItem + sizeof(t);
-
-            mem_copy(pItem, &Size, sizeof(Size));
-            pItem = pItem + sizeof(Size);
-
-            mem_copy(pItem, &w, sizeof(w));
-            pItem = pItem + sizeof(w);
-
-            mem_copy(pItem, &h, sizeof(h));
-            pItem = pItem + sizeof(h);
-
-            thread_sleep(20);
-
-            io_write(File, pHeader, sizeof(t) + sizeof(Size) + sizeof(w) + sizeof(h));
-            io_write(File, pPixelData, Size);
-
-            delete []pHeader;
-            //io_close(File);
-        }
-    }
-
-
-    /*// find filename
-    {
-        char aWholePath[1024];
-        png_t Png; // ignore_convention
-
-        char aFilename[1024];
-        str_format(aFilename, sizeof(aFilename), "%s/%i.png", pPath, Frame);
-        IOHANDLE File = m_pStorage->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE, aWholePath, sizeof(aWholePath));
-        if(File)
-        {
-            //io_write(File, pPixelData, w*(h)*3);
-            io_close(File);
-        }
-
-        // save png
-        png_open_file_write(&Png, aWholePath); // ignore_convention
-        png_set_data(&Png, w, h, 8, PNG_TRUECOLOR, (unsigned char *)pPixelData); // ignore_convention
-        png_close_file(&Png); // ignore_convention
-    }
-
-    // clean up
-    mem_free(pPixelData);*/
-}
-
-void CGraphics_OpenGL::CapturePixelStreamThread(void *pUser)
-{
-    CaptureThreadStruct *pCaptureData = (CaptureThreadStruct *)pUser;
-	// fetch image data
-	while (1)
-	{
-        unsigned int Size = pCaptureData->m_w * pCaptureData->m_h * 3;
-
-        char aFilename[1024];
-        str_format(aFilename, sizeof(aFilename), "%s/video.stream", pCaptureData->m_aPath, pCaptureData->m_Frame);
-        static IOHANDLE File = pCaptureData->m_pSelf->m_pStorage->OpenFile(aFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
-        if(File)
-        {
-            int64 t = time_get() * 1000 / time_freq();
-            char *pHeader = new char[sizeof(t) + sizeof(Size) + sizeof(pCaptureData->m_w) + sizeof(pCaptureData->m_h)];
-            char *pItem = pHeader;
-
-            mem_copy(pItem, &t, sizeof(t));
-            pItem = pItem + sizeof(t);
-
-            mem_copy(pItem, &Size, sizeof(Size));
-            pItem = pItem + sizeof(Size);
-
-            mem_copy(pItem, &pCaptureData->m_w, sizeof(pCaptureData->m_w));
-            pItem = pItem + sizeof(pCaptureData->m_w);
-
-            mem_copy(pItem, &pCaptureData->m_h, sizeof(pCaptureData->m_h));
-            pItem = pItem + sizeof(pCaptureData->m_h);
-
-            thread_sleep(20);
-
-            io_write(File, pHeader, sizeof(t) + sizeof(Size) + sizeof(pCaptureData->m_w) + sizeof(pCaptureData->m_h));
-            io_write(File, pCaptureData->m_pPixelData, Size);
-
-            delete []pHeader;
-            //io_close(File);
-        }
-	}
-
-    // clean up
-    mem_free(pCaptureData->m_pPixelData);
-    delete pCaptureData;
-}
-
-
 void CGraphics_OpenGL::TextureSet(int TextureID)
 {
 	dbg_assert(m_Drawing == 0, "called Graphics()->TextureSet within begin");
@@ -1054,6 +924,8 @@ bool CGraphics_SDL::Init()
 
 	SDL_ShowCursor(0);
 
+	m_fpCallback = 0;
+
 	CGraphics_OpenGL::Init();
 
 	MapScreen(0,0,g_Config.m_GfxScreenWidth, g_Config.m_GfxScreenHeight);
@@ -1109,30 +981,20 @@ void CGraphics_SDL::Swap()
 		m_DoScreenshot = false;
 	}
 
-	if (0)
-	{
-        int w = m_ScreenWidth;
-        int h = m_ScreenHeight;
-
-        static unsigned char *pPixelData = (unsigned char *)mem_alloc(w*(h+1)*3, 1);
+    if (m_fpCallback)
+    {
+        unsigned char *pPixelData = (unsigned char *)mem_alloc(m_ScreenWidth*(m_ScreenHeight+1)*3, 1);
         GLint Alignment;
         glGetIntegerv(GL_PACK_ALIGNMENT, &Alignment);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0,0, w, h, GL_RGB, GL_UNSIGNED_BYTE, pPixelData);
+        glReadPixels(0,0, m_ScreenWidth, m_ScreenHeight, GL_RGB, GL_UNSIGNED_BYTE, pPixelData);
         glPixelStorei(GL_PACK_ALIGNMENT, Alignment);
 
-        unsigned int Size = w*h*3; //Just save a 800x600 image (cause of fps)
+        m_fpCallback(pPixelData, m_pCallbackUser);
 
-        static IOHANDLE File = m_pStorage->OpenFile("pixelstream/video.mrw", IOFLAG_WRITE, IStorage::TYPE_SAVE);
-        if(File)
-        {
-            io_write(File, pPixelData, Size);
-            //io_close(File);
-        }
-	}
-	static int Frame = 0;
-    Frame++;
-    //CapturePixelStreamDirect("tmp/pixelstream", Frame);
+        mem_free(pPixelData);
+    }
+
 
 	SDL_GL_SwapBuffers();
 
@@ -1140,6 +1002,11 @@ void CGraphics_SDL::Swap()
 		glFinish();
 }
 
+void CGraphics_SDL::SetCallback(void (*fpCallback)(unsigned char *pData, void *pUser), void *pUser)
+{
+    m_pCallbackUser = pUser;
+    m_fpCallback = fpCallback;
+}
 
 int CGraphics_SDL::GetVideoModes(CVideoMode *pModes, int MaxModes)
 {
