@@ -70,6 +70,7 @@ class CGameClient : public IGameClient
 	static void ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
     static void ConLua(IConsole::IResult *pResult, void *pUserData);
+    static void ConLuaEval(IConsole::IResult *pResult, void *pUserData);
     static void ConPlusLua(IConsole::IResult *pResult, void *pUserData);
 public:
 	IKernel *Kernel() { return IInterface::Kernel(); }

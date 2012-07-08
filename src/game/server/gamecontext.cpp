@@ -1473,11 +1473,7 @@ void CGameContext::ConLua(IConsole::IResult *pResult, void *pUserData)
             pSelf->m_pLua->m_aLuaFiles[i].FunctionExec();
         }
     }
-
-
-
 }
-
 
 void CGameContext::ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {

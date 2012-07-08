@@ -501,6 +501,14 @@ void CGameClient::ConLua(IConsole::IResult *pResult, void *pUserData)
     }
 }
 
+void CGameClient::ConLuaEval(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameClient *pSelf = (CGameClient *)pUserData;
+    if (!pSelf->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].m_pLua)
+        pSelf->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].Init(0);
+	luaL_dostring(pSelf->m_pLua->m_aLuaFiles[LUA_CONSOLE_ID].m_pLua, pResult->GetString(0));
+}
+
 void CGameClient::OnRender()
 {
     if (!m_Music)
@@ -517,6 +525,7 @@ void CGameClient::OnRender()
         m_pLuaBinding = new CLuaBinding(this);
         Console()->Register("lua", "s?ssssssss", CFGFLAG_CLIENT, ConLua, this, "Exec a lua function");
         Console()->Register("+lua", "s?ssssssss", CFGFLAG_CLIENT, ConPlusLua, this, "Exec a lua function");
+        Console()->Register("lua_eval", "r", CFGFLAG_CLIENT, ConLuaEval, this, "Evaluate a lua statement");
     }
 
     int64 overalltime = time_get(); //Debug timing

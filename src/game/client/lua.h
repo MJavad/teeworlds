@@ -470,4 +470,13 @@ static char *ToLower(const char *str)
     str_copy(saTmp, str, sizeof(saTmp));
     return str_tolower(saTmp);
 }
+
+#define LUA_FUNCTION_HEADER     lua_getglobal(L, "pLUA"); \
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1); \
+    lua_Debug Frame; \
+    lua_getstack(L, 1, &Frame); \
+    lua_getinfo(L, "nlSf", &Frame); \
+    (void *)pSelf;
+
+
 #endif
