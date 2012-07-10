@@ -287,7 +287,7 @@ function build(settings)
 	tools = {}
 	for i,v in ipairs(tools_src) do
 		toolname = PathFilename(PathBase(v))
-		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite)
+		tools[i] = Link(settings, toolname, Compile(settings, v), engine, zlib, pnglite, lua, sqlite)
 	end
 
 	-- build client, server, version server and master server
@@ -349,7 +349,7 @@ end
 
 release_settings_optimized = NewSettings()
 release_settings_optimized.config_name = "release_optimized"
-release_settings_optimized.config_ext = "_test"
+release_settings_optimized.config_ext = "_optimized"
 release_settings_optimized.debug = 0
 release_settings_optimized.optimize = 1
 release_settings_optimized.cc.defines:Add("CONF_RELEASE")
