@@ -91,8 +91,18 @@ public:
 		CONSOLETYPE_REMOTE,
 		CONSOLETYPE_LUA,
 	};
+    enum
+    {
+        CONSOLE_CLOSED,
+        CONSOLE_OPENING,
+        CONSOLE_OPEN,
+        CONSOLE_CLOSING,
+    };
 
 	CGameConsole();
+
+	int GetConsoleState() { return m_ConsoleType; }
+	int GetConsoleType() { return m_ConsoleState; }
 
 	void PrintLine(int Type, const char *pLine);
 

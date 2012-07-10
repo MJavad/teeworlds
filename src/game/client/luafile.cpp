@@ -42,6 +42,8 @@
 #include <game/client/components/skins.h>
 #include <game/client/components/sounds.h>
 #include <game/client/components/stats.h>
+#include <game/client/components/damageind.h>
+#include <game/client/components/console.h>
 
 CLuaFile::CLuaFile()
 {
@@ -187,11 +189,13 @@ void CLuaFile::Init(const char *pFile)
 
     //lua_register(m_pLua, ToLower("CreateParticleEmitter", CreateParticleEmitter); //particleemitter gibt es noch nicht
     lua_register(m_pLua, ToLower("CreateParticle"), this->CreateParticle);
+    lua_register(m_pLua, ToLower("CreateDamageIndicator"), this->CreateDamageIndicator);
 
     lua_register(m_pLua, ToLower("GetFlow"), this->GetFlow);
     lua_register(m_pLua, ToLower("SetFlow"), this->SetFlow);
 
     lua_register(m_pLua, ToLower("GetLocalCharacterId"), this->GetLocalCharacterId);
+    lua_register(m_pLua, ToLower("GetLocalCharacterPos"), this->GetLocalCharacterPos);
     lua_register(m_pLua, ToLower("SetLocalCharacterPos"), this->SetLocalCharacterPos);
     lua_register(m_pLua, ToLower("GetCharacterPos"), this->GetCharacterPos);
     lua_register(m_pLua, ToLower("GetCharacterVel"), this->GetCharacterVel);
@@ -219,6 +223,12 @@ void CLuaFile::Init(const char *pFile)
     //Console Print
     lua_register(m_pLua, ToLower("Print"), this->Print);
     lua_register(m_pLua, ToLower("Console"), this->Console);
+    lua_register(m_pLua, ToLower("LocalExecute"), this->LocalExecute);
+    lua_register(m_pLua, ToLower("LocalExecuteStroked"), this->LocalExecuteStroked);
+    lua_register(m_pLua, ToLower("ConsoleActive"), this->ConsoleActive);
+    lua_register(m_pLua, ToLower("ConsoleLocalActive"), this->ConsoleLocalActive);
+    lua_register(m_pLua, ToLower("ConsoleRemoteActive"), this->ConsoleRemoteActive);
+
 
     //Remote console
     lua_register(m_pLua, ToLower("RconAuth"), this->RconAuth);
@@ -234,6 +244,7 @@ void CLuaFile::Init(const char *pFile)
 
     //Serverinfo
     lua_register(m_pLua, ToLower("GetGameType"), this->GetGameType);
+    lua_register(m_pLua, ToLower("GetServerInfo"), this->GetServerInfo);
     lua_register(m_pLua, ToLower("IsTeamplay"), this->IsTeamplay);
 
     //Get Net Error
@@ -268,6 +279,8 @@ void CLuaFile::Init(const char *pFile)
     //Chat
     lua_register(m_pLua, ToLower("ChatSend"), this->ChatSend);
     lua_register(m_pLua, ToLower("ChatTeamSend"), this->ChatTeamSend);
+    lua_register(m_pLua, ToLower("ChatAddLine"), this->AddChatLine);
+    lua_register(m_pLua, ToLower("AddChatLine"), this->AddChatLine);
 
     //Ui
     lua_register(m_pLua, ToLower("UiDoButton"), this->UiDoButton);
@@ -3878,5 +3891,133 @@ int CLuaFile::LoadSkin(lua_State *L)
         Skin.m_Loaded = false;
         pSelf->m_pClient->m_pSkins->LoadSkin(&Skin, false);
     }
+    return 0;
+}
+
+int CLuaFile::ConsoleActive(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    lua_pushboolean(L, (pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPEN || pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPENING));
+    return 1;
+}
+
+int CLuaFile::ConsoleLocalActive(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    lua_pushboolean(L, (pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPEN || pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPENING) && pSelf->m_pClient->m_pGameConsole->GetConsoleType() == CGameConsole::CONSOLETYPE_LOCAL);
+    return 1;
+}
+
+int CLuaFile::ConsoleRemoteActive(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    lua_pushboolean(L, (pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPEN || pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPENING) && pSelf->m_pClient->m_pGameConsole->GetConsoleType() == CGameConsole::CONSOLETYPE_REMOTE);
+    return 1;
+}
+
+int CLuaFile::GetLocalCharacterPos(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    // Can be used for direct rendering on screen
+
+    lua_pushnumber(L, pSelf->m_pClient->m_LocalCharacterPos.x);
+    lua_pushnumber(L, pSelf->m_pClient->m_LocalCharacterPos.y);
+
+    return 2;
+}
+
+int CLuaFile::LocalExecute(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isstring(L, 1))
+        pSelf->m_pClient->Console()->ExecuteLine(lua_tostring(L, 1));
+
+    return 0;
+}
+
+int CLuaFile::LocalExecuteStroked(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1) && lua_isstring(L, 2))
+        pSelf->m_pClient->Console()->ExecuteLineStroked(lua_tonumber(L, 1), lua_tostring(L, 2));
+
+    return 0;
+}
+
+int CLuaFile::GetServerInfo(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    CServerInfo CurrentServerInfo;
+    pSelf->m_pClient->Client()->GetServerInfo(&CurrentServerInfo);
+
+    lua_pushstring(L, CurrentServerInfo.m_aName);
+    lua_pushstring(L, g_Config.m_UiServerAddress);
+    lua_pushstring(L, CurrentServerInfo.m_aGameType);
+    lua_pushstring(L, CurrentServerInfo.m_aMap);
+    lua_pushstring(L, CurrentServerInfo.m_aVersion);
+
+    return 5;
+}
+
+int CLuaFile::CreateDamageIndicator(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    //--
+    if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+        return 0;
+    vec2 Pos = vec2(lua_tonumber(L, 1), lua_tonumber(L, 2));
+    vec2 Dir = vec2(lua_tonumber(L, 3), lua_tonumber(L, 4));
+
+    pSelf->m_pClient->m_pDamageind->Create(Pos, Dir);
+    return 0;
+}
+
+int CLuaFile::AddChatLine(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    // For editing chats (Spam block - Filter)
+    if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isstring(L, 3))
+        return 0;
+
+    pSelf->m_pClient->m_pChat->AddLine(lua_tonumber(L, 1), lua_tonumber(L, 2), lua_tostring(L, 3));
     return 0;
 }

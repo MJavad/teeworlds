@@ -247,6 +247,7 @@ public:
 
     //Character
     static inline int GetLocalCharacterId(lua_State *L);
+    static inline int GetLocalCharacterPos(lua_State *L);
     static inline int GetCharacterPos(lua_State *L);
     static inline int GetCharacterVel(lua_State *L);
     static inline int GetCharacterActiveWeapon(lua_State *L);
@@ -283,6 +284,7 @@ public:
 	static inline int RenderTilemapGenerateSkip(lua_State *L);
 
     static inline int CreateParticle(lua_State *L);
+    static inline int CreateDamageIndicator(lua_State *L);
 
     //Flow
     static inline int GetFlow(lua_State *L);
@@ -291,6 +293,11 @@ public:
     //Console Print
     static inline int Print(lua_State *L);
     static inline int Console(lua_State *L);
+    static inline int ConsoleActive(lua_State *L);
+    static inline int ConsoleLocalActive(lua_State *L);
+    static inline int ConsoleRemoteActive(lua_State *L);
+    static inline int LocalExecute(lua_State *L);
+    static inline int LocalExecuteStroked(lua_State *L);
 
     //Remote console
     static inline int RconAuth(lua_State *L);
@@ -307,6 +314,7 @@ public:
 
     //Serverinfo
     static inline int GetGameType(lua_State *L);
+    static inline int GetServerInfo(lua_State *L);
     static inline int IsTeamplay(lua_State *L);
 
     //Get Net Error
@@ -318,6 +326,7 @@ public:
     //Chat
     static inline int ChatSend(lua_State *L);
     static inline int ChatTeamSend(lua_State *L);
+    static inline int AddChatLine(lua_State *L);
 
     //Player
     static inline int GetPlayerName(lua_State *L);
