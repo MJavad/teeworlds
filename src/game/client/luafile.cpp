@@ -92,9 +92,9 @@ void CLuaFile::End()
     if (m_pLua == 0)
         return;
 
-    //try to call the end function
+    //try to call the atexit function
     //Maybe the lua file need to save data eg. a ConfigFile
-    FunctionExec("end");
+    FunctionExec("atexit");
 
     //free everything
 
