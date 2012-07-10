@@ -1553,6 +1553,15 @@ int CLuaFile::GetTile(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
+	if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+		return 0;
+    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    {
+        return 0;
+    }
+    if (!pSelf->m_pClient->Collision())
+        return 0;
+
     lua_pushnumber(L, pSelf->m_pClient->Collision()->GetTileRaw(lua_tonumber(L, 1), lua_tonumber(L, 2)));
     return 1;
 }
@@ -1566,6 +1575,13 @@ int CLuaFile::SetTile(lua_State *L)
 	if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
 		return 0;
 
+    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    {
+        return 0;
+    }
+    if (!pSelf->m_pClient->Collision())
+        return 0;
+
     pSelf->m_pClient->Collision()->SetTile(lua_tointeger(L, 1), lua_tointeger(L, 2), lua_tointeger(L, 3));
     return 1;
 }
@@ -1576,6 +1592,13 @@ int CLuaFile::GetMapWidth(lua_State *L)
     lua_Debug Frame;
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
+
+    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    {
+        return 0;
+    }
+    if (!pSelf->m_pClient->Collision())
+        return 0;
 
     lua_pushnumber(L, pSelf->m_pClient->Collision()->GetWidth());
     return 1;
@@ -1588,6 +1611,13 @@ int CLuaFile::GetMapHeight(lua_State *L)
     lua_Debug Frame;
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
+
+    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    {
+        return 0;
+    }
+    if (!pSelf->m_pClient->Collision())
+        return 0;
 
     lua_pushnumber(L, pSelf->m_pClient->Collision()->GetHeight());
     return 1;
