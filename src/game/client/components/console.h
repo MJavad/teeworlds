@@ -101,8 +101,8 @@ public:
 
 	CGameConsole();
 
-	int GetConsoleState() { return m_ConsoleType; }
-	int GetConsoleType() { return m_ConsoleState; }
+	int GetConsoleState() { return m_ConsoleState; }
+	int GetConsoleType() { return m_ConsoleType; }
 
 	void PrintLine(int Type, const char *pLine);
 
