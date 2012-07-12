@@ -2008,6 +2008,13 @@ unsigned str_quickhash(const char *str)
 	return hash;
 }
 
+char *ToLower(const char *str)
+{
+    static char saTmp[8192];
+    str_copy(saTmp, str, sizeof(saTmp));
+    return str_tolower(saTmp);
+}
+
 #if defined(__cplusplus)
 }
 #endif

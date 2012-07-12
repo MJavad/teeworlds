@@ -1286,6 +1286,7 @@ int str_utf8_encode(char *ptr, int chr);
 */
 int str_utf8_check(const char *str);
 
+char *ToLower(const char *str);
 #ifdef __cplusplus
 }
 #endif
