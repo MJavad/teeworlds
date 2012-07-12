@@ -18,13 +18,10 @@ CCollision::CCollision()
 	m_Width = 0;
 	m_Height = 0;
 	m_pLayers = 0;
-	m_pOriginalTiles = 0;
 }
 
 CCollision::~CCollision()
 {
-	if (m_pOriginalTiles)
-        delete []m_pOriginalTiles;
 }
 
 void CCollision::Init(class CLayers *pLayers)
@@ -32,12 +29,7 @@ void CCollision::Init(class CLayers *pLayers)
 	m_pLayers = pLayers;
 	m_Width = m_pLayers->GameLayer()->m_Width;
 	m_Height = m_pLayers->GameLayer()->m_Height;
-	if (m_pOriginalTiles)
-        delete []m_pOriginalTiles;
-    m_pOriginalTiles = 0;
 	m_pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(m_pLayers->GameLayer()->m_Data));
-    m_pOriginalTiles = new CTile[m_Height * m_Width];
-    mem_copy(m_pOriginalTiles, m_pTiles, sizeof(CTile) * m_Height * m_Width);
 
 	for(int i = 0; i < m_Width*m_Height; i++)
 	{
@@ -51,21 +43,6 @@ void CCollision::Init(class CLayers *pLayers)
         //OnCollisionInit
         //OnCollisionInitGetIndex
         //OnCollisionInitSetIndex
-
-		switch(Index)
-		{
-		case TILE_DEATH:
-			m_pTiles[i].m_Index = COLFLAG_DEATH;
-			break;
-		case TILE_SOLID:
-			m_pTiles[i].m_Index = COLFLAG_SOLID;
-			break;
-		case TILE_NOHOOK:
-			m_pTiles[i].m_Index = COLFLAG_SOLID|COLFLAG_NOHOOK;
-			break;
-        default:
-            m_pTiles[i].m_Index = 0; //do not delete this line - buggy on ddrace, ...
-		}
 	}
 }
 
@@ -96,9 +73,9 @@ int CCollision::GetTileRaw(int x, int y)
 	int Nx = clamp(x/32, 0, m_Width-1);
 	int Ny = clamp(y/32, 0, m_Height-1);
 
-    if (!m_pOriginalTiles)
+    if (!m_pTiles)
         return 0;
-	return m_pOriginalTiles[Ny*m_Width+Nx].m_Index;
+	return m_pTiles[Ny*m_Width+Nx].m_Index;
 }
 
 void CCollision::SetTile(int x, int y, int index)
@@ -106,10 +83,9 @@ void CCollision::SetTile(int x, int y, int index)
 	int Nx = clamp(x/32, 0, m_Width-1);
 	int Ny = clamp(y/32, 0, m_Height-1);
 
-    if (!m_pTiles || !m_pOriginalTiles)
+    if (!m_pTiles)
         return;
 	m_pTiles[Ny*m_Width+Nx].m_Index = index;
-	m_pOriginalTiles[Ny*m_Width+Nx].m_Index = index;
 }
 
 bool CCollision::IsTileSolid(int x, int y)
