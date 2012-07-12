@@ -158,18 +158,7 @@ struct CMapItemLayerLua
 	CMapItemLayer m_Layer;
 	int m_Version;
 
-	int m_Width;
-	int m_Height;
-	int m_Flags;
-
-	CColor m_Color;
-	int m_ColorEnv;
-	int m_ColorEnvOffset;
-
-	int m_Image;
 	int m_Data;
-
-	int m_aName[3];
 } ;
 
 struct CMapItemLayerQuads

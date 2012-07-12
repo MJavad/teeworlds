@@ -755,16 +755,16 @@ void CEditor::CallbackOpenLua(const char *pFileName, int StorageType, void *pUse
     }
 
     int Size = io_length(LuaFile);
-    char *pData = new char[Size];
-    mem_zero(pData, Size);
+    char *pData = new char[Size + 1];
+    mem_zero(pData, Size + 1);
     io_read(LuaFile, pData, Size);
-    for (int i = 0, x = 0; i < Size; i++)
+    for (int i = 0, x = 0; i < Size + 1; i++)
     {
         if (pData[i] == '\r') //filter out \r
             continue;
+        pLayerTiles->m_LuaLayer.m_aLuaCode[x++] = pData[i];
         if (pData[i] == 0)
             break;
-        pLayerTiles->m_LuaLayer.m_aLuaCode[x++] = pData[i];
     }
     delete []pData;
 	io_close(LuaFile);

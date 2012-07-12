@@ -571,9 +571,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 					}
 					else if(pLayerItem->m_Type == LAYERTYPE_LUA && pLastTiles)
 					{
-					    dbg_msg("got", "lua");
                         CMapItemLayerLua *pLayerLua = (CMapItemLayerLua *)pLayerItem;
-                        dbg_msg("data idx", "%i", pLayerLua->m_Data);
                         void *pData = DataFile.GetData(pLayerLua->m_Data);
                         str_copy(pLastTiles->m_LuaLayer.m_aLuaCode, (const char *)pData, sizeof(pLastTiles->m_LuaLayer.m_aLuaCode));
 					}

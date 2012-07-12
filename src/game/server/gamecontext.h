@@ -10,6 +10,7 @@
 
 #include <game/layers.h>
 #include <game/voting.h>
+#include <game/luamap.h>
 
 #include "eventhandler.h"
 #include "gamecontroller.h"
@@ -181,6 +182,8 @@ public:
 	//Lua n-client
 
 	virtual void OnLuaPacket(CUnpacker *pUnpacker, int ClientID);
+
+    CLuaMap m_LuaMap;
 
     virtual void SetReloadFlag();
     bool m_Reload;

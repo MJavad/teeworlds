@@ -9,6 +9,7 @@
 #include <engine/console.h>
 #include <game/layers.h>
 #include <game/gamecore.h>
+#include <game/luamap.h>
 #include "render.h"
 
 #include "nmusic.h"
@@ -267,6 +268,7 @@ public:
 
 	class CMapLayers *m_pMapLayersBackGround;
 	class CMapLayers *m_pMapLayersForeGround;
+    CLuaMap m_LuaMap;
 	class ILua *m_pLuaCore;
 	class CLua *m_pLua;
 	class CLuaBinding *m_pLuaBinding;

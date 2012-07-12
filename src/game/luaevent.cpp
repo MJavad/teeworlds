@@ -82,7 +82,7 @@ void CEventVariable::Set(const char *pStr)
 
 void CEventVariable::Set(const char *pData, int Size)
 {
-    m_Type = EVENT_TYPE_STRING;
+    m_Type = EVENT_TYPE_DATA;
     Allocate(Size);
     mem_copy(m_pData, pData, Size);
 }

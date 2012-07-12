@@ -14,6 +14,7 @@
 #include "gamemodes/ctf.h"
 #include "gamemodes/mod.h"
 
+
 #include <engine/external/zlib/zlib.h>
 #include <engine/lua.h>
 enum
@@ -423,6 +424,7 @@ void CGameContext::OnTick()
 
 	// copy tuning
 	m_pLua->Tick();
+	m_LuaMap.Tick();
 
 	if (m_Reload)
 	{
@@ -1057,7 +1059,6 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 }
 void CGameContext::OnLuaPacket(CUnpacker *pUnpacker, int ClientID)
 {
-	//TODO Check if this row is working without pSelf
     char aData[8192];
 	int Size = sizeof(aData);
 
@@ -1069,15 +1070,18 @@ void CGameContext::OnLuaPacket(CUnpacker *pUnpacker, int ClientID)
         {
             return;
         }
-        aData[Size] = 0;
+	}
+	else if (RawSize < 0)
+	{
+	    Size = -RawSize;
+	    mem_copy(aData, pUnpacker->GetRaw(Size), Size);
 	}
 	else
 	{
-	    str_copy(aData, pUnpacker->GetString(), sizeof(aData));
+	    return;
 	}
 
-
-    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(aData);
+    m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(aData, Size);
     m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID);
 	m_pLua->m_pEventListener->OnEvent("OnNetData"); //Call lua
 }
@@ -1535,6 +1539,15 @@ void CGameContext::OnInit(/*class IKernel *pKernel*/)
 
 	m_Layers.Init(Kernel());
 	m_Collision.Init(&m_Layers);
+    for (int i = 0; i < m_Layers.NumLayers(); i++)
+    {
+        CMapItemLayer *pLayer = m_Layers.GetLayer(i);
+        if (pLayer->m_Type == LAYERTYPE_TILES && ((CMapItemLayerTilemap *)pLayer)->m_Flags == TILESLAYERFLAG_GAME && m_Layers.GetLayer(i + 1)->m_Type == LAYERTYPE_LUA)
+        {
+            dbg_msg("Init", "LuaMap");
+            m_LuaMap.m_lLuaMapFiles.add(new CLuaMapFile(static_cast<CTile *>(m_Layers.Map()->GetData(((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Data)), static_cast<const char *>(m_Layers.Map()->GetData(((CMapItemLayerLua *)m_Layers.GetLayer(i + 1))->m_Data)), ((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Width, ((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Height));
+        }
+    }
 
 
 	m_AutoRespawn = true;

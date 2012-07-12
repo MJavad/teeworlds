@@ -357,6 +357,15 @@ void CGameClient::OnConnected()
 {
 	m_Layers.Init(Kernel());
 	m_Collision.Init(Layers());
+    for (int i = 0; i < m_Layers.NumLayers(); i++)
+    {
+        CMapItemLayer *pLayer = m_Layers.GetLayer(i);
+        if (pLayer->m_Type == LAYERTYPE_TILES && ((CMapItemLayerTilemap *)pLayer)->m_Flags == TILESLAYERFLAG_GAME && m_Layers.GetLayer(i + 1)->m_Type == LAYERTYPE_LUA)
+        {
+            dbg_msg("Init", "LuaMap");
+            m_LuaMap.m_lLuaMapFiles.add(new CLuaMapFile(static_cast<CTile *>(m_Layers.Map()->GetData(((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Data)), static_cast<const char *>(m_Layers.Map()->GetData(((CMapItemLayerLua *)m_Layers.GetLayer(i + 1))->m_Data)), ((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Width, ((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Height));
+        }
+    }
 
     //TODO:add config
 	//RenderTools()->RenderTilemapGenerateSkip(Layers());
@@ -613,14 +622,18 @@ void CGameClient::OnLuaPacket(CUnpacker *pUnpacker)
         {
             return;
         }
-        aData[Size] = 0;
+	}
+	else if (RawSize < 0)
+	{
+	    Size = -RawSize;
+	    mem_copy(aData, pUnpacker->GetRaw(Size), Size);
 	}
 	else
 	{
-	    str_copy(aData, pUnpacker->GetString(), sizeof(aData));
+	    return;
 	}
 
-    g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(aData);
+    g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(aData, Size);
     g_GameClient.m_pLua->m_pEventListener->OnEvent("OnNetData"); //Call lua
 }
 
