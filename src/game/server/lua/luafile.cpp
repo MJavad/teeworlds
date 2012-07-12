@@ -1,20 +1,22 @@
 /* (c) MAP94 and Patafix. See www.n-lvl.com/ndc/nclient/ for more information. */
-    /*DGI:Doc-Gen-Info*/
-    /*DGI:Type:Server*/
-    /*DGI:Exception:errorfunc*/
-    /*DGI:Event:OnWeaponFire*/
-    /*DGI:Event:OnJump*/
-    /*DGI:Event:OnJump*/
-    /*DGI:Event:OnDie*/
-    /*DGI:Event:OnExplosion*/
-    /*DGI:Event:OnClientEnter*/
-    /*DGI:Event:OnClientConnect*/
-    /*DGI:Event:OnChat*/
-    /*DGI:Event:OnPlayerJoinTeam*/
-    /*DGI:Event:OnNetData*/
-    /*DGI:Event:OnCanSpawn*/
-    /*DGI:Event:OnEntity*/
-    /*DGI:Event:OnConsole*/
+/*DGI:Doc-Gen-Info*/
+/*DGI:Type:Server*/
+/*DGI:Exception:errorfunc*/
+/*DGI:Event:OnWeaponFire*/
+/*DGI:Event:OnJump*/
+/*DGI:Event:OnJump*/
+/*DGI:Event:OnDie*/
+/*DGI:Event:OnExplosion*/
+/*DGI:Event:OnClientEnter*/
+/*DGI:Event:OnClientConnect*/
+/*DGI:Event:OnChat*/
+/*DGI:Event:OnPlayerJoinTeam*/
+/*DGI:Event:OnNetData*/
+/*DGI:Event:OnCanSpawn*/
+/*DGI:Event:OnEntity*/
+/*DGI:Event:OnConsole*/
+#include <string.h>
+#include <time.h>
 
 #include "lua.h"
 
@@ -34,6 +36,9 @@
 #include <game/version.h>
 #undef NON_HASED_VERSION
 
+#include <game/luaglobal.h>
+
+
 CLuaFile::CLuaFile()
 {
     mem_zero(this, sizeof(CLuaFile));
@@ -42,12 +47,12 @@ CLuaFile::CLuaFile()
 
 CLuaFile::~CLuaFile()
 {
-    #ifndef CONF_PLATFORM_MACOSX
+#ifndef CONF_PLATFORM_MACOSX
     End();
     if (m_pLua)
         lua_close(m_pLua);
     m_pLua = 0;
-    #endif
+#endif
 }
 void CLuaFile::Tick()
 {
@@ -142,25 +147,25 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("GetPlayerPing"), this->GetPlayerPing);
     lua_register(m_pLua, ToLower("GetPlayerTeam"), this->GetPlayerTeam);
     lua_register(m_pLua, ToLower("GetPlayerSkin"), this->GetPlayerSkin);
-	lua_register(m_pLua, ToLower("GetPlayerColorFeet"), this->GetPlayerColorFeet);
-	lua_register(m_pLua, ToLower("GetPlayerColorBody"), this->GetPlayerColorBody);
-	lua_register(m_pLua, ToLower("SetPlayerScore"), this->SetPlayerScore);
-	lua_register(m_pLua, ToLower("SetPlayerName"), this->SetPlayerName);
-	lua_register(m_pLua, ToLower("SetPlayerTeam"), this->SetPlayerTeam);
-	lua_register(m_pLua, ToLower("SetPlayerClan"), this->SetPlayerClan);
-	lua_register(m_pLua, ToLower("SetPlayerCountry"), this->SetPlayerCountry);
+    lua_register(m_pLua, ToLower("GetPlayerColorFeet"), this->GetPlayerColorFeet);
+    lua_register(m_pLua, ToLower("GetPlayerColorBody"), this->GetPlayerColorBody);
+    lua_register(m_pLua, ToLower("SetPlayerScore"), this->SetPlayerScore);
+    lua_register(m_pLua, ToLower("SetPlayerName"), this->SetPlayerName);
+    lua_register(m_pLua, ToLower("SetPlayerTeam"), this->SetPlayerTeam);
+    lua_register(m_pLua, ToLower("SetPlayerClan"), this->SetPlayerClan);
+    lua_register(m_pLua, ToLower("SetPlayerCountry"), this->SetPlayerCountry);
 
-	lua_register(m_pLua, ToLower("SetPlayerColorBody"), this->SetPlayerColorBody);
-	lua_register(m_pLua, ToLower("SetPlayerColorFeet"), this->SetPlayerColorFeet);
+    lua_register(m_pLua, ToLower("SetPlayerColorBody"), this->SetPlayerColorBody);
+    lua_register(m_pLua, ToLower("SetPlayerColorFeet"), this->SetPlayerColorFeet);
 
     //character
     lua_register(m_pLua, ToLower("Emote"), this->Emote);
     lua_register(m_pLua, ToLower("GetCharacterPos"), this->GetCharacterPos);
     lua_register(m_pLua, ToLower("GetCharacterVel"), this->GetCharacterVel);
-	lua_register(m_pLua, ToLower("SetCharacterPos"), this->SetCharacterPos);
+    lua_register(m_pLua, ToLower("SetCharacterPos"), this->SetCharacterPos);
     lua_register(m_pLua, ToLower("SetCharacterVel"), this->SetCharacterVel);
 
-	//config
+    //config
     lua_register(m_pLua, ToLower("GetConfigValue"), this->GetConfigValue);
     lua_register(m_pLua, ToLower("SetConfigValue"), this->SetConfigValue);
 
@@ -173,11 +178,11 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("IsTeamplay"), this->IsTeamplay);
 
     //message
-	//  lua_register(m_pLua, ToLower("GetNetError"), this->GetNetError);
-	lua_register(m_pLua, ToLower("SendPacket"), this->SendPacket);
-	lua_register(m_pLua, ToLower("AddModFile"), this->AddModFile);
-	lua_register(m_pLua, ToLower("DeleteModFile"), this->DeleteModFile);
-	lua_register(m_pLua, ToLower("SendFile"), this->SendFile);
+    //  lua_register(m_pLua, ToLower("GetNetError"), this->GetNetError);
+    lua_register(m_pLua, ToLower("SendPacket"), this->SendPacket);
+    lua_register(m_pLua, ToLower("AddModFile"), this->AddModFile);
+    lua_register(m_pLua, ToLower("DeleteModFile"), this->DeleteModFile);
+    lua_register(m_pLua, ToLower("SendFile"), this->SendFile);
 
 
     //collision
@@ -207,7 +212,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("ProjectileGetExplosive"), this->ProjectileGetExplosive);
     lua_register(m_pLua, ToLower("ProjectileGetSoundImpact"), this->ProjectileGetSoundImpact);
     lua_register(m_pLua, ToLower("ProjectileCreate"), this->ProjectileCreate);
-	lua_register(m_pLua, ToLower("LaserCreate"), this->LaserCreate);
+    lua_register(m_pLua, ToLower("LaserCreate"), this->LaserCreate);
 
     //game
     lua_register(m_pLua, ToLower("CreateExplosion"), this->CreateExplosion);
@@ -244,19 +249,22 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("Win"), this->Win);
     lua_register(m_pLua, ToLower("SetGametype"), this->SetGametype);
 
-	lua_register(m_pLua, ToLower("DummyCreate"), this->DummyCreate);
-	lua_register(m_pLua, ToLower("IsDummy"), this->IsDummy);
+    lua_register(m_pLua, ToLower("DummyCreate"), this->DummyCreate);
+    lua_register(m_pLua, ToLower("IsDummy"), this->IsDummy);
 
     //version
     lua_register(m_pLua, ToLower("CheckVersion"), this->CheckVersion);
     lua_register(m_pLua, ToLower("GetVersion"), this->GetVersion);
+
+    lua_register(m_pLua, ToLower("CreateDirectory"), this->CreateDirectory);
+    lua_register(m_pLua, ToLower("GetDate"), this->GetDate);
 
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");
 
     lua_register(m_pLua, ToLower("errorfunc"), this->ErrorFunc); //TODO: fix me
-	//lua_getglobal(m_pLua, "errorfunc");
+    //lua_getglobal(m_pLua, "errorfunc");
 
 
     if (luaL_loadfile(m_pLua, m_aFilename) == 0)
@@ -295,9 +303,9 @@ int CLuaFile::ErrorFunc(lua_State *L)
 
     lua_pop(L,1);
 
-	int depth = 0;
-	int frameskip = 1;
-	lua_Debug frame;
+    int depth = 0;
+    int frameskip = 1;
+    lua_Debug frame;
 
     if (lua_tostring(L, -1) == 0)
         return 0;
@@ -515,5 +523,66 @@ int CLuaFile::GetVersion(lua_State *L)
     lua_getinfo(L, "nlSf", &Frame);
 
     lua_pushstring(L, GAME_LUA_VERSION);
+    return 1;
+}
+
+int CLuaFile::CreateDirectory(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+    if(!lua_isstring(L, 1))
+        return 0;
+
+    lua_pushboolean(L, fs_makedir(lua_tostring(L, 1)));
+    return 1;
+}
+
+int CLuaFile::GetDate (lua_State *L) //from loslib.c
+{
+    const char *s = luaL_optstring(L, 1, "%c");
+    time_t t = luaL_opt(L, (time_t)luaL_checknumber, 2, time(NULL));
+    struct tm tmr, *stm;
+    if (*s == '!')    /* UTC? */
+    {
+        stm = l_gmtime(&t, &tmr);
+        s++;  /* skip `!' */
+    }
+    else
+        stm = l_localtime(&t, &tmr);
+    if (stm == NULL)  /* invalid date? */
+        lua_pushnil(L);
+    else if (strcmp(s, "*t") == 0)
+    {
+        lua_createtable(L, 0, 9);  /* 9 = number of fields */
+        setfield(L, "sec", stm->tm_sec);
+        setfield(L, "min", stm->tm_min);
+        setfield(L, "hour", stm->tm_hour);
+        setfield(L, "day", stm->tm_mday);
+        setfield(L, "month", stm->tm_mon+1);
+        setfield(L, "year", stm->tm_year+1900);
+        setfield(L, "wday", stm->tm_wday+1);
+        setfield(L, "yday", stm->tm_yday+1);
+        setboolfield(L, "isdst", stm->tm_isdst);
+    }
+    else
+    {
+        char cc[4];
+        luaL_Buffer b;
+        cc[0] = '%';
+        luaL_buffinit(L, &b);
+        while (*s)
+        {
+            if (*s != '%')  /* no conversion specifier? */
+                luaL_addchar(&b, *s++);
+            else
+            {
+                size_t reslen;
+                char buff[200];  /* should be big enough for any conversion result */
+                s = checkoption(L, s + 1, cc);
+                reslen = strftime(buff, sizeof(buff), cc, stm);
+                luaL_addlstring(&b, buff, reslen);
+            }
+        }
+        luaL_pushresult(&b);
+    }
     return 1;
 }

@@ -12,19 +12,21 @@ int CLuaFile::SendPacket(lua_State *L)
     if(lua_isnil(L, 1))
         return 0;
 
-	char aData[2000];
+    size_t InSize = 0;
+    const char *pData = lua_tolstring(L, 1, &InSize);
+	char aData[8192];
 	int Size = sizeof(aData);
 	CMsgPacker P(NETMSG_LUA_DATA);
-	if (compress2((Bytef *)aData, (uLongf *)&Size, (Bytef *)lua_tostring(L, 1), str_length(lua_tostring(L, 1)), Z_BEST_COMPRESSION) == Z_OK && Size < str_length(lua_tostring(L, 1)))
+	if (compress2((Bytef *)aData, (uLongf *)&Size, (Bytef *)pData, InSize, Z_BEST_COMPRESSION) == Z_OK && Size <= InSize)
 	{
         P.AddInt(Size);
         P.AddRaw(aData, Size);
 	}
 	else
 	{
-	    str_copy(aData, lua_tostring(L, 1), sizeof(aData));
-	    P.AddInt(-1); //no compression
-	    P.AddString(aData, sizeof(aData));
+	    P.AddInt(-InSize); //no compression
+	    P.AddRaw(pData, (int)InSize);
+	    P.AddInt(-InSize); //no compression
 	}
 	pSelf->m_pServer->Server()->SendMsgEx(&P, MSGFLAG_VITAL|MSGFLAG_FLUSH, lua_tointeger(L, 2) ? lua_tointeger(L, 2) : -1, true);
     return 0;
@@ -38,10 +40,8 @@ int CLuaFile::AddModFile(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
-    dbg_msg("loading...", "");
 	if(lua_isnil(L, 1) || lua_isnil(L, 2) || !lua_isnumber(L, 3))
         return 0;
-	 dbg_msg("loading", "");
 	pSelf->m_pServer->Server()->AddModFile((char *)lua_tostring(L, 1), (char *)lua_tostring(L, 2), lua_tointeger(L, 3), lua_isnumber(L, 4)?lua_tointeger(L, 4):0);
 	return 0;
 }

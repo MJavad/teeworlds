@@ -229,6 +229,10 @@ public:
     static inline int CheckVersion(lua_State *L);
     static inline int GetVersion(lua_State *L);
 
+
+    static inline int CreateDirectory(lua_State *L);
+
+    static inline int GetDate(lua_State *L);
 };
 
 class CLua
@@ -282,10 +286,4 @@ static int StrIsFloat(const char *pStr)
 	return 1;
 }
 
-static char *ToLower(const char *str)
-{
-    static char saTmp[8192];
-    str_copy(saTmp, str, sizeof(saTmp));
-    return str_tolower(saTmp);
-}
 #endif
