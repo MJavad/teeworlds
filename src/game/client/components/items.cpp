@@ -68,16 +68,32 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 
 		if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		{
-			const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
-			static float Time = 0;
-			static float LastLocalTime = Client()->LocalTime();
+		    if (m_pClient->DemoPlayer()->m_Recording)
+		    {
+                const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+                static float Time = 0;
+                static int64 LastLocalTime = Client()->DemoTimeGet();
 
-			if(!pInfo->m_Paused)
-				Time += (Client()->LocalTime()-LastLocalTime)*pInfo->m_Speed;
+                if(!pInfo->m_Paused)
+                    Time += (float)(Client()->DemoTimeGet() - LastLocalTime) / (float)time_freq();
 
-			Graphics()->QuadsSetRotation(Time*pi*2*2 + ItemID);
+                Graphics()->QuadsSetRotation(Time*pi*2*2 + ItemID);
 
-			LastLocalTime = Client()->LocalTime();
+                LastLocalTime = Client()->DemoTimeGet();
+		    }
+		    else
+		    {
+                const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+                static float Time = 0;
+                static float LastLocalTime = Client()->LocalTime();
+
+                if(!pInfo->m_Paused)
+                    Time += (Client()->LocalTime()-LastLocalTime)*pInfo->m_Speed;
+
+                Graphics()->QuadsSetRotation(Time*pi*2*2 + ItemID);
+
+                LastLocalTime = Client()->LocalTime();
+		    }
 		}
 		else
 			Graphics()->QuadsSetRotation(Client()->LocalTime()*pi*2*2 + ItemID);
@@ -136,17 +152,34 @@ void CItems::RenderPickup(const CNetObj_Pickup *pPrev, const CNetObj_Pickup *pCu
 	float Offset = Pos.y/32.0f + Pos.x/32.0f;
 	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
-		const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
-		static float Time = 0;
-		static float LastLocalTime = Client()->LocalTime();
+        if (m_pClient->DemoPlayer()->m_Recording)
+        {
+            const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+            static float Time = 0;
+            static int64 LastLocalTime = Client()->DemoTimeGet();
 
-		if(!pInfo->m_Paused)
-			Time += (Client()->LocalTime()-LastLocalTime)*pInfo->m_Speed;
+            if(!pInfo->m_Paused)
+                Time += (float)(Client()->DemoTimeGet() - LastLocalTime) / (float)time_freq();
 
-		Pos.x += cosf(Time*2.0f+Offset)*2.5f;
-		Pos.y += sinf(Time*2.0f+Offset)*2.5f;
+            Pos.x += cosf(Time*2.0f+Offset)*2.5f;
+            Pos.y += sinf(Time*2.0f+Offset)*2.5f;
 
-		LastLocalTime = Client()->LocalTime();
+            LastLocalTime = Client()->DemoTimeGet();
+        }
+        else
+        {
+            const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+            static float Time = 0;
+            static float LastLocalTime = Client()->LocalTime();
+
+            if(!pInfo->m_Paused)
+                Time += (Client()->LocalTime()-LastLocalTime)*pInfo->m_Speed;
+
+            Pos.x += cosf(Time*2.0f+Offset)*2.5f;
+            Pos.y += sinf(Time*2.0f+Offset)*2.5f;
+
+            LastLocalTime = Client()->LocalTime();
+        }
 	}
 	else
 	{

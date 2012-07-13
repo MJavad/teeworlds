@@ -328,5 +328,7 @@ public:
 	void ServerBrowserUpdate();
 
 	bool GetLuaSaveOption(int i){return m_Lua.GetLuaSaveOption(i);};
+
+	virtual int64 DemoTimeGet() { return m_DemoPlayer.Info()->m_CurrentTime; }
 };
 #endif

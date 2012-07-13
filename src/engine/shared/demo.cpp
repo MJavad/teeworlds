@@ -716,7 +716,7 @@ int CDemoPlayer::Update()
     if (m_Recording)
     {
 		int64 Freq = time_freq();
-		m_Info.m_CurrentTime += Freq / 25.0f; //fps (?)
+		m_Info.m_CurrentTime += Freq / m_FPS; //fps
 
 		while(1)
 		{

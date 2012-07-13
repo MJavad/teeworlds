@@ -144,6 +144,8 @@ public:
 	virtual bool SoundInitFailed() = 0;
 
 	virtual int GetDebugFont() = 0;
+
+    virtual int64 DemoTimeGet() = 0;
 };
 
 class IGameClient : public IInterface

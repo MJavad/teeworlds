@@ -1,8 +1,10 @@
 #include "demo_recorder.h"
+#include <engine/shared/config.h>
 
-void CDemoVideoRecorder::Init(int Width, int Height)
+void CDemoVideoRecorder::Init(int Width, int Height, int FPS)
 {
     m_pSound = Kernel()->RequestInterface<ISound>();
+    m_FPS = FPS;
     if (m_ScreenWidth)
     {
         ogg_stream_destroy(&m_TheoraOggStreamState);
@@ -22,7 +24,7 @@ void CDemoVideoRecorder::Init(int Width, int Height)
     //thread_sleep(10000);
     static vorbis_info VorbisEncodingInfo;
     vorbis_info_init(&VorbisEncodingInfo);
-    vorbis_encode_init_vbr(&VorbisEncodingInfo, 2, 44100, 1.0f);
+    vorbis_encode_init_vbr(&VorbisEncodingInfo, 2, g_Config.m_SndRate, 1.0f); //2 ch - samplerate - quality 1
     vorbis_analysis_init(&m_VorbisState, &VorbisEncodingInfo);
     vorbis_block_init(&m_VorbisState, &m_VorbisBlock);
 
@@ -46,7 +48,7 @@ void CDemoVideoRecorder::Init(int Width, int Height)
     TheoraEncodingInfo.pic_x = TheoraEncodingInfo.frame_width - m_ScreenWidth>>1&~1;
     TheoraEncodingInfo.pic_y = TheoraEncodingInfo.frame_height - m_ScreenHeight>>1&~1;
     TheoraEncodingInfo.colorspace = TH_CS_UNSPECIFIED;
-    TheoraEncodingInfo.fps_numerator = 25; //fps
+    TheoraEncodingInfo.fps_numerator = FPS; //fps
     TheoraEncodingInfo.fps_denominator = 1;
     TheoraEncodingInfo.aspect_numerator = -1;
     TheoraEncodingInfo.aspect_denominator = -1;
@@ -66,26 +68,24 @@ void CDemoVideoRecorder::Init(int Width, int Height)
 
 
         //Flush
+    //Step 1
+    th_encode_flushheader(m_pContext, &CommentHeader, &OggPacket); // first header
 
-    /*while(1)
+    ogg_stream_packetin(&m_TheoraOggStreamState, &OggPacket);
+    //
+    ogg_page OggPage;
+    ogg_stream_pageout(&m_TheoraOggStreamState, &OggPage);
+    io_write(m_OggFile, OggPage.header, OggPage.header_len);
+    io_write(m_OggFile, OggPage.body, OggPage.body_len);
+
+    while(1)
     {
         ogg_page OggPage;
         if (ogg_stream_flush(&m_VorbisOggStreamState,&OggPage) == 0)
             break;
         io_write(m_OggFile, OggPage.header, OggPage.header_len);
         io_write(m_OggFile, OggPage.body, OggPage.body_len);
-    }*/
-
-
-    //Step 1
-    th_encode_flushheader(m_pContext, &CommentHeader, &OggPacket); // first header
-    ogg_stream_packetin(&m_TheoraOggStreamState, &OggPacket);
-
-    //
-    ogg_page OggPage;
-    ogg_stream_pageout(&m_TheoraOggStreamState, &OggPage);
-    io_write(m_OggFile, OggPage.header, OggPage.header_len);
-    io_write(m_OggFile, OggPage.body, OggPage.body_len);
+    }
 
     while(th_encode_flushheader(m_pContext, &CommentHeader, &OggPacket))
     {
@@ -105,20 +105,18 @@ void CDemoVideoRecorder::OnData(unsigned char *pPixelData, void *pUser)
 
 void CDemoVideoRecorder::OnFrame(unsigned char *pPixelData)
 {
-    /*static int Test = 0;
-    Test = Test + 3528;
-    if (Test >= 4096)
     {
-        Test = 0;
-        short aStream[4096] = {0};
-        m_pSound->MixHook((short *)aStream, sizeof(aStream) / 2 / 2);
-        float **buffer = vorbis_analysis_buffer(&m_VorbisState, sizeof(aStream) / 2 / 2);
-        for (int i = 0; i < sizeof(aStream) / 2 / 2; i++)
+        //SampleRate / FPS
+        int Size = g_Config.m_SndRate / m_FPS;
+        short aStream[8192] = {0};
+        m_pSound->MixHook((short *)aStream, Size);
+        float **buffer = vorbis_analysis_buffer(&m_VorbisState, Size);
+        for (int i = 0; i < Size; i++)
         {
             buffer[0][i] = aStream[i * 2] / 32768.f;
             buffer[1][i] = aStream[i * 2 + 1] / 32768.f;
         }
-        vorbis_analysis_wrote(&m_VorbisState, sizeof(aStream) / 2 / 2);
+        vorbis_analysis_wrote(&m_VorbisState, Size);
         while(vorbis_analysis_blockout(&m_VorbisState, &m_VorbisBlock)==1)
         {
 
@@ -144,7 +142,7 @@ void CDemoVideoRecorder::OnFrame(unsigned char *pPixelData)
                 }
             }
         }
-    }*/
+    }
 
     unsigned char *pTempRow = pPixelData + m_ScreenWidth * m_ScreenHeight * 3;
     static th_ycbcr_buffer ycbcr = {0};

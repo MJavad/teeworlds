@@ -4,6 +4,7 @@
 #include <engine/engine.h>
 #include <engine/graphics.h>
 #include <engine/textrender.h>
+#include <engine/demo.h>
 #include <engine/keys.h>
 #include <engine/shared/config.h>
 
@@ -345,7 +346,10 @@ void CChat::AddLine(int ClientID, int Team, const char *pLine)
 		}
 
 		m_CurrentLine = (m_CurrentLine+1)%MAX_LINES;
-		m_aLines[m_CurrentLine].m_Time = time_get();
+		if (Client()->State() == IClient::STATE_DEMOPLAYBACK && m_pClient->DemoPlayer()->m_Recording)
+            m_aLines[m_CurrentLine].m_Time = Client()->DemoTimeGet();
+        else
+            m_aLines[m_CurrentLine].m_Time = time_get();
 		m_aLines[m_CurrentLine].m_YOffset[0] = -1.0f;
 		m_aLines[m_CurrentLine].m_YOffset[1] = -1.0f;
 		m_aLines[m_CurrentLine].m_ClientID = ClientID;
@@ -458,6 +462,8 @@ void CChat::OnRender()
 	y -= 8.0f;
 
 	int64 Now = time_get();
+    if (Client()->State() == IClient::STATE_DEMOPLAYBACK && m_pClient->DemoPlayer()->m_Recording)
+        Now = Client()->DemoTimeGet();
 	float LineWidth = m_pClient->m_pScoreboard->Active() ? 90.0f : 200.0f;
 	float HeightLimit = m_pClient->m_pScoreboard->Active() ? 230.0f : m_Show ? 50.0f : 200.0f;
 	float Begin = x;

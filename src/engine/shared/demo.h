@@ -117,6 +117,8 @@ public:
 
 	int Update();
 
+	int m_FPS; //used for recording
+
 	const CPlaybackInfo *Info() const { return &m_Info; }
 	int IsPlaying() const { return m_File != 0; }
 };

@@ -143,9 +143,19 @@ void CParticles::OnRender()
 
 	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
-		const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
-		if(!pInfo->m_Paused)
-			Update((float)((t-LastTime)/(double)time_freq())*pInfo->m_Speed);
+        if (m_pClient->DemoPlayer()->m_Recording)
+        {
+            const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+            t = Client()->DemoTimeGet();
+            if(!pInfo->m_Paused)
+                Update((float)((t-LastTime)/(double)time_freq())*pInfo->m_Speed);
+        }
+        else
+        {
+            const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+            if(!pInfo->m_Paused)
+                Update((float)((t-LastTime)/(double)time_freq())*pInfo->m_Speed);
+        }
 	}
 	else
 		Update((float)((t-LastTime)/(double)time_freq()));

@@ -1,6 +1,7 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/demo.h>
+#include <engine/shared/demo.h>
 #include <engine/engine.h>
 
 #include <engine/shared/config.h>
@@ -252,6 +253,29 @@ void CEffects::OnRender()
 
 	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 	{
+	    if (m_pClient->DemoPlayer()->m_Recording)
+	    {
+            if(Client()->DemoTimeGet()-LastUpdate100hz > time_freq()/100)
+            {
+                m_Add100hz = true;
+                LastUpdate100hz = Client()->DemoTimeGet();
+            }
+            else
+                m_Add100hz = false;
+
+            if(Client()->DemoTimeGet()-LastUpdate50hz > time_freq()/100)
+            {
+                m_Add50hz = true;
+                LastUpdate50hz = Client()->DemoTimeGet();
+            }
+            else
+                m_Add50hz = false;
+
+            if(m_Add50hz)
+                m_pClient->m_pFlow->Update();
+
+            return;
+        }
 		const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
 
 		if(time_get()-LastUpdate100hz > time_freq()/(100*pInfo->m_Speed))

@@ -21,7 +21,7 @@ enum
 	NUM_VOICES = 64,
 	NUM_CHANNELS = 16,
 
-	MAX_FRAMES = 1024
+	MAX_FRAMES = 8192 // i hate bufferoverflows! RAGE!
 };
 
 struct CSample
@@ -277,10 +277,6 @@ static void Mix(short *pFinalOut, unsigned Frames)
             if (pSelf->m_MusicTmpBufferWrite >= MUSICTMPBUFFERSIZE)
                 pSelf->m_MusicTmpBufferWrite = 0;
         }
-        else
-        {
-            mem_zero(aMusicBuffer, Frames * 2);
-        }
     }
     //lua
     if (pSelf->m_LuaTmpBufferIn > 1)
@@ -294,10 +290,6 @@ static void Mix(short *pFinalOut, unsigned Frames)
         pSelf->m_LuaTmpBufferIn--;
         if (pSelf->m_LuaTmpBufferWrite >= MUSICTMPBUFFERSIZE)
             pSelf->m_LuaTmpBufferWrite = 0;
-    }
-    else
-    {
-        mem_zero(aLuaBuffer, Frames * 2);
     }
     if (pSelf->m_MusicLoadNew == true && pSelf->m_MusicFileName[0])
     {

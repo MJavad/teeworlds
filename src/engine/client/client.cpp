@@ -598,7 +598,7 @@ void CClient::DisconnectWithReason(const char *pReason, bool Silent)
 
 void CClient::Disconnect()
 {
-	DisconnectWithReason("Upgrade your client! nclient.n-lvl.com", true);
+	DisconnectWithReason("N-Client - nclient.n-lvl.com", true);
 }
 
 
@@ -2350,7 +2350,8 @@ const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType)
     if (pRet == 0)
     {
         m_DemoPlayer.m_Recording = true;
-        m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight());
+        m_DemoPlayer.m_FPS = 500;
+        m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight(), m_DemoPlayer.m_FPS);
         m_pGraphics->SetCallback(m_DemoVideoRecorder.OnData, &m_DemoVideoRecorder);
     }
     return pRet;

@@ -18,12 +18,13 @@ class CDemoVideoRecorder : public IDemoVideoRecorder
     ogg_stream_state m_VorbisOggStreamState;
     IOHANDLE m_OggFile;
 public:
-    void Init(int Width, int Height);
+    void Init(int Width, int Height, int FPS);
     void OnFrame(unsigned char *pPixelData);
     static void OnData(unsigned char *pPixelData, void *pUser);
 
     int m_ScreenWidth;
     int m_ScreenHeight;
+    int m_FPS;
 
     ISound *m_pSound;
 };
