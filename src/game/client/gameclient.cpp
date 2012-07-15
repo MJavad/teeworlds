@@ -768,65 +768,40 @@ void CGameClient::ProcessEvents()
 		{
 			CNetEvent_DamageInd *ev = (CNetEvent_DamageInd *)pData;
 			g_GameClient.m_pEffects->DamageIndicator(vec2(ev->m_X, ev->m_Y), GetDirection(ev->m_Angle));
-<<<<<<< HEAD
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
-=======
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
->>>>>>> idk
 			g_GameClient.m_pLua->m_pEventListener->OnEvent("OnNetEventDamageInd");
 		}
 		else if(Item.m_Type == NETEVENTTYPE_EXPLOSION)
 		{
 			CNetEvent_Explosion *ev = (CNetEvent_Explosion *)pData;
 			g_GameClient.m_pEffects->Explosion(vec2(ev->m_X, ev->m_Y));
-<<<<<<< HEAD
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
-=======
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
->>>>>>> idk
 			g_GameClient.m_pLua->m_pEventListener->OnEvent("OnNetEventExplosion");
 		}
 		else if(Item.m_Type == NETEVENTTYPE_HAMMERHIT)
 		{
 			CNetEvent_HammerHit *ev = (CNetEvent_HammerHit *)pData;
 			g_GameClient.m_pEffects->HammerHit(vec2(ev->m_X, ev->m_Y));
-<<<<<<< HEAD
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
-=======
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
->>>>>>> idk
 			g_GameClient.m_pLua->m_pEventListener->OnEvent("OnNetEventHammerHit");
 		}
 		else if(Item.m_Type == NETEVENTTYPE_SPAWN)
 		{
 			CNetEvent_Spawn *ev = (CNetEvent_Spawn *)pData;
 			g_GameClient.m_pEffects->PlayerSpawn(vec2(ev->m_X, ev->m_Y));
-<<<<<<< HEAD
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
-=======
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
->>>>>>> idk
 			g_GameClient.m_pLua->m_pEventListener->OnEvent("OnNetEventSpawn");
 		}
 		else if(Item.m_Type == NETEVENTTYPE_DEATH)
 		{
 			CNetEvent_Death *ev = (CNetEvent_Death *)pData;
 			g_GameClient.m_pEffects->PlayerDeath(vec2(ev->m_X, ev->m_Y), ev->m_ClientID);
-<<<<<<< HEAD
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
 			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
-=======
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_X);
-			g_GameClient.m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ev->m_Y);
->>>>>>> idk
 			g_GameClient.m_pLua->m_pEventListener->OnEvent("OnNetEventDeath");
 		}
 		else if(Item.m_Type == NETEVENTTYPE_SOUNDWORLD)
