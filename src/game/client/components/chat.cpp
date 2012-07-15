@@ -179,11 +179,10 @@ bool CChat::OnInput(IInput::CEvent Event)
 			m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
 
 			if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0 && (m_Mode == MODE_ALL || m_Mode == MODE_TEAM))
-			{
 				Say(m_Mode == MODE_ALL ? 0 : 1, m_Input.GetString());
-				char *pEntry = m_History.Allocate(m_Input.GetLength()+1);
-				mem_copy(pEntry, m_Input.GetString(), m_Input.GetLength()+1);
-			}
+			
+			char *pEntry = m_History.Allocate(m_Input.GetLength()+1);
+			mem_copy(pEntry, m_Input.GetString(), m_Input.GetLength()+1);
 		}
 		m_pHistoryEntry = 0x0;
 		m_Mode = MODE_NONE;
