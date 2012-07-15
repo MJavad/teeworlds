@@ -189,8 +189,8 @@ function build(settings)
 			settings.link.frameworks:Add("AppKit")
 		else
 			settings.link.libs:Add("pthread")
-            settings.link.libs:Add("dl")
 		end
+        settings.link.libs:Add("dl")
 
 		if platform == "solaris" then
 		    settings.link.flags:Add("-lsocket")
@@ -219,10 +219,9 @@ function build(settings)
 	-- build the small libraries
 	settings.cc.includes:Add("src/engine/external/lua")
 	lua = Compile(settings, Collect("src/engine/external/lua/*.c"))
-	if platform ~= "macosx" then
-        settings.cc.includes:Add("src/engine/external/sqlite")
-        sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
-    end
+	settings.cc.defines:Add("SQLITE_WITHOUT_ZONEMALLOC") --for mac osx compatibilitys
+    settings.cc.includes:Add("src/engine/external/sqlite")
+    sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
 	settings.cc.includes:Add("src/engine/external/libogg")
 	ogg = Compile(settings, Collect("src/engine/external/libogg/*.c"))
 	settings.cc.includes:Add("src/engine/external/libvorbis")

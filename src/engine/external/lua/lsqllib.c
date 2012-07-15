@@ -4,8 +4,6 @@
 ** See Copyright Notice in lua.h
 */
 
-#include <base/detect.h>
-#ifndef CONF_PLATFORM_MACOSX
 #define lsqllib_c
 #define LUA_LIB
 
@@ -116,6 +114,8 @@ static int sql_close (lua_State *L)
 {
     int n = lua_gettop(L);  /* number of arguments */
     int i = (int)luaL_checkinteger(L, 1);
+    if (n != 1)
+        return 0;
     if (Databases[i].m_Used)
     {
         sqlite3_close(Databases[i].m_pHandle);
@@ -142,5 +142,3 @@ LUALIB_API int luaopen_sql (lua_State *L) {
 
     return 1;
 }
-
-#endif
