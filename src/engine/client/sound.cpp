@@ -18,7 +18,7 @@ extern "C" { // wavpack
 enum
 {
 	NUM_SAMPLES = 1024, //some more ;)
-	NUM_VOICES = 64,
+	NUM_VOICES = 128,
 	NUM_CHANNELS = 16,
 
 	MAX_FRAMES = 8192 // i hate bufferoverflows! RAGE!

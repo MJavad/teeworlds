@@ -360,9 +360,10 @@ void CGameClient::OnConnected()
     for (int i = 0; i < m_Layers.NumLayers(); i++)
     {
         CMapItemLayer *pLayer = m_Layers.GetLayer(i);
-        if (pLayer->m_Type == LAYERTYPE_TILES && ((CMapItemLayerTilemap *)pLayer)->m_Flags == TILESLAYERFLAG_GAME && m_Layers.GetLayer(i + 1)->m_Type == LAYERTYPE_LUA)
+        if (pLayer->m_Type == LAYERTYPE_TILES && m_Layers.GetLayer(i + 1)->m_Type == LAYERTYPE_LUA)
         {
             dbg_msg("Init", "LuaMap");
+            dbg_msg("Code", static_cast<const char *>(m_Layers.Map()->GetData(((CMapItemLayerLua *)m_Layers.GetLayer(i + 1))->m_Data)));
             m_LuaMap.m_lLuaMapFiles.add(new CLuaMapFile(static_cast<CTile *>(m_Layers.Map()->GetData(((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Data)), static_cast<const char *>(m_Layers.Map()->GetData(((CMapItemLayerLua *)m_Layers.GetLayer(i + 1))->m_Data)), ((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Width, ((CMapItemLayerTilemap *)m_Layers.GetLayer(i))->m_Height));
         }
     }
@@ -554,28 +555,9 @@ void CGameClient::OnRender()
 	DispatchInput();
 
 	// render all systems
-	static int64 times[128];
-	static int64 timestmp[128];
-	int64 worsttime = 0;
-	int worstinterface = 0;
 	for(int i = 0; i < m_All.m_Num; i++)
 	{
-	    timestmp[i] = time_get();
         m_All.m_paComponents[i]->OnRender();
-		timestmp[i] = time_get() - timestmp[i];
-		times[i] += timestmp[i];
-		if (worsttime < timestmp[i])
-		{
-		    worsttime = timestmp[i];
-		    worstinterface = i;
-		}
-	}
-	if (g_Config.m_Debug && 0)
-	{
-	    dbg_msg("interface debug", "worstinterfaceid:%i - time:%f", worstinterface, ((float)worsttime) / time_freq());
-	    overalltime = time_get() - overalltime;
-	    dbg_msg("interface debug", "timetotal:%f", ((float)overalltime) / time_freq());
-	    dbg_msg("", "fps:%f", (1.0f / (float)((float)overalltime) / time_freq()));
 	}
 
 

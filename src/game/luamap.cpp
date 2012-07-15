@@ -9,6 +9,133 @@
     lua_getinfo(L, "nlSf", &Frame); \
     (void *)pSelf;
 
+int CLuaMapFile::StrIsInteger(const char *pStr)
+{
+	while(*pStr)
+	{
+		if(!(*pStr >= '0' && *pStr <= '9'))
+			return 0;
+		pStr++;
+	}
+	return 1;
+}
+
+int CLuaMapFile::StrIsFloat(const char *pStr)
+{
+	bool Dot = false;
+	while(*pStr)
+	{
+		if(*pStr < '0' || *pStr > '9')
+		{
+			if(!Dot && *pStr == '.')
+				Dot = true;
+			else
+				return 0;
+		}
+		pStr++;
+	}
+	return 1;
+}
+
+void CLuaMapFile::PushString(const char *pString)
+{
+    if (m_pLua == 0)
+        return;
+    lua_pushstring(m_pLua, pString);
+    m_FunctionVarNum++;
+}
+
+void CLuaMapFile::PushData(const char *pData, int Size)
+{
+    if (m_pLua == 0)
+        return;
+    lua_pushlstring(m_pLua, pData, Size);
+    m_FunctionVarNum++;
+}
+
+void CLuaMapFile::PushInteger(int value)
+{
+    if (m_pLua == 0)
+        return;
+    lua_pushinteger(m_pLua, value);
+    m_FunctionVarNum++;
+}
+
+void CLuaMapFile::PushFloat(float value)
+{
+    if (m_pLua == 0)
+        return;
+    lua_pushnumber(m_pLua, value);
+    m_FunctionVarNum++;
+}
+
+void CLuaMapFile::PushBoolean(bool value)
+{
+    if (m_pLua == 0)
+        return;
+    lua_pushboolean(m_pLua, value);
+    m_FunctionVarNum++;
+}
+
+void CLuaMapFile::PushParameter(const char *pString)
+{
+    if (m_pLua == 0)
+        return;
+    if (StrIsInteger(pString))
+    {
+        PushInteger(str_toint(pString));
+    }
+    else if (StrIsFloat(pString))
+    {
+        PushInteger(str_tofloat(pString));
+    }
+    else
+    {
+        PushString(pString);
+    }
+
+}
+
+bool CLuaMapFile::FunctionExist(const char *pFunctionName)
+{
+    bool Ret = false;
+    if (m_pLua == 0)
+        return false;
+    lua_getglobal(m_pLua, ToLower(pFunctionName));
+    Ret = lua_isfunction(m_pLua, -1);
+    lua_pop(m_pLua, 1);
+    return Ret;
+}
+
+void CLuaMapFile::FunctionPrepare(const char *pFunctionName)
+{
+    if (m_pLua == 0)
+        return;
+
+    //lua_pushstring (m_pLua, pFunctionName);
+    //lua_gettable (m_pLua, LUA_GLOBALSINDEX);
+    lua_getglobal(m_pLua, ToLower(pFunctionName));
+    m_FunctionVarNum = 0;
+}
+
+int CLuaMapFile::FunctionExec(const char *pFunctionName)
+{
+    if (m_pLua == 0)
+        return 0;
+
+    if (pFunctionName)
+    {
+        if (FunctionExist(pFunctionName) == false)
+            return 0;
+        FunctionPrepare(pFunctionName);
+    }
+    int Ret = lua_pcall(m_pLua, m_FunctionVarNum, LUA_MULTRET, 0);
+    if (Ret)
+        ErrorFunc(m_pLua);
+    m_FunctionVarNum = 0;
+    return Ret;
+}
+
 CLuaMapFile::CLuaMapFile(CTile *pTiles, const char *pCode, int Width, int Height)
 {
     m_pTiles = pTiles;
@@ -28,6 +155,8 @@ CLuaMapFile::CLuaMapFile(CTile *pTiles, const char *pCode, int Width, int Height
     lua_register(m_pLua, ToLower("SetTile"), this->SetTile);
     lua_register(m_pLua, ToLower("GetFlag"), this->GetFlag);
     lua_register(m_pLua, ToLower("SetFlag"), this->SetFlag);
+    lua_register(m_pLua, ToLower("GetWidth"), this->GetWidth);
+    lua_register(m_pLua, ToLower("GetHeight"), this->GetHeight);
 
 
     luaL_dostring(m_pLua, pCode);
@@ -39,9 +168,12 @@ CLuaMapFile::~CLuaMapFile()
     lua_close(m_pLua);
 }
 
-void CLuaMapFile::Tick()
+void CLuaMapFile::Tick(int ServerTick)
 {
-
+    FunctionPrepare("Tick");
+    PushInteger((int)(time_get() * 1000 / time_freq())); //time in ms
+    PushInteger(ServerTick);
+    FunctionExec();
 }
 
 int CLuaMapFile::GetTile(lua_State *L)
@@ -51,11 +183,11 @@ int CLuaMapFile::GetTile(lua_State *L)
     {
         if (lua_tointeger(L, 1) < 0)
             return 0;
-        if (lua_tointeger(L, 1) > pSelf->m_Width)
+        if (lua_tointeger(L, 1) >= pSelf->m_Width)
             return 0;
         if (lua_tointeger(L, 2) < 0)
             return 0;
-        if (lua_tointeger(L, 2) > pSelf->m_Height)
+        if (lua_tointeger(L, 2) >= pSelf->m_Height)
             return 0;
         lua_pushinteger(L, pSelf->m_pTiles[lua_tointeger(L, 2) * pSelf->m_Width + lua_tointeger(L, 1)].m_Index);
         return 1;
@@ -70,11 +202,11 @@ int CLuaMapFile::SetTile(lua_State *L)
     {
         if (lua_tointeger(L, 1) < 0)
             return 0;
-        if (lua_tointeger(L, 1) > pSelf->m_Width)
+        if (lua_tointeger(L, 1) >= pSelf->m_Width)
             return 0;
         if (lua_tointeger(L, 2) < 0)
             return 0;
-        if (lua_tointeger(L, 2) > pSelf->m_Height)
+        if (lua_tointeger(L, 2) >= pSelf->m_Height)
             return 0;
         pSelf->m_pTiles[lua_tointeger(L, 2) * pSelf->m_Width + lua_tointeger(L, 1)].m_Index = clamp((int)lua_tointeger(L, 3), 0, 255);
         return 0;
@@ -92,6 +224,20 @@ int CLuaMapFile::SetFlag(lua_State *L)
 {
     LUA_FUNCTION_HEADER
     return 0;
+}
+
+int CLuaMapFile::GetWidth(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+    lua_pushinteger(L, pSelf->m_Width);
+    return 1;
+}
+
+int CLuaMapFile::GetHeight(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+    lua_pushinteger(L, pSelf->m_Height);
+    return 1;
 }
 
 int CLuaMapFile::ErrorFunc(lua_State *L)
@@ -145,10 +291,11 @@ CLuaMap::~CLuaMap()
     }
 }
 
-void CLuaMap::Tick()
+void CLuaMap::Tick(int ServerTick, CTile *pTiles)
 {
     for (int i = 0; i < m_lLuaMapFiles.size(); i++)
     {
-        m_lLuaMapFiles[i]->Tick();
+        if (m_lLuaMapFiles[i]->m_pTiles == pTiles || pTiles == 0)
+            m_lLuaMapFiles[i]->Tick(ServerTick);
     }
 }

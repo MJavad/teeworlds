@@ -4,8 +4,6 @@
 ** See Copyright Notice in lua.h
 */
 
-#include <base/detect.h>
-
 #ifndef lualib_h
 #define lualib_h
 
