@@ -197,6 +197,12 @@ void CGraphics_OpenGL::BlendAdditive()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 }
 
+void CGraphics_OpenGL::BlendFilter()
+{
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_DST_COLOR, GL_ZERO);
+}
+
 int CGraphics_OpenGL::MemoryUsage() const
 {
 	return m_TextureMemoryUsage;

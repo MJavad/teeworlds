@@ -77,6 +77,7 @@ public:
 	virtual void BlendNone();
 	virtual void BlendNormal();
 	virtual void BlendAdditive();
+	virtual void BlendFilter();
 
 	virtual int MemoryUsage() const;
 
