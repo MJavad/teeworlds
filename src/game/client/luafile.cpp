@@ -535,7 +535,7 @@ bool CLuaFile::FunctionExist(const char *pFunctionName)
 
 void CLuaFile::FunctionPrepare(const char *pFunctionName)
 {
-    if (m_pLua == 0 || m_aFilename[0] == 0)
+    if (m_pLua == 0)
         return;
 
     //lua_pushstring (m_pLua, pFunctionName);
@@ -547,8 +547,6 @@ void CLuaFile::FunctionPrepare(const char *pFunctionName)
 int CLuaFile::FunctionExec(const char *pFunctionName)
 {
     if (m_pLua == 0)
-        return 0;
-    if (m_aFilename[0] == 0)
         return 0;
 
     if (pFunctionName)

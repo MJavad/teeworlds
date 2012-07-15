@@ -200,6 +200,9 @@ void CMapLayers::OnRender()
 
 					CTile *pTiles = (CTile *)m_pLayers->Map()->GetData(pTMap->m_Data);
 					Graphics()->BlendNone();
+                    //fire lua
+                    m_pClient->m_LuaMap.Tick(m_pClient->GetPredictedTick(), pTiles);
+
 					vec4 Color = vec4(pTMap->m_Color.r/255.0f, pTMap->m_Color.g/255.0f, pTMap->m_Color.b/255.0f, pTMap->m_Color.a/255.0f);
 					RenderTools()->RenderTilemap(pTiles, pTMap->m_Width, pTMap->m_Height, 32.0f, Color, TILERENDERFLAG_EXTEND|LAYERRENDERFLAG_OPAQUE,
 													EnvelopeEval, this, pTMap->m_ColorEnv, pTMap->m_ColorEnvOffset);

@@ -424,7 +424,7 @@ void CGameContext::OnTick()
 
 	// copy tuning
 	m_pLua->Tick();
-	m_LuaMap.Tick();
+	m_LuaMap.Tick(Server()->Tick());
 
 	if (m_Reload)
 	{
