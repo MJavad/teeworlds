@@ -2350,7 +2350,7 @@ const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType)
     if (pRet == 0)
     {
         m_DemoPlayer.m_Recording = true;
-        m_DemoPlayer.m_FPS = 500;
+        m_DemoPlayer.m_FPS = 60;
         m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight(), m_DemoPlayer.m_FPS);
         m_pGraphics->SetCallback(m_DemoVideoRecorder.OnData, &m_DemoVideoRecorder);
     }
