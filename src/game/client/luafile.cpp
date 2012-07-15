@@ -1616,6 +1616,15 @@ int CLuaFile::IntersectLine(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+        return 0;
+    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    {
+        return 0;
+    }
+    if (!pSelf->m_pClient->Collision())
+        return 0;
+
     vec2 Pos1 = vec2(lua_tonumber(L, 1), lua_tonumber(L, 2));
     vec2 Pos2 = vec2(lua_tonumber(L, 3), lua_tonumber(L, 4));
     vec2 Out = vec2(0, 0);
