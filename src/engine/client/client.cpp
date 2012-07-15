@@ -598,9 +598,18 @@ void CClient::DisconnectWithReason(const char *pReason, bool Silent)
 
 void CClient::Disconnect()
 {
-	DisconnectWithReason("N-Client - nclient.n-lvl.com", true);
+	if(m_DisconnectReason[0] == 0)
+	{
+		DisconnectWithReason("Goodbye! ", true);
+	}else{
+		DisconnectWithReason(m_DisconnectReason, true);
+	}
 }
 
+void CClient::SetDisconnectReason(const char *pStr)
+{
+	str_copy(m_DisconnectReason, pStr, sizeof(m_DisconnectReason));
+}
 
 void CClient::GetServerInfo(CServerInfo *pServerInfo)
 {

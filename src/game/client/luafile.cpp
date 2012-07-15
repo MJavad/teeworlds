@@ -46,7 +46,7 @@
 #include <game/client/components/stats.h>
 #include <game/client/components/damageind.h>
 #include <game/client/components/console.h>
-
+#include <game/client/components/binds.h>
 #include <game/luaglobal.h>
 
 
@@ -188,6 +188,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("GetPlayerColorFeet"), this->GetPlayerColorFeet);
     lua_register(m_pLua, ToLower("GetPlayerColorBody"), this->GetPlayerColorBody);
     lua_register(m_pLua, ToLower("GetPlayerColorSkin"), this->GetPlayerColorSkin);
+	lua_register(m_pLua, ToLower("GetPlayerUseCustomColor"), this->GetPlayerUseCustomColor);
 
     //Emote
     lua_register(m_pLua, ToLower("Emote"), this->Emote);
@@ -284,6 +285,9 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("RenderTilemapGenerateSkip"), this->RenderTilemapGenerateSkip);
 
     //Chat
+	lua_register(m_pLua, ToLower("ChatActive"), this->ChatActive);
+	lua_register(m_pLua, ToLower("ChatAllActive"), this->ChatAllActive);
+	lua_register(m_pLua, ToLower("ChatTeamActive"), this->ChatTeamActive);
     lua_register(m_pLua, ToLower("ChatSend"), this->ChatSend);
     lua_register(m_pLua, ToLower("ChatTeamSend"), this->ChatTeamSend);
     lua_register(m_pLua, ToLower("ChatAddLine"), this->AddChatLine);
@@ -371,7 +375,14 @@ void CLuaFile::Init(const char *pFile)
 
     lua_register(m_pLua, ToLower("CreateDirectory"), this->CreateDirectory);
 
+	lua_register(m_pLua, ToLower("GetIntraGameTick"), this->GetIntraGameTick);
 
+	lua_register(m_pLua, ToLower("GetKeyID"), this->GetKeyID);
+	lua_register(m_pLua, ToLower("GetKeyName"), this->GetKeyName);
+
+	lua_register(m_pLua, ToLower("GetTextWidth"), this->GetTextWidth);
+
+	lua_register(m_pLua, ToLower("SetDisconnectReason"), this->SetDisconnectReason);
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");
@@ -839,11 +850,17 @@ int CLuaFile::GetPlayerColorFeet(lua_State *L)
     {
         if (lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
         {
-            lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).r);
-            lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).g);
-            lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).b);
-            lua_pushnumber(L, 1.0f);
-            return 4;
+            if(lua_isnumber(L, 2))
+			{
+				lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet);
+				return 1;
+			}else{
+				lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).r);
+				lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).g);
+				lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorFeet).b);
+				lua_pushnumber(L, 1.0f);
+				return 4;
+			}
         }
     }
     return 0;
@@ -861,11 +878,17 @@ int CLuaFile::GetPlayerColorBody(lua_State *L)
     {
         if (lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
         {
-            lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).r);
-            lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).g);
-            lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).b);
-            lua_pushnumber(L, 1.0f);
-            return 4;
+			if(lua_isnumber(L, 2))
+			{
+				lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody);
+				return 1;
+			}else{
+				lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).r);
+				lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).g);
+				lua_pushnumber(L, pSelf->m_pClient->m_pSkins->GetColorV3(pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_ColorBody).b);
+				lua_pushnumber(L, 1.0f);
+				return 4;
+			}
         }
     }
     return 0;
@@ -908,7 +931,23 @@ int CLuaFile::GetPlayerColorSkin(lua_State *L)
     return 0;
 }
 
-
+int CLuaFile::GetPlayerUseCustomColor(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+	//--
+	if (lua_isnumber(L, 1))
+    {
+        if (lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
+        {
+			lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_UseCustomColor);
+		}
+	}
+    return 1;
+}
 int CLuaFile::UiGetScreenWidth(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -1108,6 +1147,21 @@ int CLuaFile::GetConfigValue(lua_State *L)
         lua_pushstring(L, g_Config.m_PlayerName);
         return 1;
     }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerClan") == 0)
+    {
+        lua_pushstring(L, g_Config.m_PlayerClan);
+        return 1;
+    }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerSkin") == 0)
+    {
+        lua_pushstring(L, g_Config.m_PlayerSkin);
+        return 1;
+    }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerCountry") == 0)
+    {
+        lua_pushinteger(L, g_Config.m_PlayerCountry);
+        return 1;
+    }
     if (str_comp_nocase(lua_tostring(L, 1), "MouseDeadzone") == 0)
     {
         lua_pushinteger(L, g_Config.m_ClMouseDeadzone);
@@ -1131,6 +1185,11 @@ int CLuaFile::GetConfigValue(lua_State *L)
     if (str_comp_nocase(lua_tostring(L, 1), "PlayerColorFeet") == 0)
     {
         lua_pushinteger(L, g_Config.m_PlayerColorFeet);
+        return 1;
+    }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerUseCustomColor") == 0)
+    {
+        lua_pushinteger(L, g_Config.m_PlayerUseCustomColor);
         return 1;
     }
     if (str_comp_nocase(lua_tostring(L, 1), "Nameplates") == 0)
@@ -1160,6 +1219,18 @@ int CLuaFile::SetConfigValue(lua_State *L)
     {
         str_copy(g_Config.m_PlayerName, lua_tostring(L, 2), sizeof(g_Config.m_PlayerName));
     }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerClan") == 0 && lua_isstring(L, 2))
+    {
+        str_copy(g_Config.m_PlayerClan, lua_tostring(L, 2), sizeof(g_Config.m_PlayerClan));
+    }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerCountry") == 0 && lua_isnumber(L, 2))
+    {
+		g_Config.m_PlayerCountry = lua_tointeger(L, 2);
+    }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerSkin") == 0 && lua_isstring(L, 2))
+    {
+        str_copy(g_Config.m_PlayerSkin, lua_tostring(L, 2), sizeof(g_Config.m_PlayerSkin));
+    }
     if (str_comp_nocase(lua_tostring(L, 1), "MouseDeadzone") == 0 && lua_isnumber(L, 2))
     {
         g_Config.m_ClMouseDeadzone = lua_tointeger(L, 2);
@@ -1174,13 +1245,15 @@ int CLuaFile::SetConfigValue(lua_State *L)
     }
     if (str_comp_nocase(lua_tostring(L, 1), "PlayerColorBody") == 0 && lua_isnumber(L, 2))
     {
-        if(s_Throttle.Throttled(30))
             g_Config.m_PlayerColorBody = lua_tointeger(L, 2);
     }
     if (str_comp_nocase(lua_tostring(L, 1), "PlayerColorFeet") == 0 && lua_isnumber(L, 2))
     {
-        if(s_Throttle.Throttled(30))
             g_Config.m_PlayerColorFeet = lua_tointeger(L, 2);
+    }
+	if (str_comp_nocase(lua_tostring(L, 1), "PlayerUseCustomColor") == 0 && lua_isnumber(L, 2))
+    {
+        g_Config.m_PlayerUseCustomColor = lua_tointeger(L, 2);
     }
     if (str_comp_nocase(lua_tostring(L, 1), "Nameplates") == 0 && lua_isnumber(L, 2))
     {
@@ -1686,6 +1759,42 @@ int CLuaFile::GetMapHeight(lua_State *L)
         return 0;
 
     lua_pushnumber(L, pSelf->m_pClient->Collision()->GetHeight());
+    return 1;
+}
+
+int CLuaFile::ChatActive(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+	lua_pushboolean(L, pSelf->m_pClient->m_pChat->GetMode() !=  0);
+    return 1;
+}
+
+int CLuaFile::ChatAllActive(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+	lua_pushboolean(L, pSelf->m_pClient->m_pChat->GetMode() ==  1);
+    return 1;
+}
+
+int CLuaFile::ChatTeamActive(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+	lua_pushboolean(L, pSelf->m_pClient->m_pChat->GetMode() ==  2);
     return 1;
 }
 
@@ -4107,4 +4216,110 @@ int CLuaFile::GetDate (lua_State *L) //from loslib.c
         luaL_pushresult(&b);
     }
     return 1;
+}
+
+int CLuaFile::GetIntraGameTick(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+	//--
+	lua_pushnumber(L, pSelf->m_pClient->Client()->IntraGameTick());
+	return 1;
+}
+
+int CLuaFile::GetKeyID(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+	//--
+
+	if(!lua_isstring(L, 1))
+		return 0;
+
+	const char *pKeyName = lua_tostring(L, 1);
+
+	// check for numeric
+	if(pKeyName[0] == '&')
+	{
+		int i = str_toint(pKeyName+1);
+		if(i > 0 && i < KEY_LAST)
+		{
+			lua_pushnumber(L, i);
+			return 1;	// numeric
+		}
+	}
+		
+	// search for key
+	for(int i = 0; i < KEY_LAST; i++)
+	{
+		if(str_comp(pKeyName, pSelf->m_pClient->Input()->KeyName(i)) == 0)
+		{
+			lua_pushnumber(L, i);
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+int CLuaFile::GetKeyName(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+	//--
+
+	if(!lua_isnumber(L, 1) || lua_tointeger(L, 1) < 0 || lua_tointeger(L, 1) > KEY_LAST)
+		return 0;
+
+		const char *pKeyName = pSelf->m_pClient->Input()->KeyName(lua_tointeger(L, 1));
+	
+	if(pKeyName[0] == '&')
+		return 0;
+
+	lua_pushstring(L, pKeyName);
+	return 1;
+}
+
+int CLuaFile::GetTextWidth(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+	//--
+
+	if(!lua_isnumber(L, 1) || !lua_isstring(L, 2))
+		return 0;
+
+	float tw = pSelf->m_pClient->TextRender()->TextWidth(0, lua_tonumber(L, 1), lua_tostring(L, 2), -1);
+
+	lua_pushnumber(L, tw);
+
+	return 1;
+}
+int CLuaFile::SetDisconnectReason(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+	//--
+
+	if(!lua_isstring(L, 1))
+		return 0;
+
+	pSelf->m_pClient->Client()->SetDisconnectReason(lua_tostring(L, 1));
+
+	return 0;
 }

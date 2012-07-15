@@ -199,6 +199,8 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	CVersionInfo m_VersionInfo;
 	CVersionInfo m_VersionLuaInfo;
 
+	char m_DisconnectReason[64];
+	
 public:
 	IEngine *Engine() { return m_pEngine; }
 	IEngineGraphics *Graphics() { return m_pGraphics; }
@@ -251,6 +253,7 @@ public:
 	void DisconnectWithReason(const char *pReason, bool Silent = false);
 	virtual void Disconnect();
 
+	virtual void SetDisconnectReason(const char *pStr);
 
 	virtual void GetServerInfo(CServerInfo *pServerInfo);
 	void ServerInfoRequest();

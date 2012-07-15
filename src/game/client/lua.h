@@ -10,10 +10,11 @@
 #include <base/tl/sorted_array.h>
 #include <game/luaevent.h>
 
-#define NON_HASED_VERSION
-#include <game/version.h>
-#undef NON_HASED_VERSION
+#define GAME_LUA_VERSION "1.3"
 
+//#define NON_HASED_VERSION
+//#include <game/version.h>
+//#undef NON_HASED_VERSION
 extern "C" { // lua
 #define LUA_CORE /* make sure that we don't try to import these functions */
 #include <engine/external/lua/lua.h>
@@ -329,6 +330,9 @@ public:
     static inline int Connect(lua_State *L);
 
     //Chat
+	static inline int ChatActive(lua_State *L);
+	static inline int ChatAllActive(lua_State *L);
+	static inline int ChatTeamActive(lua_State *L);
     static inline int ChatSend(lua_State *L);
     static inline int ChatTeamSend(lua_State *L);
     static inline int AddChatLine(lua_State *L);
@@ -344,6 +348,7 @@ public:
     static inline int GetPlayerColorFeet(lua_State *L);
     static inline int GetPlayerColorBody(lua_State *L);
     static inline int GetPlayerColorSkin(lua_State *L);
+	static inline int GetPlayerUseCustomColor(lua_State *L);
 
     //Ui
     static inline int UiDoButton(lua_State *L);
@@ -449,6 +454,15 @@ public:
 
     //filesystem
     static inline int CreateDirectory(lua_State *L);
+
+	static inline int GetIntraGameTick(lua_State *L);
+
+	static inline int GetKeyID(lua_State *L);
+	static inline int GetKeyName(lua_State *L);
+
+	static inline int GetTextWidth(lua_State *L);
+
+	static inline int SetDisconnectReason(lua_State *L);
 
 };
 

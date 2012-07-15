@@ -66,6 +66,8 @@ public:
 	
 	void Say(int Team, const char *pLine);
 	
+	int GetMode() { return m_Mode; }
+
 	virtual void OnReset();
 	virtual void OnConsoleInit();
 	virtual void OnStateChange(int NewState, int OldState);
