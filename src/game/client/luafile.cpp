@@ -3,6 +3,7 @@
 /*DGI:Type:Client*/
 /*DGI:Exception:errorfunc*/
 /*DGI:Event:OnChat*/
+/*DGI:Event:OnChatSend*/
 /*DGI:Event:OnStateChange*/
 /*DGI:Event:OnControlChange*/
 /*DGI:Event:OnRenderLevelItem1*/

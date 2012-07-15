@@ -66,23 +66,35 @@ void CChat::OnStateChange(int NewState, int OldState)
 
 void CChat::ConSay(IConsole::IResult *pResult, void *pUserData)
 {
-	((CChat*)pUserData)->Say(0, pResult->GetString(0));
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(MODE_ALL);
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pResult->GetString(0));
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
+
+	if (((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+		((CChat*)pUserData)->Say(0, pResult->GetString(0));
 }
 
 void CChat::ConSayTeam(IConsole::IResult *pResult, void *pUserData)
 {
-	((CChat*)pUserData)->Say(1, pResult->GetString(0));
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(MODE_TEAM);
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pResult->GetString(0));
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
+
+	if (((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+		((CChat*)pUserData)->Say(1, pResult->GetString(0));
 }
 
 void CChat::ConChat(IConsole::IResult *pResult, void *pUserData)
 {
 	const char *pMode = pResult->GetString(0);
 	if(str_comp(pMode, "all") == 0)
-		((CChat*)pUserData)->EnableMode(0);
+		((CChat*)pUserData)->EnableMode(MODE_ALL);
 	else if(str_comp(pMode, "team") == 0)
-		((CChat*)pUserData)->EnableMode(1);
+		((CChat*)pUserData)->EnableMode(MODE_TEAM);
+	else if(str_comp(pMode, "lua") == 0)
+		((CChat*)pUserData)->EnableMode(MODE_LUA);
 	else
-		((CChat*)pUserData)->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "expected all or team as mode");
+		((CChat*)pUserData)->Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "console", "expected all or team or lua as mode");
 }
 
 void CChat::ConShowChat(IConsole::IResult *pResult, void *pUserData)
@@ -94,7 +106,7 @@ void CChat::OnConsoleInit()
 {
 	Console()->Register("say", "r", CFGFLAG_CLIENT, ConSay, this, "Say in chat");
 	Console()->Register("say_team", "r", CFGFLAG_CLIENT, ConSayTeam, this, "Say in team chat");
-	Console()->Register("chat", "s", CFGFLAG_CLIENT, ConChat, this, "Enable chat with all/team mode");
+	Console()->Register("chat", "s", CFGFLAG_CLIENT, ConChat, this, "Enable chat with all/team/lua mode");
 	Console()->Register("+show_chat", "", CFGFLAG_CLIENT, ConShowChat, this, "Show chat");
 }
 
@@ -162,9 +174,16 @@ bool CChat::OnInput(IInput::CEvent Event)
 	{
 		if(m_Input.GetString()[0])
 		{
-			Say(m_Mode == MODE_ALL ? 0 : 1, m_Input.GetString());
-			char *pEntry = m_History.Allocate(m_Input.GetLength()+1);
-			mem_copy(pEntry, m_Input.GetString(), m_Input.GetLength()+1);
+			m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_Mode);
+			m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)m_Input.GetString());
+			m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
+
+			if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0 && (m_Mode == MODE_ALL || m_Mode == MODE_TEAM))
+			{
+				Say(m_Mode == MODE_ALL ? 0 : 1, m_Input.GetString());
+				char *pEntry = m_History.Allocate(m_Input.GetLength()+1);
+				mem_copy(pEntry, m_Input.GetString(), m_Input.GetLength()+1);
+			}
 		}
 		m_pHistoryEntry = 0x0;
 		m_Mode = MODE_NONE;
@@ -290,18 +309,14 @@ bool CChat::OnInput(IInput::CEvent Event)
 }
 
 
-void CChat::EnableMode(int Team)
+void CChat::EnableMode(int Mode)
 {
 	if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		return;
 
 	if(m_Mode == MODE_NONE)
 	{
-		if(Team)
-			m_Mode = MODE_TEAM;
-		else
-			m_Mode = MODE_ALL;
-
+		m_Mode = Mode;
 		m_Input.Clear();
 		Input()->ClearEvents();
 		m_CompletionChosen = -1;
@@ -420,6 +435,8 @@ void CChat::OnRender()
 			TextRender()->TextEx(&Cursor, Localize("All"), -1);
 		else if(m_Mode == MODE_TEAM)
 			TextRender()->TextEx(&Cursor, Localize("Team"), -1);
+		else if(m_Mode == MODE_LUA)
+			TextRender()->TextEx(&Cursor, Localize("Lua"), -1);
 		else
 			TextRender()->TextEx(&Cursor, Localize("Chat"), -1);
 

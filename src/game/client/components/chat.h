@@ -36,6 +36,7 @@ class CChat : public CComponent
 		MODE_NONE=0,
 		MODE_ALL,
 		MODE_TEAM,
+		MODE_LUA,
 	};
 
 	int m_Mode;
