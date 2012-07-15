@@ -9,6 +9,7 @@ SDL.dll
 freetype.dll
 autoexec.cfg
 
+Compile_*.bat
 crapnet*
 dilate*
 fake_server*
@@ -18,9 +19,10 @@ mastersrv*
 packetgen*
 teeworlds*
 teeworlds_srv*
-tileset_borderfix*
+tileset_border*
 versionsrv*
 n-client*
+lua_compiler*
 
 /src/game/pathfinder.cpp
 /src/game/pathfinder.h
