@@ -165,7 +165,9 @@ CLuaMapFile::CLuaMapFile(CTile *pTiles, const char *pCode, int Width, int Height
 
 CLuaMapFile::~CLuaMapFile()
 {
-    lua_close(m_pLua);
+    if (m_pLua)
+        lua_close(m_pLua);
+    m_pLua = 0;
 }
 
 void CLuaMapFile::Tick(int ServerTick)
@@ -285,10 +287,7 @@ CLuaMap::CLuaMap()
 
 CLuaMap::~CLuaMap()
 {
-    for (int i = 0; i < m_lLuaMapFiles.size(); i++)
-    {
-        delete m_lLuaMapFiles[i];
-    }
+    Clear();
 }
 
 void CLuaMap::Tick(int ServerTick, CTile *pTiles)
@@ -298,4 +297,13 @@ void CLuaMap::Tick(int ServerTick, CTile *pTiles)
         if (m_lLuaMapFiles[i]->m_pTiles == pTiles || pTiles == 0)
             m_lLuaMapFiles[i]->Tick(ServerTick);
     }
+}
+
+void CLuaMap::Clear()
+{
+    for (int i = 0; i < m_lLuaMapFiles.size(); i++)
+    {
+        delete m_lLuaMapFiles[i];
+    }
+    m_lLuaMapFiles.clear();
 }
