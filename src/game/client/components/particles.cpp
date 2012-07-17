@@ -156,6 +156,7 @@ void CParticles::OnRender()
                 LastTime = t;
             LastTime = mix(t, LastTime, 0.5);
             //this looks like a ugly hack but i am tired and don't want to search a better solution
+            return;
         }
         else
         {
