@@ -286,7 +286,6 @@ int CGraphics_OpenGL::UnloadTexture(int Index)
 	m_aTextures[Index].m_Next = m_FirstFreeTexture;
 	m_TextureMemoryUsage -= m_aTextures[Index].m_MemSize;
 	m_FirstFreeTexture = Index;
-	dbg_msg("FreeId", "%i", Index);
 	return 0;
 }
 
@@ -307,7 +306,6 @@ int CGraphics_OpenGL::LoadTextureRaw(int Width, int Height, int Format, const vo
 	// grab texture
 	Tex = m_FirstFreeTexture;
 	m_FirstFreeTexture = m_aTextures[Tex].m_Next;
-    dbg_msg("FreeId", "%i", m_FirstFreeTexture);
 	m_aTextures[Tex].m_Next = -1;
 
 	// resample if needed
