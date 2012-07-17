@@ -53,6 +53,7 @@ public:
     CLuaMap();
     ~CLuaMap();
     void Tick(int ServerTick, CTile *pTiles = 0);
+    void Clear();
 
     array<CLuaMapFile *> m_lLuaMapFiles;
 

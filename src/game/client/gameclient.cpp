@@ -357,6 +357,7 @@ void CGameClient::OnConnected()
 {
 	m_Layers.Init(Kernel());
 	m_Collision.Init(Layers());
+    m_LuaMap.Clear();
     for (int i = 0; i < m_Layers.NumLayers(); i++)
     {
         CMapItemLayer *pLayer = m_Layers.GetLayer(i);
@@ -404,6 +405,8 @@ void CGameClient::OnReset()
             m_pLuaCore->DeleteLuaFile(i);
         }
     }
+    m_LuaMap.Clear();
+
 
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnReset();

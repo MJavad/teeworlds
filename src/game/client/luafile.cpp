@@ -119,6 +119,7 @@ void CLuaFile::End()
             g_pData->m_aImages[IMAGE_GAME].m_Id = m_pLuaHandler->m_OriginalGameTexture;
         m_pClient->Graphics()->UnloadTexture(r.front());
     }
+    m_lTextures.clear(); //fixes issue 65
 
     //clear
     mem_zero(m_aUiElements, sizeof(m_aUiElements));
