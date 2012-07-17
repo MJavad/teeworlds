@@ -11,6 +11,9 @@ int CLuaFile::IntersectLine(lua_State *L)
 
     if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
         return 0;
+    if (!pSelf->m_pServer->Collision())
+        return 0;
+
     vec2 Pos1 = vec2(lua_tonumber(L, 1), lua_tonumber(L, 2));
     vec2 Pos2 = vec2(lua_tonumber(L, 3), lua_tonumber(L, 4));
     vec2 Out = vec2(0, 0);
