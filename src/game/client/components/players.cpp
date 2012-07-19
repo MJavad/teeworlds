@@ -256,7 +256,10 @@ void CPlayers::RenderPlayer(
 	if(pInfo.m_Local && Client()->State() != IClient::STATE_DEMOPLAYBACK)
 	{
 		// just use the direct input if it's local player we are rendering
-		Angle = GetAngle(m_pClient->m_pControls->m_MousePos);
+		if (m_pClient->m_pLuaBinding->m_ControlTargetYPredictedIsSet && m_pClient->m_pLuaBinding->m_ControlTargetXPredictedIsSet)
+			Angle = GetAngle(vec2(m_pClient->m_pLuaBinding->m_ControlTargetXPredicted, m_pClient->m_pLuaBinding->m_ControlTargetYPredicted));
+		else
+			Angle = GetAngle(m_pClient->m_pControls->m_MousePos);
 	}
 	else
 	{
