@@ -566,8 +566,6 @@ int CLuaFile::FunctionExec(const char *pFunctionName)
 {
     if (m_pLua == 0)
         return 0;
-    if (m_aFilename[0] == 0)
-        return 0;
 
     if (pFunctionName)
     {
@@ -1617,6 +1615,7 @@ int CLuaFile::IntersectLine(lua_State *L)
     lua_Debug Frame;
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
+
 
     if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
         return 0;
