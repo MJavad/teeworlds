@@ -1630,7 +1630,7 @@ int CLuaFile::GetTile(lua_State *L)
 
     if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
         return 0;
-    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    if(pSelf->m_pClient->Client()->State() < IClient::STATE_ONLINE)
     {
         return 0;
     }
@@ -1650,7 +1650,7 @@ int CLuaFile::SetTile(lua_State *L)
     if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
         return 0;
 
-    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    if(pSelf->m_pClient->Client()->State() < IClient::STATE_ONLINE)
     {
         return 0;
     }
@@ -1668,7 +1668,7 @@ int CLuaFile::GetMapWidth(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
-    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    if(pSelf->m_pClient->Client()->State() < IClient::STATE_ONLINE)
     {
         return 0;
     }
@@ -1687,7 +1687,7 @@ int CLuaFile::GetMapHeight(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
-    if(pSelf->m_pClient->Client()->State() != IClient::STATE_ONLINE || pSelf->m_pClient->Client()->State() == IClient::STATE_CONNECTING)
+    if(pSelf->m_pClient->Client()->State() < IClient::STATE_ONLINE)
     {
         return 0;
     }
