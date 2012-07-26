@@ -108,14 +108,16 @@ void CDemoVideoRecorder::OnFrame(unsigned char *pPixelData)
     {
         //SampleRate / FPS
         int Size = g_Config.m_SndRate / m_FPS;
-        short aStream[8192] = {0};
-        m_pSound->MixHook((short *)aStream, Size);
+        short *pStream = new short[Size * 2];
+        mem_zero(pStream, sizeof(short) * Size * 2);
+        m_pSound->MixHook((short *)pStream, Size);
         float **buffer = vorbis_analysis_buffer(&m_VorbisState, Size);
         for (int i = 0; i < Size; i++)
         {
-            buffer[0][i] = aStream[i * 2] / 32768.f;
-            buffer[1][i] = aStream[i * 2 + 1] / 32768.f;
+            buffer[0][i] = pStream[i * 2] / 32768.f;
+            buffer[1][i] = pStream[i * 2 + 1] / 32768.f;
         }
+        delete []pStream;
         vorbis_analysis_wrote(&m_VorbisState, Size);
         while(vorbis_analysis_blockout(&m_VorbisState, &m_VorbisBlock)==1)
         {

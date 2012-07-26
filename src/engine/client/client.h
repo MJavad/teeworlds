@@ -316,7 +316,7 @@ public:
 
 	void RegisterCommands();
 
-	const char *DemoPlayer_Record(const char *pFilename, int StorageType);
+	const char *DemoPlayer_Record(const char *pFilename, int StorageType, int FPS, int Format);
 	const char *DemoPlayer_Play(const char *pFilename, int StorageType);
 	void DemoRecorder_Start(const char *pFilename, bool WithTimestamp);
 	void DemoRecorder_HandleAutoStart();

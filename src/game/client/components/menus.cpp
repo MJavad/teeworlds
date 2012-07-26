@@ -995,6 +995,11 @@ int CMenus::Render()
 			pExtraText = Localize("Are you sure that you want to delete the demo?");
 			ExtraAlign = -1;
 		}
+		else if(m_Popup == POPUP_CONVERT_DEMO)
+		{
+			pTitle = Localize("Convert demo");
+			ExtraAlign = -1;
+		}
 		else if(m_Popup == POPUP_RENAME_DEMO)
 		{
 			pTitle = Localize("Rename demo");
@@ -1355,6 +1360,68 @@ int CMenus::Render()
 					}
 					else
 						PopupMessage(Localize("Error"), Localize("Unable to delete the demo"), Localize("Ok"));
+				}
+			}
+		}
+        else if(m_Popup == POPUP_CONVERT_DEMO)
+		{
+			CUIRect Convert, Cancel, FPS, Label, Format;
+			Box.HSplitBottom(20.f, &Box, &Part);
+			Box.HSplitBottom(24.f, &Box, &Part);
+			Box.Margin(10.0f, &Box);
+			Box.HSplitTop(20.0f, &FPS, &Box);
+			Box.HSplitTop(10.0f, 0, &Box);
+			Box.HSplitTop(20.0f, &Format, &Box);
+			Part.VMargin(80.0f, &Part);
+
+			Part.VSplitMid(&Cancel, &Convert);
+
+			Convert.VMargin(20.0f, &Convert);
+			Cancel.VMargin(20.0f, &Cancel);
+
+			static float s_FPSOffset = 0.0f;
+			static int s_Fps = 30;
+			char aFPS[16] = {0};
+			str_format(aFPS, sizeof(aFPS), "%i", s_Fps);
+			FPS.VSplitLeft(100.0f, &Label, &FPS);
+			Label.VSplitRight(10.0f, &Label, 0);
+			RenderTools()->UI()->DoLabel(&Label, Localize("Framerate:"), 14.0f, 1);
+			DoEditBox(&s_FPSOffset, &FPS, aFPS, sizeof(aFPS), 14.0f, &s_FPSOffset, false, CUI::CORNER_ALL);
+			s_Fps = clamp(atoi(aFPS), 18, 600);
+
+			static int s_OGV = 0;
+			static int s_WEBM = 0;
+			static int s_Format = IClient::DEMO_RECORD_FORMAT_WEBM; //
+			Format.VSplitLeft(100.0f, &Label, &Format);
+			Label.VSplitRight(10.0f, &Label, 0);
+			RenderTools()->UI()->DoLabel(&Label, Localize("Format:"), 14.0f, 1);
+
+            CUIRect FormatButton;
+            Format.VSplitLeft(100.0f, &FormatButton, &Format);
+			if(DoButton_CheckBox(&s_OGV, "OGV", s_Format == IClient::DEMO_RECORD_FORMAT_OGV, &FormatButton))
+                s_Format = IClient::DEMO_RECORD_FORMAT_OGV;
+            Format.VSplitLeft(100.0f, &FormatButton, &Format);
+			if(DoButton_CheckBox(&s_WEBM, "WebM", s_Format == IClient::DEMO_RECORD_FORMAT_WEBM, &FormatButton))
+                s_Format = IClient::DEMO_RECORD_FORMAT_WEBM;
+
+
+
+			static int s_ButtonCancel = 0;
+			if(DoButton_Menu(&s_ButtonCancel, Localize("Cancel"), 0, &Cancel) || m_EscapePressed)
+				m_Popup = POPUP_NONE;
+
+			static int s_ButtonConvert = 0;
+			if(DoButton_Menu(&s_ButtonConvert, Localize("Convert"), 0, &Convert) || m_EnterPressed)
+			{
+				m_Popup = POPUP_NONE;
+				// convert demo
+				if(m_DemolistSelectedIndex >= 0 && !m_DemolistSelectedIsDir)
+				{
+                    char aBuf[512];
+                    str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
+                    const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, 0);
+                    if(pError)
+                        PopupMessage(Localize("Error"), str_comp(pError, "error loading demo") ? pError : Localize("Error loading demo"), Localize("Ok"));
 				}
 			}
 		}

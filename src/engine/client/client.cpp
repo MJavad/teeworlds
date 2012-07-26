@@ -2344,13 +2344,13 @@ void CClient::Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData)
 		pSelf->m_ServerBrowser.RemoveFavorite(Addr);
 }
 
-const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType)
+const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType, int FPS, int Format)
 {
     const char *pRet = DemoPlayer_Play(pFilename, StorageType);
     if (pRet == 0)
     {
         m_DemoPlayer.m_Recording = true;
-        m_DemoPlayer.m_FPS = 60;
+        m_DemoPlayer.m_FPS = FPS;
         m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight(), m_DemoPlayer.m_FPS);
         m_pGraphics->SetCallback(m_DemoVideoRecorder.OnData, &m_DemoVideoRecorder);
     }
