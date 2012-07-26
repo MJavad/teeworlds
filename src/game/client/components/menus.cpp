@@ -1391,7 +1391,7 @@ int CMenus::Render()
 
 			static int s_OGV = 0;
 			static int s_WEBM = 0;
-			static int s_Format = IClient::DEMO_RECORD_FORMAT_WEBM; //
+			static int s_Format = IClient::DEMO_RECORD_FORMAT_OGV;
 			Format.VSplitLeft(100.0f, &Label, &Format);
 			Label.VSplitRight(10.0f, &Label, 0);
 			RenderTools()->UI()->DoLabel(&Label, Localize("Format:"), 14.0f, 1);
@@ -1402,7 +1402,7 @@ int CMenus::Render()
                 s_Format = IClient::DEMO_RECORD_FORMAT_OGV;
             Format.VSplitLeft(100.0f, &FormatButton, &Format);
 			if(DoButton_CheckBox(&s_WEBM, "WebM", s_Format == IClient::DEMO_RECORD_FORMAT_WEBM, &FormatButton))
-                s_Format = IClient::DEMO_RECORD_FORMAT_WEBM;
+                s_Format = IClient::DEMO_RECORD_FORMAT_OGV; //not supported
 
 
 
@@ -1419,7 +1419,7 @@ int CMenus::Render()
 				{
                     char aBuf[512];
                     str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
-                    const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, 0);
+                    const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, s_Format);
                     if(pError)
                         PopupMessage(Localize("Error"), str_comp(pError, "error loading demo") ? pError : Localize("Error loading demo"), Localize("Ok"));
 				}

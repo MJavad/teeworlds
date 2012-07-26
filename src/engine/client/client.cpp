@@ -1797,6 +1797,12 @@ void CClient::Update()
 	if(State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		m_DemoPlayer.Update();
+		if (!m_DemoPlayer.IsPlaying() && m_DemoPlayer.m_Recording)
+        {
+            m_DemoPlayer.m_Recording = false;
+            m_DemoVideoRecorder.Stop();
+            m_pGraphics->SetCallback(0, 0);
+        }
 		if(m_DemoPlayer.IsPlaying())
 		{
 			// update timers
@@ -2351,7 +2357,7 @@ const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType, i
     {
         m_DemoPlayer.m_Recording = true;
         m_DemoPlayer.m_FPS = FPS;
-        m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight(), m_DemoPlayer.m_FPS);
+        m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight(), m_DemoPlayer.m_FPS, Format);
         m_pGraphics->SetCallback(m_DemoVideoRecorder.OnData, &m_DemoVideoRecorder);
     }
     return pRet;

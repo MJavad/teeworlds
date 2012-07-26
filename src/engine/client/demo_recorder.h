@@ -11,20 +11,26 @@
 class CDemoVideoRecorder : public IDemoVideoRecorder
 {
     /*lib theora*/
-    th_enc_ctx *m_pContext;
+    th_info m_TheoraEncodingInfo;
+    vorbis_info m_VorbisEncodingInfo;
+    vorbis_comment m_VorbisComment;
+
+    th_enc_ctx *m_pThreoraContext;
     vorbis_dsp_state m_VorbisState;
     vorbis_block m_VorbisBlock;
     ogg_stream_state m_TheoraOggStreamState;
     ogg_stream_state m_VorbisOggStreamState;
     IOHANDLE m_OggFile;
 public:
-    void Init(int Width, int Height, int FPS);
+    void Init(int Width, int Height, int FPS, int Format);
+    void Stop();
     void OnFrame(unsigned char *pPixelData);
     static void OnData(unsigned char *pPixelData, void *pUser);
 
     int m_ScreenWidth;
     int m_ScreenHeight;
     int m_FPS;
+    int m_Format;
 
     ISound *m_pSound;
 };
