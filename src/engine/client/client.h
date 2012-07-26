@@ -330,5 +330,6 @@ public:
 	bool GetLuaSaveOption(int i){return m_Lua.GetLuaSaveOption(i);};
 
 	virtual int64 DemoTimeGet() { return m_DemoPlayer.Info()->m_CurrentTime; }
+	virtual bool IsRecording() { return m_DemoPlayer.m_Recording; }
 };
 #endif

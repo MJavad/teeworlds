@@ -151,6 +151,7 @@ public:
 	virtual int GetDebugFont() = 0;
 
     virtual int64 DemoTimeGet() = 0;
+    virtual bool IsRecording() = 0;
 };
 
 class IGameClient : public IInterface
