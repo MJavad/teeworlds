@@ -969,7 +969,12 @@ void CGraphics_SDL::TakeScreenshot(const char *pFilename)
 {
 	char aDate[20];
 	str_timestamp(aDate, sizeof(aDate));
-	str_format(m_aScreenshotName, sizeof(m_aScreenshotName), "screenshots/%s_%s.png", pFilename?pFilename:"screenshot", aDate);
+	if (str_comp(aDate, m_aScreenshotDate) == 0)
+	    m_ScreenshotNum++;
+	else
+        m_ScreenshotNum = 0;
+    str_copy(m_aScreenshotDate, aDate, sizeof(m_aScreenshotDate));
+	str_format(m_aScreenshotName, sizeof(m_aScreenshotName), "screenshots/%s_%s_%i.png", pFilename?pFilename:"screenshot", aDate, m_ScreenshotNum);
 	m_DoScreenshot = true;
 }
 

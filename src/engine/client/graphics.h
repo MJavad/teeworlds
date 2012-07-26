@@ -41,6 +41,8 @@ protected:
 	float m_Rotation;
 	int m_Drawing;
 	bool m_DoScreenshot;
+	int m_ScreenshotNum;
+	char m_aScreenshotDate[32];
 	char m_aScreenshotName[128];
 
 	float m_ScreenX0;
