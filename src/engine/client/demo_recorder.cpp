@@ -94,10 +94,10 @@ void CDemoVideoRecorder::Stop()
     if (m_Format == IClient::DEMO_RECORD_FORMAT_OGV)
     {
         /* need to read the final (summary) packet */
-        unsigned char aBuffer[65536];
+        /*unsigned char aBuffer[65536];
         int Bytes = th_encode_ctl(m_pThreoraContext, TH_ENCCTL_2PASS_OUT, &aBuffer, sizeof(aBuffer));
         io_seek(m_OggFile, 0, IOSEEK_START);
-        io_write(m_OggFile, aBuffer, Bytes);
+        io_write(m_OggFile, aBuffer, Bytes);*/
 
 
 

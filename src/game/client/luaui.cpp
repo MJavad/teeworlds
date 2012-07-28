@@ -52,6 +52,7 @@ void CLuaUi::Tick()
                 return;
             m_pLuaFile->FunctionPrepare(m_pCallback);
             m_pLuaFile->PushInteger(state);
+            m_pLuaFile->PushInteger(m_Id);
             m_pLuaFile->FunctionExec();
         }
     }
@@ -86,6 +87,7 @@ void CLuaUi::Tick()
                 return;
             m_pLuaFile->FunctionPrepare(m_pCallback);
             m_pLuaFile->PushInteger(state);
+            m_pLuaFile->PushInteger(m_Id);
             m_pLuaFile->FunctionExec();
         }
     }
@@ -99,6 +101,7 @@ void CLuaUi::Tick()
                 return;
             m_pLuaFile->FunctionPrepare(m_pCallback);
             m_pLuaFile->PushInteger(state);
+            m_pLuaFile->PushInteger(m_Id);
             m_pLuaFile->FunctionExec();
         }
     }
@@ -131,6 +134,7 @@ void CLuaUi::Tick()
                 return;
             m_pLuaFile->FunctionPrepare(m_pCallback);
             m_pLuaFile->PushFloat(m_Value);
+            m_pLuaFile->PushInteger(m_Id);
             m_pLuaFile->FunctionExec();
         }
     }

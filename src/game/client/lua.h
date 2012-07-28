@@ -449,6 +449,13 @@ public:
 
     //filesystem
     static inline int CreateDirectory(lua_State *L);
+    static inline int ListDirectory(lua_State *L);
+    struct CListDirectoryData
+    {
+        lua_State *m_L;
+        int m_Number;
+    };
+    static inline int ListDirectoryInternal(const char *pName, int IsDir, int DirType, void *pUser);
 
 };
 

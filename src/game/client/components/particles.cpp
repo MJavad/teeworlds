@@ -69,8 +69,6 @@ void CParticles::Add(int Group, CParticle *pPart)
 
 void CParticles::Update(float TimePassed)
 {
-    dbg_msg("Timepassed", "%f", TimePassed);
-
 	static float FrictionFraction = 0;
 	FrictionFraction += TimePassed;
 

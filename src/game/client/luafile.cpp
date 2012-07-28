@@ -371,6 +371,7 @@ void CLuaFile::Init(const char *pFile)
 
 
     lua_register(m_pLua, ToLower("CreateDirectory"), this->CreateDirectory);
+    lua_register(m_pLua, ToLower("ListDirectory"), this->ListDirectory);
 
 
 
@@ -2260,22 +2261,14 @@ int CLuaFile::UiSetRect(lua_State *L)
 
     if (!lua_isnumber(L, 1))
         return 0;
-    if (!lua_isnumber(L, 2))
-        return 0;
-    if (!lua_isnumber(L, 3))
-        return 0;
-    if (!lua_isnumber(L, 4))
-        return 0;
-    if (!lua_isnumber(L, 5))
-        return 0;
 
     int i = lua_tonumber(L, 1);
     if (i >= 0 && i < LUAMAXUIELEMENTS)
     {
-        pSelf->m_aUiElements[i].m_Rect.x = lua_tonumber(L, 2);
-        pSelf->m_aUiElements[i].m_Rect.y = lua_tonumber(L, 3);
-        pSelf->m_aUiElements[i].m_Rect.w = lua_tonumber(L, 4);
-        pSelf->m_aUiElements[i].m_Rect.h = lua_tonumber(L, 5);
+        pSelf->m_aUiElements[i].m_Rect.x = lua_isnumber(L, 2) ? lua_tonumber(L, 2) : pSelf->m_aUiElements[i].m_Rect.x;
+        pSelf->m_aUiElements[i].m_Rect.y = lua_isnumber(L, 3) ? lua_tonumber(L, 3) : pSelf->m_aUiElements[i].m_Rect.y;
+        pSelf->m_aUiElements[i].m_Rect.w = lua_isnumber(L, 4) ? lua_tonumber(L, 4) : pSelf->m_aUiElements[i].m_Rect.w;
+        pSelf->m_aUiElements[i].m_Rect.h = lua_isnumber(L, 5) ? lua_tonumber(L, 5) : pSelf->m_aUiElements[i].m_Rect.h;
     }
     return 0;
 }
@@ -2411,6 +2404,7 @@ int CLuaFile::UiDoEditBox(lua_State *L)
     pSelf->m_aUiElements[i].m_pClient = pSelf->m_pClient;
     pSelf->m_aUiElements[i].m_pLuaFile = pSelf;
     pSelf->m_aUiElements[i].m_Type = CLuaUi::LUAUIEDITBOX;
+    pSelf->m_aUiElements[i].m_Id = i;
 
     lua_pushinteger(L, i);
 
@@ -2478,6 +2472,7 @@ int CLuaFile::UiDoLabel(lua_State *L)
     pSelf->m_aUiElements[i].m_pClient = pSelf->m_pClient;
     pSelf->m_aUiElements[i].m_pLuaFile = pSelf;
     pSelf->m_aUiElements[i].m_Type = CLuaUi::LUAUILABEL;
+    pSelf->m_aUiElements[i].m_Id = i;
 
     lua_pushinteger(L, i);
 
@@ -2540,6 +2535,7 @@ int CLuaFile::UiDoRect(lua_State *L)
     pSelf->m_aUiElements[i].m_pClient = pSelf->m_pClient;
     pSelf->m_aUiElements[i].m_pLuaFile = pSelf;
     pSelf->m_aUiElements[i].m_Type = CLuaUi::LUAUIRECT;
+    pSelf->m_aUiElements[i].m_Id = i;
 
     lua_pushinteger(L, i);
 
@@ -2598,6 +2594,7 @@ int CLuaFile::UiDoImage(lua_State *L)
     pSelf->m_aUiElements[i].m_pClient = pSelf->m_pClient;
     pSelf->m_aUiElements[i].m_pLuaFile = pSelf;
     pSelf->m_aUiElements[i].m_Type = CLuaUi::LUAUIIMAGE;
+    pSelf->m_aUiElements[i].m_Id = i;
 
     lua_pushinteger(L, i);
 
@@ -2677,6 +2674,7 @@ int CLuaFile::UiDoImageEx(lua_State *L)
     pSelf->m_aUiElements[i].m_pClient = pSelf->m_pClient;
     pSelf->m_aUiElements[i].m_pLuaFile = pSelf;
     pSelf->m_aUiElements[i].m_Type = CLuaUi::LUAUIIMAGEEX;
+    pSelf->m_aUiElements[i].m_Id = i;
 
     lua_pushinteger(L, i);
 
@@ -2732,6 +2730,7 @@ int CLuaFile::UiDoLine(lua_State *L)
     pSelf->m_aUiElements[i].m_pClient = pSelf->m_pClient;
     pSelf->m_aUiElements[i].m_pLuaFile = pSelf;
     pSelf->m_aUiElements[i].m_Type = CLuaUi::LUAUILINE;
+    pSelf->m_aUiElements[i].m_Id = i;
 
     lua_pushinteger(L, i);
 
@@ -2796,6 +2795,7 @@ int CLuaFile::UiDoSlider(lua_State *L)
     pSelf->m_aUiElements[i].m_pClient = pSelf->m_pClient;
     pSelf->m_aUiElements[i].m_pLuaFile = pSelf;
     pSelf->m_aUiElements[i].m_Type = CLuaUi::LUAUISLIDER;
+    pSelf->m_aUiElements[i].m_Id = i;
 
     lua_pushinteger(L, i);
 
@@ -4064,6 +4064,42 @@ int CLuaFile::CreateDirectory(lua_State *L)
         return 0;
 
     lua_pushboolean(L, fs_makedir(lua_tostring(L, 1)));
+    return 1;
+}
+
+int CLuaFile::ListDirectoryInternal(const char *pName, int IsDir, int DirType, void *pUser)
+{
+    CListDirectoryData *pData = (CListDirectoryData *)pUser;
+
+    lua_pushinteger(pData->m_L, pData->m_Number++);
+    lua_newtable(pData->m_L);
+
+    lua_pushstring(pData->m_L, "name");
+    lua_pushstring(pData->m_L, pName);
+    lua_settable(pData->m_L, -3);
+    lua_pushstring(pData->m_L, "dir");
+    lua_pushboolean(pData->m_L, IsDir);
+    lua_settable(pData->m_L, -3);
+
+
+    lua_settable(pData->m_L, -3);
+
+    return 0;
+}
+
+int CLuaFile::ListDirectory(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+    if(!lua_isstring(L, 1))
+        return 0;
+
+    lua_newtable(L);
+
+    CListDirectoryData Data;
+    Data.m_L = L;
+    Data.m_Number = 0;
+    fs_listdir(lua_tostring(L, 1), ListDirectoryInternal, 0, &Data);
+
     return 1;
 }
 
