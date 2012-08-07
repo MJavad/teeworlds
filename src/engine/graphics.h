@@ -101,6 +101,7 @@ public:
 	virtual void QuadsBegin() = 0;
 	virtual void QuadsEnd() = 0;
 	virtual void QuadsSetRotation(float Angle) = 0;
+	virtual void QuadsSetRotationCenter(int x, int y) = 0;
 	virtual void QuadsSetSubset(float TopLeftY, float TopLeftV, float BottomRightU, float BottomRightV) = 0;
 	virtual void QuadsSetSubsetFree(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3) = 0;
 
