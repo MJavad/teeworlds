@@ -97,6 +97,21 @@ static CLuaRender gs_LuaRenderLayerLevel2(2);
 static CLuaRender gs_LuaRenderLayerLevel3(3);
 static CLuaRender gs_LuaRenderLayerLevel4(4);
 static CLuaRender gs_LuaRenderLayerLevel5(5);
+static CLuaRender gs_LuaRenderLayerLevel6(6);
+static CLuaRender gs_LuaRenderLayerLevel7(7);
+static CLuaRender gs_LuaRenderLayerLevel8(8);
+static CLuaRender gs_LuaRenderLayerLevel9(9);
+static CLuaRender gs_LuaRenderLayerLevel10(10);
+static CLuaRender gs_LuaRenderLayerLevel11(11);
+static CLuaRender gs_LuaRenderLayerLevel12(12);
+static CLuaRender gs_LuaRenderLayerLevel13(13);
+static CLuaRender gs_LuaRenderLayerLevel14(14);
+static CLuaRender gs_LuaRenderLayerLevel15(15);
+static CLuaRender gs_LuaRenderLayerLevel16(16);
+static CLuaRender gs_LuaRenderLayerLevel17(17);
+static CLuaRender gs_LuaRenderLayerLevel18(18);
+static CLuaRender gs_LuaRenderLayerLevel19(19);
+static CLuaRender gs_LuaRenderLayerLevel20(20);
 
 CGameClient::CStack::CStack() { m_Num = 0; }
 void CGameClient::CStack::Add(class CComponent *pComponent) { m_paComponents[m_Num++] = pComponent; }
@@ -174,20 +189,35 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(&gs_MapLayersForeGround);
 	m_All.Add(&gs_LuaRenderLayerLevel5); // lua
 	m_All.Add(&m_pParticles->m_RenderExplosions);
+	m_All.Add(&gs_LuaRenderLayerLevel6); // lua
 	m_All.Add(&gs_NamePlates);
+	m_All.Add(&gs_LuaRenderLayerLevel7); // lua
 	m_All.Add(&m_pParticles->m_RenderGeneral);
+	m_All.Add(&gs_LuaRenderLayerLevel8); // lua
 	m_All.Add(m_pDamageind);
+	m_All.Add(&gs_LuaRenderLayerLevel9); // lua
 	m_All.Add(&gs_Hud);
+	m_All.Add(&gs_LuaRenderLayerLevel10); // lua
 	m_All.Add(&gs_Spectator);
+	m_All.Add(&gs_LuaRenderLayerLevel11); // lua
 	m_All.Add(&gs_Emoticon);
+	m_All.Add(&gs_LuaRenderLayerLevel12); // lua
 	m_All.Add(&gs_KillMessages);
+	m_All.Add(&gs_LuaRenderLayerLevel13); // lua
 	m_All.Add(m_pChat);
+	m_All.Add(&gs_LuaRenderLayerLevel14); // lua
 	m_All.Add(&gs_Broadcast);
+	m_All.Add(&gs_LuaRenderLayerLevel15); // lua
 	m_All.Add(&gs_DebugHud);
+	m_All.Add(&gs_LuaRenderLayerLevel16); // lua
 	m_All.Add(&gs_Scoreboard);
+	m_All.Add(&gs_LuaRenderLayerLevel17); // lua
 	m_All.Add(m_pMotd);
+	m_All.Add(&gs_LuaRenderLayerLevel18); // lua
 	m_All.Add(m_pMenus);
+	m_All.Add(&gs_LuaRenderLayerLevel19); // lua
 	m_All.Add(m_pGameConsole);
+	m_All.Add(&gs_LuaRenderLayerLevel20); // lua
 
 	// build the input stack
 	m_Input.Add(&m_pMenus->m_Binder); // this will take over all input when we want to bind a key
