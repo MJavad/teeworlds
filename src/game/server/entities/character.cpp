@@ -272,7 +272,8 @@ void CCharacter::FireWeapon()
         GameServer()->m_pLua->m_pEventListener->OnEvent("OnWeaponFire");
         if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 1)
             return;
-        FullAuto = GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetInteger();
+        if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[1].IsNumeric())
+            FullAuto = GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetInteger();
     }
 
 	if(FullAuto && (m_LatestInput.m_Fire&1) && m_aWeapons[m_ActiveWeapon].m_Ammo)
@@ -728,143 +729,154 @@ bool CCharacter::IncreaseArmor(int Amount, int Max)
 
 void CCharacter::Die(int Killer, int Weapon)
 {
+    CPlayer *pPlayer = m_pPlayer;
 	// we got to wait 0.5 secs before respawning
     GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Killer);
     GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Weapon);
     GameServer()->m_pLua->m_pEventListener->OnEvent("OnDie");
 
-	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
+
+    //maybe the character moved to spec, so m_pPlayer is invalid
+    pPlayer->m_RespawnTick = pPlayer->Server()->Tick()+pPlayer->Server()->TickSpeed()/2;
 	int ModeSpecial = 0;
 	if (Killer >= 0 && Killer < MAX_CLIENTS)
-        ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+        ModeSpecial = pPlayer->GameServer()->m_pController->OnCharacterDeath(this, pPlayer->GameServer()->m_apPlayers[Killer], Weapon);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%s' victim='%d:%s' weapon=%d special=%d",
-		Killer, Server()->ClientName(Killer),
-		m_pPlayer->GetCID(), Server()->ClientName(m_pPlayer->GetCID()), Weapon, ModeSpecial);
-	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+		Killer, pPlayer->Server()->ClientName(Killer),
+		pPlayer->GetCID(), pPlayer->Server()->ClientName(pPlayer->GetCID()), Weapon, ModeSpecial);
+	pPlayer->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
 	// send the kill message
 	CNetMsg_Sv_KillMsg Msg;
 	Msg.m_Killer = Killer;
-	Msg.m_Victim = m_pPlayer->GetCID();
+	Msg.m_Victim = pPlayer->GetCID();
 	Msg.m_Weapon = Weapon;
 	Msg.m_ModeSpecial = ModeSpecial;
-	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
+	pPlayer->Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 
 	// a nice sound
-	GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
+	pPlayer->GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
 
 	// this is for auto respawn after 3 secs
-	m_pPlayer->m_DieTick = Server()->Tick();
+	pPlayer->m_DieTick = pPlayer->Server()->Tick();
 
 	m_Alive = false;
-	GameServer()->m_World.RemoveEntity(this);
-	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
-	GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
+	pPlayer->GameServer()->m_World.RemoveEntity(this);
+	pPlayer->GameServer()->m_World.m_Core.m_apCharacters[pPlayer->GetCID()] = 0;
+	pPlayer->GameServer()->CreateDeath(m_Pos, pPlayer->GetCID());
 }
 
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
+    CPlayer *pPlayer = m_pPlayer;
     GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(From);
     GameServer()->m_pLua->m_pEventListener->OnEvent("OnTakeDamage");
-    dbg_msg("Value", "%i", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger());
     if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger())
     {
-        dbg_msg("FF", "%i", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger());
         return false;
     }
+    if (pPlayer->GetCharacter()) //player may be forced to spec
+        m_Core.m_Vel += Force;
 
-	m_Core.m_Vel += Force;
+    if(pPlayer->GameServer()->m_pController->IsFriendlyFire(pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
+        return false;
 
-	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
-		return false;
+    // m_pPlayer only inflicts half damage on self
+    if(From == pPlayer->GetCID())
+        Dmg = max(1, Dmg/2);
 
-	// m_pPlayer only inflicts half damage on self
-	if(From == m_pPlayer->GetCID())
-		Dmg = max(1, Dmg/2);
+    if (pPlayer->GetCharacter()) //player may be forced to spec
+    {
+        m_DamageTaken++;
 
-	m_DamageTaken++;
+        // create healthmod indicator
+        if(Server()->Tick() < m_DamageTakenTick+25)
+        {
+            // make sure that the damage indicators doesn't group together
+            GameServer()->CreateDamageInd(m_Pos, m_DamageTaken*0.25f, Dmg);
+        }
+        else
+        {
+            m_DamageTaken = 0;
+            GameServer()->CreateDamageInd(m_Pos, 0, Dmg);
+        }
 
-	// create healthmod indicator
-	if(Server()->Tick() < m_DamageTakenTick+25)
-	{
-		// make sure that the damage indicators doesn't group together
-		GameServer()->CreateDamageInd(m_Pos, m_DamageTaken*0.25f, Dmg);
-	}
-	else
-	{
-		m_DamageTaken = 0;
-		GameServer()->CreateDamageInd(m_Pos, 0, Dmg);
-	}
+        if(Dmg)
+        {
+            if(m_Armor)
+            {
+                if(Dmg > 1)
+                {
+                    m_Health--;
+                    Dmg--;
+                }
 
-	if(Dmg)
-	{
-		if(m_Armor)
-		{
-			if(Dmg > 1)
-			{
-				m_Health--;
-				Dmg--;
-			}
+                if(Dmg > m_Armor)
+                {
+                    Dmg -= m_Armor;
+                    m_Armor = 0;
+                }
+                else
+                {
+                    m_Armor -= Dmg;
+                    Dmg = 0;
+                }
+            }
 
-			if(Dmg > m_Armor)
-			{
-				Dmg -= m_Armor;
-				m_Armor = 0;
-			}
-			else
-			{
-				m_Armor -= Dmg;
-				Dmg = 0;
-			}
-		}
+            m_Health -= Dmg;
+        }
 
-		m_Health -= Dmg;
-	}
-
-	m_DamageTakenTick = Server()->Tick();
+        m_DamageTakenTick = Server()->Tick();
+    }
 
 	// do damage Hit sound
-	if(From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
+	if(From >= 0 && From != pPlayer->GetCID() && pPlayer->GameServer()->m_apPlayers[From])
 	{
 		int Mask = CmaskOne(From);
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
-			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS && GameServer()->m_apPlayers[i]->m_SpectatorID == From)
+			if(pPlayer->GameServer()->m_apPlayers[i] && pPlayer->GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS && pPlayer->GameServer()->m_apPlayers[i]->m_SpectatorID == From)
 				Mask |= CmaskOne(i);
 		}
-		GameServer()->CreateSound(GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT, Mask);
+		pPlayer->GameServer()->CreateSound(pPlayer->GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT, Mask);
 	}
 
-	// check for death
-	if(m_Health <= 0)
-	{
-		Die(From, Weapon);
+    if (pPlayer->GetCharacter()) //player may be forced to spec
+    {
+        // check for death
+        if(m_Health <= 0)
+        {
+            Die(From, Weapon);
 
-		// set attacker's face to happy (taunt!)
-		if (From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
-		{
-			CCharacter *pChr = GameServer()->m_apPlayers[From]->GetCharacter();
-			if (pChr)
-			{
-				pChr->m_EmoteType = EMOTE_HAPPY;
-				pChr->m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
-			}
-		}
+            if (!pPlayer->GetCharacter())
+                return false;
 
-		return false;
-	}
+            // set attacker's face to happy (taunt!)
+            if (From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
+            {
+                CCharacter *pChr = GameServer()->m_apPlayers[From]->GetCharacter();
+                if (pChr)
+                {
+                    pChr->m_EmoteType = EMOTE_HAPPY;
+                    pChr->m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
+                }
+            }
 
-	if (Dmg > 2)
-		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
-	else
-		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_SHORT);
+            return false;
+        }
 
-	m_EmoteType = EMOTE_PAIN;
-	m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
+        if (Dmg > 2)
+            GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
+        else
+            GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_SHORT);
+
+        m_EmoteType = EMOTE_PAIN;
+        m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
+    }
 
 	return true;
 }
