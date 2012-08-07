@@ -873,7 +873,7 @@ void CMenus::RenderSettingsLua(CUIRect MainView)
         MainView.HSplitTop(20.0f, &Button, &MainView);
         CUIRect AddButton;
         Button.VSplitRight(100.0f, &Button, &AddButton);
-        if (DoButton_MenuTab(&s_AddScriptMode, Localize("Add script"), s_AddScriptMode, &AddButton, CUI::CORNER_ALL))
+        if (DoButton_MenuTab(&s_AddScriptMode, s_AddScriptMode ? Localize("Back") : Localize("Add script") , s_AddScriptMode, &AddButton, CUI::CORNER_ALL))
         {
             s_AddScriptMode ^=1;
             LuaPopulate();
