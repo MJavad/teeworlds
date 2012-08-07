@@ -62,9 +62,14 @@ public:
 class CEvent
 {
 public:
+    CEvent()
+    {
+        Reset();
+    }
     CEventVariable m_aVars[MAX_EVENT_VARIABLES];
     void Reset();
     CEventVariable *FindFree();
+    bool m_Used;
 };
 
 template <class T>
@@ -80,6 +85,8 @@ class CLuaEventListener
 
     typedef array<CLuaListenerData> TEventList;
     TEventList m_aListeners;
+
+    bool m_Used;
 public:
     void AddEventListener(T *pLuaFile, char *pEvent, char *pLuaFunction);
     void RemoveEventListener(T *pLuaFile, char *pEvent);
@@ -92,12 +99,21 @@ public:
 
     CLuaEventListener();
     ~CLuaEventListener();
+
+    void SetState(bool Used)
+    {
+        m_Parameters.m_Used = Used;
+        m_Returns.m_Used = Used;
+        m_Used = Used;
+    }
+    bool GetState() { return m_Used; }
 };
 
 //Eventlistener
 template <class T>
 CLuaEventListener<T>::CLuaEventListener()
 {
+    m_Used = 0;
     m_aListeners.clear();
 }
 template <class T>
@@ -119,6 +135,14 @@ void CLuaEventListener<T>::AddEventListener(T *pLuaFile, char *pEvent, char *pLu
 template <class T>
 void CLuaEventListener<T>::OnEvent(const char *pEvent)
 {
+    if (GetState())
+    {
+        return; //fixes a event called in an event listener
+        //should check for function names! to support event by event
+        //to do this we have to copy the result and the parameters -.-
+        //have to be done before L1.4
+    }
+    SetState(1);
     m_Returns.Reset();
 	for(plain_range<CLuaListenerData> r = m_aListeners.all(); !r.empty(); r.pop_front())
     {
@@ -194,7 +218,8 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
             }
         }
     }
-    m_Parameters.Reset();
+    m_Parameters.Reset(); //
+    SetState(0);
 }
 
 template <class T>
