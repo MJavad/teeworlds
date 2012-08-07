@@ -46,8 +46,8 @@ void CDemoVideoRecorder::Init(int Width, int Height, int FPS, int Format)
         m_TheoraEncodingInfo.aspect_numerator = -1;
         m_TheoraEncodingInfo.aspect_denominator = -1;
         m_TheoraEncodingInfo.pixel_fmt = TH_PF_444;
-        m_TheoraEncodingInfo.target_bitrate = (int)(64870*(ogg_int64_t)480000>>16);
-        m_TheoraEncodingInfo.quality = 63;
+        m_TheoraEncodingInfo.target_bitrate = (int)(64870*(ogg_int64_t)48000>>16);
+        m_TheoraEncodingInfo.quality = 32;
         m_TheoraEncodingInfo.keyframe_granule_shift = 0;
         m_pThreoraContext = th_encode_alloc(&m_TheoraEncodingInfo);
         int arg = TH_RATECTL_CAP_UNDERFLOW;
