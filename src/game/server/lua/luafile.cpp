@@ -140,6 +140,8 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("RemoveEventListener"), this->RemoveEventListener);
 
     //player
+    lua_register(m_pLua, ToLower("GetPlayerIP"), this->GetPlayerIP);
+    lua_register(m_pLua, ToLower("GetPlayerSpectateID"), this->GetPlayerSpectateID);
     lua_register(m_pLua, ToLower("GetPlayerName"), this->GetPlayerName);
     lua_register(m_pLua, ToLower("GetPlayerClan"), this->GetPlayerClan);
     lua_register(m_pLua, ToLower("GetPlayerCountry"), this->GetPlayerCountry);
@@ -154,6 +156,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("SetPlayerTeam"), this->SetPlayerTeam);
     lua_register(m_pLua, ToLower("SetPlayerClan"), this->SetPlayerClan);
     lua_register(m_pLua, ToLower("SetPlayerCountry"), this->SetPlayerCountry);
+    lua_register(m_pLua, ToLower("SetPlayerSpectateID"), this->SetPlayerSpectateID);
 
     lua_register(m_pLua, ToLower("SetPlayerColorBody"), this->SetPlayerColorBody);
     lua_register(m_pLua, ToLower("SetPlayerColorFeet"), this->SetPlayerColorFeet);

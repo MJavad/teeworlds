@@ -124,7 +124,8 @@ public:
     static inline int SendChat(lua_State *L);
     static inline int SendChatTarget(lua_State *L);
 
-    //Player  Todo: PlayerSet
+    //Player
+    static inline int GetPlayerIP(lua_State *L);
     static inline int GetPlayerName(lua_State *L);
     static inline int GetPlayerClan(lua_State *L);
     static inline int GetPlayerCountry(lua_State *L);
@@ -135,6 +136,7 @@ public:
     static inline int GetPlayerColorFeet(lua_State *L);
     static inline int GetPlayerColorBody(lua_State *L);
     static inline int GetPlayerColorSkin(lua_State *L); //Todo: implement me
+    static inline int GetPlayerSpectateID(lua_State *L);
 
     static inline int SetPlayerName(lua_State *L);
     static inline int SetPlayerClan(lua_State *L);
@@ -144,6 +146,7 @@ public:
     static inline int SetPlayerSkin(lua_State *L);
     static inline int SetPlayerColorFeet(lua_State *L);
     static inline int SetPlayerColorBody(lua_State *L);
+    static inline int SetPlayerSpectateID(lua_State *L);
 
 
     //Config
