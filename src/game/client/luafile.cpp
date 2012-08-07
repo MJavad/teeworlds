@@ -322,6 +322,8 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("BlendAdditive"), this->BlendAdditive);
 
     //
+    lua_register(m_pLua, ToLower("GetScreenWidth"), this->GetScreenWidth);
+    lua_register(m_pLua, ToLower("GetScreenHeight"), this->GetScreenHeight);
 
     //Texture
     lua_register(m_pLua, ToLower("TextureLoad"), this->TextureLoad);
@@ -934,6 +936,41 @@ int CLuaFile::UiGetScreenHeight(lua_State *L)
     lua_pushnumber(L, Screen.h);
     return 1;
 }
+
+int CLuaFile::GetScreenWidth(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    float X0;
+    float Y0;
+    float X1;
+    float Y1;
+    pSelf->m_pClient->Graphics()->GetScreen(&X0, &Y0, &X1, &Y1);
+    lua_pushnumber(L, X1 - X0);
+    return 1;
+}
+
+int CLuaFile::GetScreenHeight(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    float X0;
+    float Y0;
+    float X1;
+    float Y1;
+    pSelf->m_pClient->Graphics()->GetScreen(&X0, &Y0, &X1, &Y1);
+    lua_pushnumber(L, Y1 - Y0);
+    return 1;
+}
+
 
 int CLuaFile::MusicPlay(lua_State *L)
 {
@@ -3203,6 +3240,8 @@ int CLuaFile::RenderTexture(lua_State *L)
         pSelf->m_pClient->Graphics()->SetColor(lua_tonumber(L, 10), lua_tonumber(L, 11), lua_tonumber(L, 12), lua_tonumber(L, 13));
     if (lua_isnumber(L, 14))
         pSelf->m_pClient->Graphics()->QuadsSetRotation(lua_tonumber(L, 14));
+    if (lua_isnumber(L, 15) && lua_isnumber(L, 16))
+        pSelf->m_pClient->Graphics()->QuadsSetRotationCenter(lua_tonumber(L, 15), lua_tonumber(L, 16));
     pSelf->m_pClient->Graphics()->QuadsSetSubset(ClipX1, ClipY1, ClipX2, ClipY2);
     IGraphics::CQuadItem QuadItem(x, y, Width, Height);
     pSelf->m_pClient->Graphics()->QuadsDrawTL(&QuadItem, 1);
@@ -3852,11 +3891,7 @@ int CLuaFile::CheckVersion(lua_State *L)
 
 int CLuaFile::GetVersion(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     lua_pushstring(L, GAME_LUA_VERSION);
     return 1;
@@ -3864,11 +3899,7 @@ int CLuaFile::GetVersion(lua_State *L)
 
 int CLuaFile::GetWaveFrameSize(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     lua_pushinteger(L, pSelf->m_pClient->Sound()->GetWaveFrameSize());
     return 1;
@@ -3876,11 +3907,7 @@ int CLuaFile::GetWaveFrameSize(lua_State *L)
 
 int CLuaFile::GetWaveBufferSpace(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     lua_pushinteger(L, pSelf->m_pClient->Sound()->GetWaveBufferSpace());
     return 1;
@@ -3888,11 +3915,7 @@ int CLuaFile::GetWaveBufferSpace(lua_State *L)
 
 int CLuaFile::AddWaveToStream(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (!lua_isstring(L, 1))
         return 0;
@@ -3916,11 +3939,7 @@ static short Int2Short(int i)
 
 int CLuaFile::FloatToShortChars(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (!lua_isnumber(L, 1))
         return 0;
@@ -3934,11 +3953,7 @@ int CLuaFile::FloatToShortChars(lua_State *L)
 
 int CLuaFile::LoadSkin(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (lua_isstring(L, 1))
     {
@@ -3959,22 +3974,14 @@ int CLuaFile::LoadSkin(lua_State *L)
 
 int CLuaFile::ConsoleActive(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
     lua_pushboolean(L, (pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPEN || pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPENING));
     return 1;
 }
 
 int CLuaFile::ConsoleLocalActive(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
     lua_pushboolean(L, (pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPEN || pSelf->m_pClient->m_pGameConsole->GetConsoleState() == CGameConsole::CONSOLE_OPENING) && pSelf->m_pClient->m_pGameConsole->GetConsoleType() == CGameConsole::CONSOLETYPE_LOCAL);
     return 1;
 }

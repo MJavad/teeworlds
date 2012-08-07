@@ -157,7 +157,7 @@ public:
 
     enum
     {
-        LUAMAXUIELEMENTS = 256,
+        LUAMAXUIELEMENTS = 1024, //642 kb
     };
 
     CLuaUi m_aUiElements[LUAMAXUIELEMENTS];
@@ -381,6 +381,10 @@ public:
     static inline int TextureLoad(lua_State *L);
     static inline int TextureUnload(lua_State *L);
     static inline int RenderTexture(lua_State *L);
+
+
+    static inline int GetScreenWidth(lua_State *L);
+    static inline int GetScreenHeight(lua_State *L);
 
     //Music
     static inline int MusicPlay(lua_State *L);
