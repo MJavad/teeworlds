@@ -3,6 +3,7 @@
 #include <engine/graphics.h>
 #include <game/generated/protocol.h>
 #include <game/generated/client_data.h>
+#include <engine/shared/demo.h>
 
 #include <game/gamecore.h> // get_angle
 #include <game/client/ui.h>
@@ -46,13 +47,24 @@ void CDamageInd::Create(vec2 Pos, vec2 Dir)
 
 void CDamageInd::OnRender()
 {
+    static int64 LastTime = 0;
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 	Graphics()->QuadsBegin();
 	for(int i = 0; i < m_NumItems;)
 	{
 		vec2 Pos = mix(m_aItems[i].m_Pos+m_aItems[i].m_Dir*75.0f, m_aItems[i].m_Pos, clamp((m_aItems[i].m_Life-0.60f)/0.15f, 0.0f, 1.0f));
-
-		m_aItems[i].m_Life -= Client()->FrameTime();
+        if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+        {
+            if (m_pClient->DemoPlayer()->m_Recording)
+                m_aItems[i].m_Life -= (float)(Client()->DemoTimeGet() - LastTime) / (float)time_freq();
+            else
+            {
+                const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+                m_aItems[i].m_Life -= (float)(time_get() - LastTime) / (float)time_freq() * pInfo->m_Speed;
+            }
+        }
+        else
+            m_aItems[i].m_Life -= Client()->FrameTime();
 		if(m_aItems[i].m_Life < 0.0f)
 			DestroyI(&m_aItems[i]);
 		else
@@ -65,4 +77,11 @@ void CDamageInd::OnRender()
 		}
 	}
 	Graphics()->QuadsEnd();
+    if(Client()->State() == IClient::STATE_DEMOPLAYBACK)
+    {
+        if (m_pClient->DemoPlayer()->m_Recording)
+            LastTime = Client()->DemoTimeGet();
+        else
+            LastTime = time_get();
+    }
 }
