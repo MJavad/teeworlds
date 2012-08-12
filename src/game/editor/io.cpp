@@ -292,9 +292,31 @@ int CEditorMap::Save(class IStorage *pStorage, const char *pFileName)
 
 				Item.m_Width = pLayer->m_Width;
 				Item.m_Height = pLayer->m_Height;
-				Item.m_Flags = pLayer->m_Game ? TILESLAYERFLAG_GAME : 0;
+				if(pLayer->m_Tele)
+					Item.m_Flags = 2;
+				else if(pLayer->m_Speedup)
+					Item.m_Flags = 4;
+				else
+					Item.m_Flags = pLayer->m_Game ? TILESLAYERFLAG_GAME : 0;
 				Item.m_Image = pLayer->m_Image;
-				Item.m_Data = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTile), pLayer->m_pTiles);
+				if(pLayer->m_Tele)
+				{
+					CTile *Tiles = new CTile[pLayer->m_Width*pLayer->m_Height];
+					mem_zero(Tiles, pLayer->m_Width*pLayer->m_Height*sizeof(CTile));
+					Item.m_Data = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTile), Tiles);
+					Item.m_Tele = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTeleTile), ((CLayerTele *)pLayer)->m_pTeleTile);
+					delete[] Tiles;
+				}
+				else if(pLayer->m_Speedup)
+				{
+					CTile *Tiles = new CTile[pLayer->m_Width*pLayer->m_Height];
+					mem_zero(Tiles, pLayer->m_Width*pLayer->m_Height*sizeof(CTile));
+					Item.m_Data = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTile), Tiles);
+					Item.m_Speedup = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CSpeedupTile), ((CLayerSpeedup *)pLayer)->m_pSpeedupTile);
+					delete[] Tiles;
+				}
+				else
+					Item.m_Data = df.AddData(pLayer->m_Width*pLayer->m_Height*sizeof(CTile), pLayer->m_pTiles);
 
 				// save layer name
 				StrToInts(Item.m_aName, sizeof(Item.m_aName)/sizeof(int), pLayer->m_aName);
@@ -534,6 +556,28 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 							MakeGameLayer(pTiles);
 							MakeGameGroup(pGroup);
 						}
+						else if(pTilemapItem->m_Flags&2)
+						{
+							if(pTilemapItem->m_Version < 3) // get the right values for tele layer
+							{
+								int *pTele = (int*)(pTilemapItem)+15;
+								pTilemapItem->m_Tele = *pTele;
+							}
+
+							pTiles = new CLayerTele(pTilemapItem->m_Width, pTilemapItem->m_Height);
+							MakeTeleLayer(pTiles);
+						}
+						else if(pTilemapItem->m_Flags&4)
+						{
+							if(pTilemapItem->m_Version < 3) // get the right values for speedup layer
+							{
+								int *pSpeedup = (int*)(pTilemapItem)+16;
+								pTilemapItem->m_Speedup = *pSpeedup;
+							}
+
+							pTiles = new CLayerSpeedup(pTilemapItem->m_Width, pTilemapItem->m_Height);
+							MakeSpeedupLayer(pTiles);
+						}
 						else
 						{
 							pTiles = new CLayerTiles(pTilemapItem->m_Width, pTilemapItem->m_Height);
@@ -566,6 +610,40 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 						}
 
 						DataFile.UnloadData(pTilemapItem->m_Data);
+
+						if(pTiles->m_Tele)
+						{
+							void *pTeleData = DataFile.GetData(pTilemapItem->m_Tele);
+							mem_copy(((CLayerTele*)pTiles)->m_pTeleTile, pTeleData, pTiles->m_Width*pTiles->m_Height*sizeof(CTeleTile));
+
+							for(int i = 0; i < pTiles->m_Width*pTiles->m_Height; i++)
+							{
+								if(((CLayerTele*)pTiles)->m_pTeleTile[i].m_Type == TILE_TELEIN)
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = TILE_TELEIN;
+								else if(((CLayerTele*)pTiles)->m_pTeleTile[i].m_Type == TILE_TELEOUT)
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = TILE_TELEOUT;
+								else if(((CLayerTele*)pTiles)->m_pTeleTile[i].m_Type == 25)
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = 25;
+								else
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = 0;
+							}
+							DataFile.UnloadData(pTilemapItem->m_Tele);
+						}
+						else if(pTiles->m_Speedup)
+						{
+							void *pSpeedupData = DataFile.GetData(pTilemapItem->m_Speedup);
+							mem_copy(((CLayerSpeedup*)pTiles)->m_pSpeedupTile, pSpeedupData, pTiles->m_Width*pTiles->m_Height*sizeof(CSpeedupTile));
+
+							for(int i = 0; i < pTiles->m_Width*pTiles->m_Height; i++)
+							{
+								if(((CLayerSpeedup*)pTiles)->m_pSpeedupTile[i].m_Force > 0)
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = TILE_BOOST;
+								else
+									((CLayerTiles*)pTiles)->m_pTiles[i].m_Index = 0;
+							}
+
+							DataFile.UnloadData(pTilemapItem->m_Speedup);
+						}
 
 						pLastTiles = pTiles;
 					}

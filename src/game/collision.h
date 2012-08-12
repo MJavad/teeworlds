@@ -37,6 +37,19 @@ public:
 	bool TestBox(vec2 Pos, vec2 Size);
     int GetTileRaw(int x, int y);
 
+	// race
+	int GetIndex(vec2 Pos);
+	int GetIndex(vec2 PrevPos, vec2 Pos);
+	vec2 GetPos(int Index);
+	int GetTileIndex(int Index);
+	int IsTeleport(int Index);
+	int IsSpeedup(int Index);
+	void GetSpeedup(int Index, vec2 *Dir, int *Force);
+
+    class CTeleTile *m_pTele;
+	class CSpeedupTile *m_pSpeedup;
+	class CLayers *Layers() { return m_pLayers; }
+
 	void SetTile(int x, int y, int index);
 };
 

@@ -22,6 +22,7 @@
 /*DGI:Event:OnConsole*/
 /*DGI:Event:OnMusicChange*/
 #include <time.h>
+#include <base/math.h>
 
 #include "lua.h"
 #include "components/flow.h"
@@ -1649,9 +1650,9 @@ int CLuaFile::ClosestPointOnLine(lua_State *L)
 
     if (!lua_isnumber(L, 1) && !lua_isnumber(L, 2) && !lua_isnumber(L, 3) && !lua_isnumber(L, 4) && !lua_isnumber(L, 5) && !lua_isnumber(L, 6))
         return 0;
-    vec2 Pos1 = vec2(lua_tonumber(L, 1), lua_tonumber(L, 2));
-    vec2 Pos2 = vec2(lua_tonumber(L, 3), lua_tonumber(L, 4));
-    vec2 Pos3 = vec2(lua_tonumber(L, 5), lua_tonumber(L, 6));
+    vec2 Pos1 = vec2((float)lua_tonumber(L, 1), (float)lua_tonumber(L, 2));
+    vec2 Pos2 = vec2((float)lua_tonumber(L, 3), (float)lua_tonumber(L, 4));
+    vec2 Pos3 = vec2((float)lua_tonumber(L, 5), (float)lua_tonumber(L, 6));
     vec2 Ret = closest_point_on_line(Pos1, Pos2, Pos3);
     lua_pushnumber(L, Ret.x);
     lua_pushnumber(L, Ret.y);
