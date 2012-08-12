@@ -122,6 +122,7 @@ void CLayerGroup::Render()
 
 void CLayerGroup::AddLayer(CLayer *l)
 {
+    m_pMap->m_pEditor->CreateUndoStep(Localize("Add layer"));
 	m_pMap->m_Modified = true;
 	m_lLayers.add(l);
 }
@@ -129,6 +130,7 @@ void CLayerGroup::AddLayer(CLayer *l)
 void CLayerGroup::DeleteLayer(int Index)
 {
 	if(Index < 0 || Index >= m_lLayers.size()) return;
+    m_pMap->m_pEditor->CreateUndoStep(Localize("Delete layer"));
 	delete m_lLayers[Index];
 	m_lLayers.remove_index(Index);
 	m_pMap->m_Modified = true;
@@ -152,6 +154,7 @@ int CLayerGroup::SwapLayers(int Index0, int Index1)
 	if(Index0 < 0 || Index0 >= m_lLayers.size()) return Index0;
 	if(Index1 < 0 || Index1 >= m_lLayers.size()) return Index0;
 	if(Index0 == Index1) return Index0;
+    m_pMap->m_pEditor->CreateUndoStep(Localize("Swap layer"));
 	m_pMap->m_Modified = true;
 	swap(m_lLayers[Index0], m_lLayers[Index1]);
 	return Index1;
@@ -753,6 +756,8 @@ void CEditor::CallbackOpenLua(const char *pFileName, int StorageType, void *pUse
         io_close(LuaFile);
         return;
     }
+
+    pEditor->CreateUndoStep(Localize("Change Lua"));
 
     int Size = io_length(LuaFile);
     char *pData = new char[Size + 1];
@@ -3112,6 +3117,8 @@ void CEditor::RenderUndoList(CUIRect View)
 	Scroll.HMargin(5.0f, &Scroll);
 	m_UndoScrollValue = UiDoScrollbarV(&ScrollBar, &Scroll, m_UndoScrollValue);
 
+    float TopY = List.y;
+    float Height = List.h;
     UI()->ClipEnable(&List);
     int ClickedIndex = -1;
     int HoveredIndex = -1;
@@ -3122,6 +3129,10 @@ void CEditor::RenderUndoList(CUIRect View)
     for (int i = 0; i < m_lUndoSteps.size(); i++)
     {
         List.HSplitTop(17.0f, &Button, &List);
+        if (List.y < TopY)
+            continue;
+        if (List.y - 17.0f > TopY + Height)
+            break;
 		if(DoButton_Editor(&m_lUndoSteps[i].m_ButtonId, m_lUndoSteps[i].m_aName, 0, &Button, 0, "Undo to this step"))
             ClickedIndex = i;
         if (UI()->HotItem() == &m_lUndoSteps[i].m_ButtonId)
@@ -3350,6 +3361,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 		static int s_New4dButton = 0;
 		if(DoButton_Editor(&s_New4dButton, "Color+", 0, &Button, 0, "Creates a new color envelope"))
 		{
+            CreateUndoStep(Localize("Create color envelope"));
 			m_Map.m_Modified = true;
 			pNewEnv = m_Map.NewEnvelope(4);
 		}
@@ -3359,6 +3371,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 		static int s_New2dButton = 0;
 		if(DoButton_Editor(&s_New2dButton, "Pos.+", 0, &Button, 0, "Creates a new pos envelope"))
 		{
+            CreateUndoStep(Localize("Create position envelope"));
 			m_Map.m_Modified = true;
 			pNewEnv = m_Map.NewEnvelope(3);
 		}
@@ -3371,6 +3384,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 			static int s_DelButton = 0;
 			if(DoButton_Editor(&s_DelButton, "Delete", 0, &Button, 0, "Delete this envelope"))
 			{
+                CreateUndoStep(Localize("Delete envelope"));
 				m_Map.m_Modified = true;
 				m_Map.DeleteEnvelope(m_SelectedEnvelope);
 				if(m_SelectedEnvelope >= m_Map.m_lEnvelopes.size())
@@ -3511,6 +3525,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 			{
 				if(UI()->MouseButtonClicked(1))
 				{
+                    CreateUndoStep(Localize("Create a new envelope-point"));
 					// add point
 					int Time = (int)(((UI()->MouseX()-View.x)*TimeScale)*1000.0f);
 					//float env_y = (UI()->MouseY()-view.y)/TimeScale;
@@ -3661,6 +3676,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 					{
 						if(!UI()->MouseButton(0))
 						{
+                            CreateUndoStep(Localize("Updated a envelope-point"));
 							m_SelectedQuadEnvelope = -1;
 							m_SelectedEnvelopePoint = -1;
 
@@ -3711,6 +3727,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 						// remove point
 						if(UI()->MouseButtonClicked(1))
 						{
+                            CreateUndoStep(Localize("Remove a envelope-point"));
 							pEnvelope->m_lPoints.remove_index(i);
 							m_Map.m_Modified = true;
 						}
@@ -4240,6 +4257,7 @@ void CEditor::Init()
 
 void CEditor::DoMapBorder()
 {
+    CreateUndoStep(Localize("Border"));
 	CLayerTiles *pT = (CLayerTiles *)GetSelectedLayerType(0, LAYERTYPE_TILES);
 
 	for(int i = 0; i < pT->m_Width*2; ++i)
