@@ -367,6 +367,9 @@ public:
     static inline int UiGetParticleTextureID(lua_State *L);
     static inline int UiGetFlagTextureID(lua_State *L);
 
+    static inline int UiDirectEditBox(lua_State *L);
+    static inline int UiDirectSlider(lua_State *L);
+    static inline int UiDirectButton(lua_State *L);
     static inline int UiDirectRect(lua_State *L);
     static inline int UiDirectLine(lua_State *L);
     static inline int UiDirectLabel(lua_State *L);

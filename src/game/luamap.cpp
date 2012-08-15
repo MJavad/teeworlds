@@ -1,5 +1,8 @@
 #include "luamap.h"
 #include <base/math.h>
+/*DGI:Doc-Gen-Info*/
+/*DGI:Type:Map*/
+/*DGI:Exception:errorfunc*/
 
 
 #define LUA_FUNCTION_HEADER     lua_getglobal(L, "pLUA"); \

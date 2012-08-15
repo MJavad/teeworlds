@@ -530,7 +530,8 @@ void CGraphics_OpenGL::ScreenshotDirect(const char *pFilename)
         ScreenshotData->m_w = w;
         ScreenshotData->m_pPixelData = pPixelData;
         ScreenshotData->m_pSelf = this;
-        thread_create(ScreenShotThread, ScreenshotData);
+        void *t = thread_create(ScreenShotThread, ScreenshotData);
+        thread_detach(t);
 	}
 	else
 	{

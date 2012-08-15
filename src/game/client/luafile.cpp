@@ -224,7 +224,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("SetConfigValue"), this->SetConfigValue);
 
     lua_register(m_pLua, ToLower("GetControlValue"), this->GetControlValue);
-    lua_register(m_pLua, ToLower("SetControlValue"), this->SetControlValue); //for heinrich :*
+    lua_register(m_pLua, ToLower("SetControlValue"), this->SetControlValue);
     lua_register(m_pLua, ToLower("SetControlValuePredicted"), this->SetControlValuePredicted);
     lua_register(m_pLua, ToLower("UnSetControlValue"), this->UnSetControlValue);
 
@@ -312,6 +312,9 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("UiGetParticleTextureID"), this->UiGetParticleTextureID);
     lua_register(m_pLua, ToLower("UiGetFlagTextureID"), this->UiGetFlagTextureID);
     //Direct Ui
+    lua_register(m_pLua, ToLower("UiDirectSlider"), this->UiDirectSlider);
+    lua_register(m_pLua, ToLower("UiDirectEditBox"), this->UiDirectEditBox);
+    lua_register(m_pLua, ToLower("UiDirectButton"), this->UiDirectButton);
     lua_register(m_pLua, ToLower("UiDirectRect"), this->UiDirectRect);
     lua_register(m_pLua, ToLower("UiDirectLine"), this->UiDirectLine);
     lua_register(m_pLua, ToLower("UiDirectLabel"), this->UiDirectLabel);
@@ -2840,6 +2843,111 @@ int CLuaFile::UiDoSlider(lua_State *L)
 }
 
 int CLuaFile::UiDirectRect(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+        return 0;
+
+    CUIRect Rect;
+    vec4 Color = vec4(0, 0, 0, 0.5f);
+    int Corners = CUI::CORNER_ALL;
+    int Rounding = 5.0f;
+
+    Rect.x = lua_tonumber(L, 1);
+    Rect.y = lua_tonumber(L, 2);
+    Rect.w = lua_tonumber(L, 3);
+    Rect.h = lua_tonumber(L, 4);
+
+    if (lua_isnumber(L, 5) && lua_isnumber(L, 6) && lua_isnumber(L, 7) && lua_isnumber(L, 8))
+        Color = vec4(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+
+    if (lua_isnumber(L, 9))
+        Corners = lua_tointeger(L, 9);
+
+    if (lua_isnumber(L, 10))
+        Rounding = lua_tonumber(L, 10);
+
+    pSelf->m_pClient->RenderTools()->DrawUIRect(&Rect, Color, Corners, Rounding);
+
+    return 0;
+}
+
+int CLuaFile::UiDirectEditBox(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+        return 0;
+
+    CUIRect Rect;
+    vec4 Color = vec4(0, 0, 0, 0.5f);
+    int Corners = CUI::CORNER_ALL;
+    int Rounding = 5.0f;
+
+    Rect.x = lua_tonumber(L, 1);
+    Rect.y = lua_tonumber(L, 2);
+    Rect.w = lua_tonumber(L, 3);
+    Rect.h = lua_tonumber(L, 4);
+
+    if (lua_isnumber(L, 5) && lua_isnumber(L, 6) && lua_isnumber(L, 7) && lua_isnumber(L, 8))
+        Color = vec4(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+
+    if (lua_isnumber(L, 9))
+        Corners = lua_tointeger(L, 9);
+
+    if (lua_isnumber(L, 10))
+        Rounding = lua_tonumber(L, 10);
+
+    pSelf->m_pClient->RenderTools()->DrawUIRect(&Rect, Color, Corners, Rounding);
+
+    return 0;
+}
+
+int CLuaFile::UiDirectSlider(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+        return 0;
+
+    CUIRect Rect;
+    vec4 Color = vec4(0, 0, 0, 0.5f);
+    int Corners = CUI::CORNER_ALL;
+    int Rounding = 5.0f;
+
+    Rect.x = lua_tonumber(L, 1);
+    Rect.y = lua_tonumber(L, 2);
+    Rect.w = lua_tonumber(L, 3);
+    Rect.h = lua_tonumber(L, 4);
+
+    if (lua_isnumber(L, 5) && lua_isnumber(L, 6) && lua_isnumber(L, 7) && lua_isnumber(L, 8))
+        Color = vec4(lua_tonumber(L, 5), lua_tonumber(L, 6), lua_tonumber(L, 7), lua_tonumber(L, 8));
+
+    if (lua_isnumber(L, 9))
+        Corners = lua_tointeger(L, 9);
+
+    if (lua_isnumber(L, 10))
+        Rounding = lua_tonumber(L, 10);
+
+    pSelf->m_pClient->RenderTools()->DrawUIRect(&Rect, Color, Corners, Rounding);
+
+    return 0;
+}
+
+int CLuaFile::UiDirectButton(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
     CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);

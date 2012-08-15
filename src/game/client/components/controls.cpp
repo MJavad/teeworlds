@@ -173,7 +173,7 @@ int CControls::SnapInput(int *pData, int *pPredictionData)
 			m_InputData.m_TargetY = (int)(cosf(t*3)*100.0f);
 		}
 
-	m_PredictionData = m_InputData;
+        m_PredictionData = m_InputData;
 
         if (m_pClient->m_pLuaBinding) //make sure that we have this class
         {
