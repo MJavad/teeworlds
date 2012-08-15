@@ -18,6 +18,8 @@ CCollision::CCollision()
 	m_Width = 0;
 	m_Height = 0;
 	m_pLayers = 0;
+	m_pTele = 0;
+	m_pSpeedup = 0;
 }
 
 CCollision::~CCollision()
@@ -26,18 +28,22 @@ CCollision::~CCollision()
 
 void CCollision::Init(class CLayers *pLayers)
 {
+	// reset race specific pointers
+	m_pTele = 0;
+	m_pSpeedup = 0;
+
 	m_pLayers = pLayers;
 	m_Width = m_pLayers->GameLayer()->m_Width;
 	m_Height = m_pLayers->GameLayer()->m_Height;
 	m_pTiles = static_cast<CTile *>(m_pLayers->Map()->GetData(m_pLayers->GameLayer()->m_Data));
+	if(m_pLayers->TeleLayer())
+		m_pTele = static_cast<CTeleTile *>(m_pLayers->Map()->GetData(m_pLayers->TeleLayer()->m_Tele));
+	if(m_pLayers->SpeedupLayer())
+		m_pSpeedup = static_cast<CSpeedupTile *>(m_pLayers->Map()->GetData(m_pLayers->SpeedupLayer()->m_Speedup));
 
 	for(int i = 0; i < m_Width*m_Height; i++)
 	{
 		int Index = m_pTiles[i].m_Index;
-
-		if(Index > 128)
-			continue;
-
 
         //lua eventlistener
         //OnCollisionInit
@@ -92,6 +98,101 @@ bool CCollision::IsTileSolid(int x, int y)
 {
 	return GetTile(x, y)&COLFLAG_SOLID;
 }
+
+// race
+int CCollision::GetIndex(vec2 Pos)
+{
+	int nx = clamp((int)Pos.x/32, 0, m_Width-1);
+	int ny = clamp((int)Pos.y/32, 0, m_Height-1);
+
+	return ny*m_Width+nx;
+}
+
+int CCollision::GetIndex(vec2 PrevPos, vec2 Pos)
+{
+	float Distance = distance(PrevPos, Pos);
+
+	if(!Distance)
+	{
+		int Nx = clamp((int)Pos.x/32, 0, m_Width-1);
+		int Ny = clamp((int)Pos.y/32, 0, m_Height-1);
+
+		if((m_pTiles[Ny*m_Width+Nx].m_Index >= TILE_STOPL && m_pTiles[Ny*m_Width+Nx].m_Index <= 59) ||
+			(m_pTele && m_pTele[Ny*m_Width+Nx].m_Type == TILE_TELEIN) ||
+			(m_pSpeedup && m_pSpeedup[Ny*m_Width+Nx].m_Force > 0))
+		{
+			return Ny*m_Width+Nx;
+		}
+	}
+
+	float a = 0.0f;
+	vec2 Tmp = vec2(0, 0);
+	int Nx = 0;
+	int Ny = 0;
+
+	for(float f = 0; f < Distance; f++)
+	{
+		a = f/Distance;
+		Tmp = mix(PrevPos, Pos, a);
+		Nx = clamp((int)Tmp.x/32, 0, m_Width-1);
+		Ny = clamp((int)Tmp.y/32, 0, m_Height-1);
+		if((m_pTiles[Ny*m_Width+Nx].m_Index >= TILE_STOPL && m_pTiles[Ny*m_Width+Nx].m_Index <= 59) ||
+			(m_pTele && m_pTele[Ny*m_Width+Nx].m_Type == TILE_TELEIN) ||
+			(m_pSpeedup && m_pSpeedup[Ny*m_Width+Nx].m_Force > 0))
+		{
+			return Ny*m_Width+Nx;
+		}
+	}
+
+	return -1;
+}
+
+vec2 CCollision::GetPos(int Index)
+{
+	int x = Index%m_Width;
+	int y = Index/m_Width;
+
+	return vec2(x*32+16, y*32+16);
+}
+
+int CCollision::GetTileIndex(int Index)
+{
+	if(Index < 0)
+		return 0;
+
+	return m_pTiles[Index].m_Index;
+}
+
+int CCollision::IsTeleport(int Index)
+{
+	if(!m_pTele || Index < 0)
+		return 0;
+
+	int Tele = 0;
+	if(m_pTele[Index].m_Type == TILE_TELEIN)
+		Tele = m_pTele[Index].m_Number;
+
+	return Tele;
+}
+
+int CCollision::IsSpeedup(int Index)
+{
+	if(!m_pSpeedup || Index < 0)
+		return -1;
+
+	if(m_pSpeedup[Index].m_Force > 0)
+		return Index;
+
+	return -1;
+}
+
+void CCollision::GetSpeedup(int Index, vec2 *Dir, int *Force)
+{
+	float Angle = m_pSpeedup[Index].m_Angle * (3.14159265f/180.0f);
+	*Force = m_pSpeedup[Index].m_Force;
+	*Dir = vec2(cos(Angle), sin(Angle));
+}
+
 
 // TODO: rewrite this smarter!
 int CCollision::IntersectLine(vec2 Pos0, vec2 Pos1, vec2 *pOutCollision, vec2 *pOutBeforeCollision)
