@@ -69,6 +69,9 @@ public:
 	IGameController(class CGameContext *pGameServer);
 	virtual ~IGameController();
 
+	vec2 *m_pTeleporter;
+	void InitTeleporter();
+
 	virtual void DoWincheck();
 
 	void DoWarmup(int Seconds);

@@ -22,6 +22,7 @@
 /*DGI:Event:OnConsole*/
 /*DGI:Event:OnMusicChange*/
 #include <time.h>
+#include <base/math.h>
 
 #include "lua.h"
 #include "components/flow.h"
