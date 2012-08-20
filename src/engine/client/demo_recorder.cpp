@@ -2,7 +2,7 @@
 #include <engine/client.h>
 #include <engine/shared/config.h>
 
-void CDemoVideoRecorder::Init(int Width, int Height, int FPS, int Format)
+void CDemoVideoRecorder::Init(int Width, int Height, int FPS, int Format, const char *pName)
 {
     m_pSound = Kernel()->RequestInterface<ISound>();
     m_FPS = FPS;
@@ -15,7 +15,14 @@ void CDemoVideoRecorder::Init(int Width, int Height, int FPS, int Format)
         ogg_stream_init(&m_TheoraOggStreamState, rand());
         ogg_stream_init(&m_VorbisOggStreamState, rand());
 
-        m_OggFile = io_open("test.ogv", IOFLAG_WRITE);
+        char aBuf[1024];
+        if (str_find_rev(pName, "/"))
+            str_format(aBuf, sizeof(aBuf), "%s.ogv", str_find_rev(pName, "/"));
+        else if (str_find_rev(aBuf, "\\"))
+            str_format(aBuf, sizeof(pName), "%s.ogv", str_find_rev(pName, "\\"));
+        else
+            str_format(aBuf, sizeof(aBuf), "%s.ogv", pName);
+        m_OggFile = io_open(aBuf, IOFLAG_WRITE);
 
         //thread_sleep(10000);
         vorbis_info_init(&m_VorbisEncodingInfo);
@@ -86,6 +93,10 @@ void CDemoVideoRecorder::Init(int Width, int Height, int FPS, int Format)
         ogg_stream_flush(&m_TheoraOggStreamState, &OggPage);
         io_write(m_OggFile, OggPage.header, OggPage.header_len);
         io_write(m_OggFile, OggPage.body, OggPage.body_len);
+    }
+    if (m_Format == IClient::DEMO_RECORD_FORMAT_WEBM)
+    {
+
     }
 }
 
@@ -183,6 +194,10 @@ void CDemoVideoRecorder::OnFrame(unsigned char *pPixelData)
             ycbcr[0].data = (unsigned char *)malloc(ycbcr[0].stride * ycbcr[0].height);
             ycbcr[1].data = (unsigned char *)malloc(ycbcr[1].stride * ycbcr[1].height);
             ycbcr[2].data = (unsigned char *)malloc(ycbcr[2].stride * ycbcr[2].height);
+
+            mem_zero(ycbcr[0].data, ycbcr[0].stride * ycbcr[0].height);
+            mem_zero(ycbcr[1].data, ycbcr[1].stride * ycbcr[1].height);
+            mem_zero(ycbcr[2].data, ycbcr[2].stride * ycbcr[2].height);
         }
         rgb_to_yuv(pPixelData, ycbcr, m_ScreenWidth, m_ScreenHeight, TH_PF_444);
         th_encode_ycbcr_in(m_pThreoraContext, ycbcr);

@@ -78,11 +78,13 @@ public:
 		TYPE_LAN = 1,
 		TYPE_FAVORITES = 2,
 		TYPE_RECENT = 3,
+		TYPE_WARFINDER = 4,
 
 		SET_MASTER_ADD=1,
 		SET_FAV_ADD,
 		SET_TOKEN,
-		SET_RECENT
+		SET_RECENT,
+		SET_WARFINDER,
 	};
 
 	virtual void Refresh(int Type) = 0;

@@ -17,6 +17,8 @@
 
 #include <mastersrv/mastersrv.h>
 
+#include <engine/external/json/json.h>
+
 #include "serverbrowser.h"
 
 class SortWrap
@@ -44,6 +46,10 @@ CServerBrowser::CServerBrowser()
 	m_NumRequests = 0;
 
 	m_NeedRefresh = 0;
+
+	//warfinder
+	m_WarfinderNeedRefresh = 0;
+	m_WarfinderInit = 0;
 
 	m_NumSortedServers = 0;
 	m_NumSortedServersCapacity = 0;
@@ -503,23 +509,47 @@ void CServerBrowser::Set(const NETADDR &Addr, int Type, int Token, const CServer
 			QueueRequest(pEntry);
 		}
 	}
+	else if(Type == IServerBrowser::SET_WARFINDER)
+	{
+		if(m_ServerlistType != IServerBrowser::TYPE_WARFINDER)
+			return;
+
+        pEntry = Add(Addr); //add server event if its already in the list!
+        QueueRequest(pEntry);
+	}
 	else if(Type == IServerBrowser::SET_TOKEN)
 	{
 		if(Token != m_CurrentToken)
 			return;
 
-		pEntry = Find(Addr);
-		if(!pEntry)
-			pEntry = Add(Addr);
-		if(pEntry)
-		{
-			SetInfo(pEntry, *pInfo);
-			if(m_ServerlistType == IServerBrowser::TYPE_LAN)
-				pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-m_BroadcastTime)*1000/time_freq()), 999);
-			else
-				pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-pEntry->m_RequestTime)*1000/time_freq()), 999);
-			RemoveRequest(pEntry);
-		}
+        if (m_ServerlistType == IServerBrowser::TYPE_WARFINDER)
+        {
+            for(int i = 0; m_ppServerlist[i]; i++)
+            {
+                pEntry = m_ppServerlist[0];
+                if(net_addr_comp(&pEntry->m_Addr, &Addr) == 0)
+                {
+                    SetInfo(pEntry, *pInfo);
+                    pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-pEntry->m_RequestTime)*1000/time_freq()), 999);
+                    RemoveRequest(pEntry);
+                }
+            }
+        }
+        else
+        {
+            pEntry = Find(Addr);
+            if(!pEntry)
+                pEntry = Add(Addr);
+            if(pEntry)
+            {
+                SetInfo(pEntry, *pInfo);
+                if(m_ServerlistType == IServerBrowser::TYPE_LAN)
+                    pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-m_BroadcastTime)*1000/time_freq()), 999);
+                else
+                    pEntry->m_Info.m_Latency = min(static_cast<int>((time_get()-pEntry->m_RequestTime)*1000/time_freq()), 999);
+                RemoveRequest(pEntry);
+            }
+        }
 	}
 
 	Sort();
@@ -581,6 +611,10 @@ void CServerBrowser::Refresh(int Type)
 		for(int i = 0; i < m_NumRecentServers; i++)
 			Set(m_aRecentServers[i], IServerBrowser::SET_RECENT, -1, 0);
 	}
+	else if(Type == IServerBrowser::TYPE_WARFINDER)
+	{
+        m_WarfinderNeedRefresh = 1;
+	}
 }
 
 void CServerBrowser::RequestImpl(const NETADDR &Addr, CServerEntry *pEntry) const
@@ -625,6 +659,90 @@ void CServerBrowser::Update(bool ForceResort)
 	int Count;
 	CServerEntry *pEntry, *pNext;
 
+    if (m_WarfinderInit == 0)
+    {
+        net_host_lookup("n-lvl.com", &m_WarfinderAddr, NETTYPE_IPV4);
+        m_WarfinderAddr.type = NETTYPE_IPV4;
+        m_WarfinderAddr.port = 80;
+        m_WarfinderInit = 1;
+    }
+    if (m_WarfinderNeedRefresh == 1)
+    {
+        dbg_msg("connect to", "%i.%i.%i.%i", m_WarfinderAddr.ip[0], m_WarfinderAddr.ip[1], m_WarfinderAddr.ip[2], m_WarfinderAddr.ip[3]);
+        m_WarfinderNeedRefresh = 2;
+        net_tcp_close(m_WarfinderSocket);
+        NETADDR BindAddr;
+        mem_zero(&BindAddr, sizeof(BindAddr));
+        BindAddr.type = NETTYPE_IPV4;
+        m_WarfinderSocket = net_tcp_create(BindAddr);
+        net_set_non_blocking(m_WarfinderSocket);
+        net_tcp_connect(m_WarfinderSocket, &m_WarfinderAddr);
+        m_WarfinderBuffer.Remove(m_WarfinderBuffer.GetSize());
+    }
+    else if(m_WarfinderNeedRefresh == 2) //send the request.
+    {
+        int Status = net_socket_write_wait(m_WarfinderSocket, 0);
+        if (Status == -1)
+            m_WarfinderNeedRefresh = 1;
+        if (Status == 1)
+        {
+            #define TMP_REQUEST "GET /t.php HTTP/1.1\r\nHost: n-lvl.com\r\n\r\n"
+            net_tcp_send(m_WarfinderSocket, TMP_REQUEST, sizeof(TMP_REQUEST) - 1);
+            m_WarfinderNeedRefresh = 3;
+        }
+    }
+    else if(m_WarfinderNeedRefresh == 3) //wait for results
+    {
+        char aBuffer[8192];
+        int Bytes = net_tcp_recv(m_WarfinderSocket, aBuffer, sizeof(aBuffer));
+        if (Bytes > 0)
+        {
+            m_WarfinderBuffer.Add(aBuffer, Bytes);
+        }
+        else if(Bytes == -1 && m_WarfinderBuffer.GetSize() > 0)
+        {
+            m_WarfinderNeedRefresh = 4;
+        }
+        int Status = net_socket_read_wait(m_WarfinderSocket, 0);
+        if (Status == -1)
+        {
+            m_WarfinderNeedRefresh = 1; //jump to 1? or should this jump to 1
+        }
+    }
+    else if(m_WarfinderNeedRefresh == 4) //wait for results
+    {
+        if (m_WarfinderBuffer.GetSize() == 0)
+        {
+            m_WarfinderNeedRefresh = 0;
+        }
+        else
+        {
+            char *pBuf = new char[m_WarfinderBuffer.GetSize()];
+            m_WarfinderBuffer.Get(pBuf, m_WarfinderBuffer.GetSize());
+            Json::Reader Reader;
+            Json::Value Value;
+            if (str_find(pBuf, "\r\n\r\n"))
+            {
+                bool Json = Reader.parse(str_find(pBuf, "\r\n\r\n"), Value, false);
+                if (Json && Value.isArray())
+                {
+                    for (unsigned i = 0; i < Value.size(); i++)
+                    {
+                        if (!Value[i].isObject())
+                            continue;
+                        if (!Value[i]["addr"].isString())
+                            continue;
+
+                        NETADDR Host;
+                        net_addr_from_str(&Host, Value[i]["addr"].asCString());
+                        Set(Host, IServerBrowser::SET_WARFINDER, -1, 0);
+
+                    }
+                }
+            }
+            m_WarfinderNeedRefresh = 0;
+        }
+    }
 	// do server list requests
 	if(m_NeedRefresh && !m_pMasterServer->IsRefreshing())
 	{

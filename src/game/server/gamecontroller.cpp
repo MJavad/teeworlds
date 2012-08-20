@@ -134,12 +134,10 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos, bool Force)
 	if(Team == TEAM_SPECTATORS)
 		return false;
 
-    if (m_pGameServer->m_AutoRespawn == false && Force == false)
-        return false;
     if (Force)
-    {
         return true;
-    }
+    if (m_pGameServer->m_AutoRespawn == false)
+        return false;
     m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Team);
     m_pGameServer->m_pLua->m_pEventListener->OnEvent("OnCanSpawn");
     if (m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetType() != CEventVariable::EVENT_TYPE_INVALID && m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)

@@ -80,7 +80,7 @@ DuplicateDirectoryStructure("src", "src", "objs")
 
 function ResCompile(scriptfile)
 	scriptfile = Path(scriptfile)
-	if config.compiler.driver == "cl" then
+	if config.compiler.driver == "cl" or config.compiler.driver == "icl" then
 		output = PathBase(scriptfile) .. ".res"
 		AddJob(output, "rc " .. scriptfile, "rc /fo " .. output .. " " .. scriptfile)
 	elseif config.compiler.driver == "gcc" then
@@ -147,7 +147,7 @@ if family == "windows" then
 		table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\lib64\\SDL.dll"))
 	end
 
-	if config.compiler.driver == "cl" then
+	if config.compiler.driver == "cl" or config.compiler.driver == "icl" then
 		client_link_other = {ResCompile("other/icons/teeworlds_cl.rc")}
 		server_link_other = {ResCompile("other/icons/teeworlds_srv_cl.rc")}
 	elseif config.compiler.driver == "gcc" then
@@ -167,7 +167,7 @@ function build(settings)
 	--settings.objdir = Path("objs")
 	settings.cc.Output = Intermediate_Output
 
-	if config.compiler.driver == "cl" then
+	if config.compiler.driver == "cl" or config.compiler.driver == "icl" then
 		settings.cc.flags:Add("/wd4244")
 	else
 		settings.cc.flags:Add("-Wall", "-fexceptions")
@@ -228,7 +228,10 @@ function build(settings)
 	vorbis = Compile(settings, Collect("src/engine/external/libvorbis/*.c"))
 	settings.cc.includes:Add("src/engine/external/libtheora")
 	theora = Compile(settings, Collect("src/engine/external/libtheora/*.c"))
+	settings.cc.includes:Add("src/engine/external/libvpx")
+	vpx = Compile(settings, Collect("src/engine/external/libvpx/vpx/src/*.c"))
 	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
+	json = Compile(settings, Collect("src/engine/external/json/*.cpp"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
 
     -- build game components
@@ -291,11 +294,11 @@ function build(settings)
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "n-client", game_shared, game_client,
-		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis,
+		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis, json, vpx,
 		client_link_other, client_osxlaunch)
 
-	server_exe = Link(server_settings, "teeworlds_srv", engine, server,
-		game_shared, game_server, zlib, server_link_other, lua, sqlite)
+	server_exe = Link(server_settings, "teeworlds_srv", engine, server, json,
+        game_shared, game_server, zlib, server_link_other, lua, sqlite)
 
 	serverlaunch = {}
 	if platform == "macosx" then
@@ -358,11 +361,21 @@ end
 if family == "unix" then
     release_settings_optimized.cc.flags:Add("-O3")
 elseif family == "windows" then
+    --std
     release_settings_optimized.cc.flags:Add("/Ob2xt")
     release_settings_optimized.cc.flags:Add("/Gs")
     release_settings_optimized.cc.flags:Add("/GL")
-    --release_settings_optimized.cc.flags:Add("/arch:SSE2")
+    release_settings_optimized.cc.flags:Add("/arch:SSE2")
     release_settings_optimized.link.flags:Add("/LTCG")
+    --intel
+    --[[release_settings_optimized.cc.flags:Add("/O3")
+    release_settings_optimized.cc.flags:Add("/QxSSE4.2")
+    release_settings_optimized.cc.flags:Add("/Qparallel")
+    release_settings_optimized.cc.flags:Add("/arch:SSE4.2")
+    release_settings_optimized.cc.flags:Add("/Qip")
+    release_settings_optimized.cc.flags:Add("/Qipo50")
+    release_settings_optimized.cc.flags:Add("/Ob2")
+    release_settings_optimized.cc.flags:Add("/Qinline-factor:1000")]]
 end
 
 if platform == "macosx" then

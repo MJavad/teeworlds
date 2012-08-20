@@ -73,9 +73,9 @@ StatLife = 0
 StatHandle = 0
 StatLevel = 0
 StatMoney = 0
-function Chat()
-    if (ChatGetClientID() == -1) then
-        Text = ChatGetText()
+function Chat(Text, ID, Team)
+    Hide = false
+    if (ID == -1) then
         NumSplitter = 0
         if (Text == "Logged in successfully") then
             ChatSend("/stats")
@@ -85,7 +85,6 @@ function Chat()
             IsLoggedIn = false
         end
         if (string.char(Text:byte(1)) == "H" and string.char(Text:byte(2)) == "a" and string.char(Text:byte(3)) == "m") then
-            ChatHide()
             i = 0
             for w in Text:gmatch("%d+") do
                 i = i + 1
@@ -102,9 +101,9 @@ function Chat()
                     StatGrenade = tonumber(w)
                 end
             end
+            Hide = true
         end
         if (string.char(Text:byte(1)) == "R" and string.char(Text:byte(2)) == "i" and string.char(Text:byte(3)) == "f") then
-            ChatHide()
             i = 0
             for w in Text:gmatch("%d+") do
                 i = i + 1
@@ -118,9 +117,9 @@ function Chat()
                     StatHandle = tonumber(w)
                 end
             end
+            Hide = true
         end
         if (string.char(Text:byte(1)) == "L" and string.char(Text:byte(2)) == "e" and string.char(Text:byte(3)) == "v") then
-            ChatHide()
             StatsNeedRefresh = true
             i = 0
             for w in Text:gmatch("%d+") do
@@ -132,16 +131,16 @@ function Chat()
                     StatMoney = tonumber(w)
                 end
             end
+            Hide = true
         end
         if (string.char(Text:byte(1)) == "/" and string.char(Text:byte(2)) == "u" and string.char(Text:byte(3)) == "p") then
-            ChatHide()
             ChatSend("/stats")
+            Hide = true
         end
         if (string.char(Text:byte(1)) == "/" and string.char(Text:byte(2)) == "s" and string.char(Text:byte(3)) == "t") then
-            ChatHide()
+            Hide = true
         end
         if (string.char(Text:byte(1)) == "E" and string.char(Text:byte(2)) == "x" and string.char(Text:byte(3)) == "p") then
-            ChatHide()
             TmpNowExp = ""
             TmpFullExp = ""
             for i = 0, Text:len() do
@@ -179,7 +178,11 @@ function Chat()
                     break
                 end
             end
+            Hide = true
         end
+    end
+    if (Hide) then
+        return true
     end
 end
 
@@ -242,6 +245,9 @@ function IsKogServer()
     if (GetGameType() == "KoG|CTF") then
         return true
     end
+    if (GetGameType() == "Build") then
+        return true
+    end
     return false
 end
 
@@ -250,13 +256,13 @@ function Tick(Time, ServerTick)
     if (StateOnline() == false) then
         IsLoggedIn = false
     end
-    if (Ui.ActivExp == true and ((StateOnline() and MenuActiv() == false and IsKogServer()) == false or BarNeedRefresh)) then
+    if (Ui.ActivExp == true and ((StateOnline() and MenuActive() == false and IsKogServer()) == false or BarNeedRefresh)) then
         UiRemoveElement(Ui.ExpRect)
         UiRemoveElement(Ui.ExpBar)
         UiRemoveElement(Ui.ExpLabel)
         Ui.ActivExp = false;
     end
-    if (Ui.ActivLogin == true and ((StateOnline() and MenuGameActiv() and IsKogServer()) == false or IsLoggedIn)) then
+    if (Ui.ActivLogin == true and ((StateOnline() and MenuGameActive() and IsKogServer()) == false or IsLoggedIn)) then
         UiRemoveElement(Ui.LoginRect)
         UiRemoveElement(Ui.LoginNameLabel)
         UiRemoveElement(Ui.LoginNameBox)
@@ -265,7 +271,7 @@ function Tick(Time, ServerTick)
         UiRemoveElement(Ui.LoginButton)
         Ui.ActivLogin = false
     end
-    if (Ui.ActivInGame == true and ((StateOnline() and MenuGameActiv() and IsKogServer()) == false or StatsNeedRefresh)) then
+    if (Ui.ActivInGame == true and ((StateOnline() and MenuGameActive() and IsKogServer()) == false or StatsNeedRefresh)) then
         UiRemoveElement(Ui.InGameRect)
         UiRemoveElement(Ui.InGameName)
         UiRemoveElement(Ui.InGameLogoutButton)
@@ -303,7 +309,7 @@ function Tick(Time, ServerTick)
             end
         end
     end
-    if (StateOnline() and MenuActiv() == false and IsKogServer() and Ui.ActivExp == false and IsLoggedIn == true) then
+    if (StateOnline() and MenuActive() == false and IsKogServer() and Ui.ActivExp == false and IsLoggedIn == true) then
         Ui.ActivExp = true
         Width = UiGetScreenHeight() * 0.2
         Height = UiGetScreenHeight() * 0.04
@@ -320,7 +326,7 @@ function Tick(Time, ServerTick)
         end
         BarNeedRefresh = false
     end
-    if (StateOnline() and MenuGameActiv() and IsKogServer() and Ui.ActivLogin == false and IsLoggedIn == false) then
+    if (StateOnline() and MenuGameActive() and IsKogServer() and Ui.ActivLogin == false and IsLoggedIn == false) then
         Ui.ActivLogin = true
         Width = UiGetScreenHeight() * 0.5
         Height = UiGetScreenHeight() * 0.14
@@ -340,7 +346,7 @@ function Tick(Time, ServerTick)
         InGameNeedRefresh = false
         ChatSend("/stats")
     end
-    if (StateOnline() and MenuGameActiv() and IsKogServer() and Ui.ActivInGame == false and IsLoggedIn == true) then
+    if (StateOnline() and MenuGameActive() and IsKogServer() and Ui.ActivInGame == false and IsLoggedIn == true) then
         Ui.ActivInGame = true
         Spacing = UiGetScreenHeight() * 0.2 * 0.05
         Width = UiGetScreenHeight() * 0.5 + Spacing * 2

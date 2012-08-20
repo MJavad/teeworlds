@@ -49,7 +49,10 @@ void CLua::Tick()
         else if (m_aLuaFiles[i].GetScriptName()[0] && m_pClient->m_pLuaCore->GetFileDir(i)[0] == 0)
             m_aLuaFiles[i].Close();
         else if (m_aLuaFiles[i].GetScriptName()[0])
+        {
+            m_aLuaFiles[i].m_NetTCP.Tick();
             m_aLuaFiles[i].Tick();
+        }
     }
 }
 

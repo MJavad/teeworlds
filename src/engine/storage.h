@@ -22,6 +22,7 @@ public:
 	virtual bool RenameFile(const char* pOldFilename, const char* pNewFilename, int Type) = 0;
 	virtual bool CreateFolder(const char *pFoldername, int Type) = 0;
 	virtual const char *GetPath(int Type, const char *pDir, char *pBuffer, unsigned BufferSize) = 0;
+	virtual const char *GetExecFilename() = 0;
 };
 
 extern IStorage *CreateStorage(const char *pApplicationName, int NumArgs, const char **ppArguments);

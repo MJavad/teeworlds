@@ -72,6 +72,8 @@ CMenus::CMenus()
 
 	m_FriendlistSelectedIndex = -1;
 	m_ActivLuaFile = -1;
+
+	m_Recording = false;
 }
 
 vec4 CMenus::ButtonColorMul(const void *pID)
@@ -588,6 +590,8 @@ int CMenus::RenderMenubar(CUIRect r)
                 ServerBrowser()->Refresh(IServerBrowser::TYPE_FAVORITES);
 		    else if (g_Config.m_UiServersPage==PAGE_SERVERS_RECENT)
                 ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
+		    else if (g_Config.m_UiServersPage==PAGE_SERVERS_WARFINDER)
+                ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
             else
                 ServerBrowser()->Refresh(IServerBrowser::TYPE_INTERNET);
 			NewPage = PAGE_SERVERS;
@@ -746,7 +750,6 @@ void CMenus::RenderLoadingEx(char *pText)
     //Graphics()->QuadsText(x, y, 15.0f, 1, 1, 1, 1, pText);
 
 	Graphics()->Swap();
-	dbg_msg("", "-.-");
     return;
 }
 
@@ -850,6 +853,8 @@ int CMenus::Render()
                 ServerBrowser()->Refresh(IServerBrowser::TYPE_FAVORITES);
             else if(g_Config.m_UiServersPage == PAGE_SERVERS_RECENT)
                 ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
+            else if(g_Config.m_UiServersPage == PAGE_SERVERS_WARFINDER)
+                ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
             else
             {
                 g_Config.m_UiServersPage = PAGE_SERVERS_INTERNET;
@@ -998,6 +1003,11 @@ int CMenus::Render()
 		else if(m_Popup == POPUP_CONVERT_DEMO)
 		{
 			pTitle = Localize("Convert demo");
+			ExtraAlign = -1;
+		}
+		else if(m_Popup == POPUP_CONVERT_DEMO_PROGRESS)
+		{
+			pTitle = Localize("Converting demo...");
 			ExtraAlign = -1;
 		}
 		else if(m_Popup == POPUP_RENAME_DEMO)
@@ -1413,17 +1423,78 @@ int CMenus::Render()
 			static int s_ButtonConvert = 0;
 			if(DoButton_Menu(&s_ButtonConvert, Localize("Convert"), 0, &Convert) || m_EnterPressed)
 			{
-				m_Popup = POPUP_NONE;
+				m_Popup = POPUP_CONVERT_DEMO_PROGRESS;
 				// convert demo
 				if(m_DemolistSelectedIndex >= 0 && !m_DemolistSelectedIsDir)
 				{
-                    char aBuf[512];
+				    char aBuf[2048];
+				    m_Recording = true;
+				    IOHANDLE TmpSettings = io_open("rec.cfg", IOFLAG_WRITE);
+				    io_write(TmpSettings, "gfx_screen_width 1920\n", sizeof("gfx_screen_width 1920\n") - 1);
+				    io_write(TmpSettings, "gfx_screen_height 1080\n", sizeof("gfx_screen_height 1080\n") - 1);
+				    io_write(TmpSettings, "gfx_fullscreen 0\n", sizeof("gfx_fullscreen 0\n") - 1);
+				    io_write(TmpSettings, "gfx_vsync 0\n", sizeof("gfx_vsync 0\n") - 1);
+				    io_write(TmpSettings, "snd_volume 100\n", sizeof("snd_volume 100\n") - 1);
+                    str_format(aBuf, sizeof(aBuf), "rec \"%s/%s\" %i %i %i", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, s_Format);
+				    io_write(TmpSettings, aBuf, str_length(aBuf));
+				    io_close(TmpSettings);
+				    str_format(aBuf, sizeof(aBuf), "\"\"%s\"\" -f rec.cfg", m_pClient->Storage()->GetExecFilename());
+				    //str_format(aBuf, sizeof(aBuf), "\"\"%s\"\"", m_pClient->Storage()->GetExecFilename());
+				    dbg_msg("", aBuf);
+				    m_RecordingProcess = p_open(aBuf, IOFLAG_READ);
+                    /*char aBuf[512];
                     str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
                     const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, s_Format);
                     if(pError)
-                        PopupMessage(Localize("Error"), str_comp(pError, "error loading demo") ? pError : Localize("Error loading demo"), Localize("Ok"));
+                        PopupMessage(Localize("Error"), str_comp(pError, "error loading demo") ? pError : Localize("Error loading demo"), Localize("Ok"));*/
 				}
 			}
+		}
+		else if(m_Popup == POPUP_CONVERT_DEMO_PROGRESS)
+		{
+		    static char saBuffer[128] = {0};
+			if (m_RecordingProcess)
+			{
+			    if (io_length(m_RecordingProcess))
+			    {
+                    char Buf = 0;
+                    char aBuf[1024] = {0};
+                    char *pBuf = aBuf;
+                    while (io_read(m_RecordingProcess, &Buf, sizeof(char)) && pBuf - aBuf < 1024) //hacky line reader
+                    {
+                        *pBuf = Buf;
+                        pBuf++;
+                        if (str_find(aBuf, "[!!!recording done!!!]"))
+                        {
+                            dbg_msg("kill", "renderer");
+                            p_close(m_RecordingProcess);
+                            m_RecordingProcess = 0;
+                            m_Popup = POPUP_NONE;
+                            break;
+                        }
+                        if (str_find(aBuf, "[%%%]") && str_find(aBuf, "[%%%]") < str_find(aBuf, "[!]"))
+                        {
+                            str_copy(saBuffer, str_find(aBuf, "[%%%]") + 7, min<int>(sizeof(saBuffer), str_find(aBuf, "[!]") - str_find(aBuf, "[%%%]") - 6));
+                            break;
+                        }
+                    }
+                }
+			}
+
+
+            Box.HSplitTop(20.f, 0, &Box);
+            Box.HSplitTop(24.f, &Part, &Box);
+            Part.VMargin(40.0f, &Part);
+            RenderTools()->DrawUIRect(&Part, vec4(1.0f, 1.0f, 1.0f, 0.25f), CUI::CORNER_ALL, 5.0f);
+            Part.w = max(10.0f, (Part.w * str_tofloat(saBuffer)));
+            RenderTools()->DrawUIRect(&Part, vec4(1.0f, 1.0f, 1.0f, 0.5f), CUI::CORNER_ALL, 5.0f);
+
+            Box.HSplitTop(24.f, &Part, &Box);
+            Box.HSplitTop(24.f, &Part, &Box);
+            char aBuf[64] = {0};
+            str_format(aBuf, sizeof(aBuf), "%.2f%%", str_tofloat(saBuffer) * 100.0f);
+            UI()->DoLabel(&Part, aBuf, 22.0f, 0);
+
 		}
 		else if(m_Popup == POPUP_RENAME_DEMO)
 		{

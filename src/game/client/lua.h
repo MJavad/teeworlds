@@ -9,6 +9,8 @@
 #include <base/tl/array.h>
 #include <base/tl/sorted_array.h>
 #include <game/luaevent.h>
+#include <engine/engine.h>
+#include <engine/shared/network.h>
 
 #define NON_HASED_VERSION
 #include <game/version.h>
@@ -142,6 +144,7 @@ public:
     ~CLuaFile();
     class CLua *m_pLuaHandler;
     CGameClient *m_pClient;
+    CNetTCP m_NetTCP;
     void UiTick();
     void Tick();
     void End();
@@ -189,6 +192,8 @@ public:
     int m_FunctionVarNum;
 
     int m_Error;
+
+    CHostLookup m_Lookup;
 
     //Functions:
     //Settings
@@ -251,6 +256,11 @@ public:
     //Character
     static inline int GetLocalCharacterId(lua_State *L);
     static inline int GetLocalCharacterPos(lua_State *L);
+    static inline int GetLocalCharacterWeapon(lua_State *L);
+    static inline int GetLocalCharacterWeaponAmmo(lua_State *L);
+    static inline int GetLocalCharacterHealth(lua_State *L);
+    static inline int GetLocalCharacterArmor(lua_State *L);
+
     static inline int GetCharacterPos(lua_State *L);
     static inline int SetCharacterPos(lua_State *L);
     static inline int GetCharacterVel(lua_State *L);
@@ -262,7 +272,6 @@ public:
     static inline int GetCharacterHookPos(lua_State *L);
     static inline int GetCharacterHookDir(lua_State *L);
     static inline int GetCharacterHookState(lua_State *L);
-    static inline int GetCharacterWeaponAmmo(lua_State *L);
 
 
     //collision
@@ -464,6 +473,15 @@ public:
     };
     static inline int ListDirectoryInternal(const char *pName, int IsDir, int DirType, void *pUser);
 
+    static inline int TCPConnect(lua_State *L);
+    static inline int TCPSend(lua_State *L);
+    static inline int TCPStreamSize(lua_State *L);
+    static inline int TCPStreamClear(lua_State *L);
+    static inline int TCPStreamRead(lua_State *L);
+    static inline int TCPGetStatus(lua_State *L);
+    static inline int TCPClose(lua_State *L);
+    static inline int HostLookup(lua_State *L);
+    static inline int HostLookupGetResult(lua_State *L);
 };
 
 class CLua

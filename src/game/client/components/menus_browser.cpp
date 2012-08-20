@@ -1002,6 +1002,14 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
         ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
     }
 
+    /*ViewRest.VSplitLeft(100.0f, &Button, &ViewRest);
+    static int s_WarfinderButton=0;
+    if(DoButton_MenuTab(&s_WarfinderButton, Localize("Warfinder"), g_Config.m_UiServersPage==PAGE_SERVERS_WARFINDER, &Button, CUI::CORNER_T))
+    {
+        g_Config.m_UiServersPage = PAGE_SERVERS_WARFINDER;
+        ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
+    }*/
+
     MainView = View;
 
 	CUIRect ServerList, ToolBox, StatusBox, TabBar;
@@ -1102,6 +1110,8 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
 				ServerBrowser()->Refresh(IServerBrowser::TYPE_FAVORITES);
 			else if(g_Config.m_UiServersPage == PAGE_SERVERS_RECENT)
 				ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
+			else if(g_Config.m_UiServersPage == PAGE_SERVERS_WARFINDER)
+				ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
             m_F5Pressed = false;
 		}
 
@@ -1143,4 +1153,6 @@ void CMenus::ConchainServerbrowserUpdate(IConsole::IResult *pResult, void *pUser
         ((CMenus *)pUserData)->ServerBrowser()->Refresh(IServerBrowser::TYPE_FAVORITES);
     if(pResult->NumArguments() && g_Config.m_UiPage == PAGE_SERVERS_RECENT && ((CMenus *)pUserData)->Client()->State() == IClient::STATE_OFFLINE)
         ((CMenus *)pUserData)->ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
+    if(pResult->NumArguments() && g_Config.m_UiPage == PAGE_SERVERS_WARFINDER && ((CMenus *)pUserData)->Client()->State() == IClient::STATE_OFFLINE)
+        ((CMenus *)pUserData)->ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
 }

@@ -5,6 +5,8 @@
 
 #include <engine/serverbrowser.h>
 
+#include <engine/shared/stream.h>
+
 class CServerBrowser : public IServerBrowser
 {
 public:
@@ -78,6 +80,12 @@ private:
 	int m_NumRequests;
 
 	int m_NeedRefresh;
+
+    int m_WarfinderInit; //this is needed because at construct time the network is not initialized
+	int m_WarfinderNeedRefresh;
+	NETADDR m_WarfinderAddr;
+	NETSOCKET m_WarfinderSocket;
+    CStream m_WarfinderBuffer;
 
 	int m_NumSortedServers;
 	int m_NumSortedServersCapacity;

@@ -199,6 +199,12 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	CVersionInfo m_VersionInfo;
 	CVersionInfo m_VersionLuaInfo;
 
+	//demo recorder
+	int m_RecordStart;
+    char m_aRecordDemoName[1024];
+    int m_RecordDemoFPS;
+    int m_RecordDemoFormat;
+    int m_RecordDemoStorageType;
 public:
 	IEngine *Engine() { return m_pEngine; }
 	IEngineGraphics *Graphics() { return m_pGraphics; }
@@ -310,6 +316,7 @@ public:
 	static void Con_AddFavorite(IConsole::IResult *pResult, void *pUserData);
 	static void Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Play(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Rec(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Record(IConsole::IResult *pResult, void *pUserData);
 	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData);
 	static void ConchainServerBrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);

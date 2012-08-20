@@ -22,7 +22,7 @@ class CDemoVideoRecorder : public IDemoVideoRecorder
     ogg_stream_state m_VorbisOggStreamState;
     IOHANDLE m_OggFile;
 public:
-    void Init(int Width, int Height, int FPS, int Format);
+    void Init(int Width, int Height, int FPS, int Format, const char *pName);
     void Stop();
     void OnFrame(unsigned char *pPixelData);
     static void OnData(unsigned char *pPixelData, void *pUser);
@@ -99,10 +99,10 @@ static void rgb_to_yuv(const unsigned char *pPng, th_ycbcr_buffer ycbcr, unsigne
         {
             for(x = 0; x < w; x++)
             {
-
-                unsigned char r = pPng[((h - y) * w + x) * 3 + 0];
-                unsigned char g = pPng[((h - y) * w + x) * 3 + 1];
-                unsigned char b = pPng[((h - y) * w + x) * 3 + 2];
+                int i = ((h - y) * w + x) * 3;
+                unsigned char r = pPng[i + 0];
+                unsigned char g = pPng[i + 1];
+                unsigned char b = pPng[i + 2];
 
                 yuv_y[x + y * yuv_w] = clamp((65481*r+128553*g+24966*b+4207500)/255000, 0, 255);
                 yuv_u[x + y * yuv_w] = clamp((-33488*r-65744*g+99232*b+29032005)/225930, 0, 255);

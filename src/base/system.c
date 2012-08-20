@@ -265,6 +265,33 @@ int mem_check_imp()
 	return 1;
 }
 
+IOHANDLE p_open(const char *filename, int flags)
+{
+	if(flags == IOFLAG_READ)
+	#if defined(CONF_FAMILY_WINDOWS)
+		return (IOHANDLE)_popen(filename, "r");
+    #else
+		return (IOHANDLE)popen(filename, "r");
+    #endif
+	if(flags == IOFLAG_WRITE)
+	#if defined(CONF_FAMILY_WINDOWS)
+		return (IOHANDLE)_popen(filename, "w");
+    #else
+		return (IOHANDLE)popen(filename, "w");
+    #endif
+	return 0x0;
+}
+
+int p_close(IOHANDLE io)
+{
+	#if defined(CONF_FAMILY_WINDOWS)
+		(IOHANDLE)_pclose((FILE*)io);
+    #else
+		(IOHANDLE)pclose((FILE*)io);
+    #endif
+	return 0;
+}
+
 IOHANDLE io_open(const char *filename, int flags)
 {
 	if(flags == IOFLAG_READ)

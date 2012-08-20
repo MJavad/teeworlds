@@ -331,7 +331,15 @@ void CGameClient::DispatchInput()
 {
 	// handle mouse movement
 	float x = 0.0f, y = 0.0f;
-	Input()->MouseRelative(&x, &y);
+	if (!Client()->IsRecording())
+	{
+        Input()->MouseRelative(&x, &y);
+	}
+	else
+	{
+	    dbg_msg("xDD", "xDD");
+        Input()->MouseModeAbsolute();
+	}
 	if(x != 0.0f || y != 0.0f)
 	{
 		for(int h = 0; h < m_Input.m_Num; h++)

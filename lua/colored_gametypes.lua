@@ -59,44 +59,43 @@ SetScriptUseSettingPage(1)
 
 AddEventListener("OnServerBrowserGameTypeRender", "SetColor")
 
-function SetColor()
-    Name = GetMenuBrowserGameTypeName()
+function SetColor(Name)
     Name = Name:lower()
     if (Name == Config.Name1) then
-        SetMenuBrowserGameTypeColor(Config.R1 / 99, Config.G1 / 99, Config.B1 / 99, 1)
+        return Config.R1 / 99, Config.G1 / 99, Config.B1 / 99, 1
     end
     if (Name == Config.Name2) then
-        SetMenuBrowserGameTypeColor(Config.R2 / 99, Config.G2 / 99, Config.B2 / 99, 1)
+        return Config.R2 / 99, Config.G2 / 99, Config.B2 / 99, 1
     end
     if (Name == Config.Name3) then
-        SetMenuBrowserGameTypeColor(Config.R3 / 99, Config.G3 / 99, Config.B3 / 99, 1)
+        return Config.R3 / 99, Config.G3 / 99, Config.B3 / 99, 1
     end
     if (Name == Config.Name4) then
-        SetMenuBrowserGameTypeColor(Config.R4 / 99, Config.G4 / 99, Config.B4 / 99, 1)
+        return Config.R4 / 99, Config.G4 / 99, Config.B4 / 99, 1
     end
     if (Name == Config.Name5) then
-        SetMenuBrowserGameTypeColor(Config.R5 / 99, Config.G5 / 99, Config.B5 / 99, 1)
+        return Config.R5 / 99, Config.G5 / 99, Config.B5 / 99, 1
     end
     if (Name == Config.Name6) then
-        SetMenuBrowserGameTypeColor(Config.R6 / 99, Config.G6 / 99, Config.B6 / 99, 1)
+        return Config.R6 / 99, Config.G6 / 99, Config.B6 / 99, 1
     end
     if (Name == Config.Name7) then
-        SetMenuBrowserGameTypeColor(Config.R7 / 99, Config.G7 / 99, Config.B7 / 99, 1)
+        return Config.R7 / 99, Config.G7 / 99, Config.B7 / 99, 1
     end
     if (Name == Config.Name8) then
-        SetMenuBrowserGameTypeColor(Config.R8 / 99, Config.G8 / 99, Config.B8 / 99, 1)
+        return Config.R8 / 99, Config.G8 / 99, Config.B8 / 99, 1
     end
     if (Name == Config.Name9) then
-        SetMenuBrowserGameTypeColor(Config.R9 / 99, Config.G9 / 99, Config.B9 / 99, 1)
+        return Config.R9 / 99, Config.G9 / 99, Config.B9 / 99, 1
     end
     if (Name == Config.Name10) then
-        SetMenuBrowserGameTypeColor(Config.R10 / 99, Config.G10 / 99, Config.B10 / 99, 1)
+        return Config.R10 / 99, Config.G10 / 99, Config.B10 / 99, 1
     end
     if (Name == Config.Name11) then
-        SetMenuBrowserGameTypeColor(Config.R11 / 99, Config.G1 / 99, Config.B11 / 99, 1)
+        return Config.R11 / 99, Config.G11 / 99, Config.B11 / 99, 1
     end
     if (Name == Config.Name12) then
-        SetMenuBrowserGameTypeColor(Config.R12 / 99, Config.G12 / 99, Config.B12 / 99, 1)
+        return Config.R12 / 99, Config.G12 / 99, Config.B12 / 99, 1
     end
 end
 

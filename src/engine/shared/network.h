@@ -397,7 +397,7 @@ public:
 	void Close();
 
 	// connection state
-	void Connect(NETADDR ConnAddr);
+	int Connect(NETADDR ConnAddr);
 	int64 m_ConnectStartTime;
 
 	//Ping & timeout
@@ -405,8 +405,7 @@ public:
 	#define PINGDELAY 30
 	int64 m_LastPingResponse;
 	int64 m_LastPing;
-	void SendPing();
-	void SendResp();
+	int GetStatus();
 
  	// communication
     //recv
