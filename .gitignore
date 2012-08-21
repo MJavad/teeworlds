@@ -21,7 +21,7 @@ teeworlds_srv*
 tileset_borderfix*
 versionsrv*
 n-client*
-luacompiler*
+lua_compiler*
 tileset_borderadd*
 tileset_borderrem*
 tileset_borderset*
