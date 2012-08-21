@@ -22,6 +22,8 @@ tileset_borderfix*
 versionsrv*
 n-client*
 luacompiler*
+tileset_borderadd*
+tileset_borderrem*
 
 /src/game/pathfinder.cpp
 /src/game/pathfinder.h
