@@ -21,6 +21,7 @@ teeworlds_srv*
 tileset_borderfix*
 versionsrv*
 n-client*
+luacompiler*
 
 /src/game/pathfinder.cpp
 /src/game/pathfinder.h
