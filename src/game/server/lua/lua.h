@@ -284,6 +284,7 @@ public:
     };
     class CField
     {
+    public:
         enum TYPES
         {
             TYPE_INVALID = 0,
