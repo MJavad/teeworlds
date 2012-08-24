@@ -252,7 +252,6 @@ function build(settings)
 	launcher_settings = engine_settings:Copy()
 
 	if family == "unix" then
-        server_settings.link.libs:Add("libmysql")
         server_settings.link.libs:Add("mysqlclient")
    		if platform == "macosx" then
 			client_settings.link.frameworks:Add("OpenGL")

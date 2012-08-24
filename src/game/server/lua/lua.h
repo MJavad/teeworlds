@@ -282,7 +282,7 @@ public:
         char *m_pQuery;
         int m_Length;
     };
-    struct CField
+    class CField
     {
         enum TYPES
         {
@@ -298,13 +298,13 @@ public:
         char *m_pName;
         long m_Length;
 
-        CField::CField()
+        CField()
         {
             m_Type = TYPE_INVALID;
             m_pData = 0;
             m_pName = 0;
         }
-        CField::~CField()
+        ~CField()
         {
             if (m_pData)
                 delete []m_pData;
