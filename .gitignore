@@ -6,6 +6,7 @@ datasrc/*.pyc
 objs
 src/game/generated
 SDL.dll
+libmysql.dll
 freetype.dll
 autoexec.cfg
 
