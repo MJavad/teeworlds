@@ -10,10 +10,13 @@ void CLuaFile::MySQLTick()
     {
         if (m_lpResults[i]->m_Timestamp + time_freq() < time_get())
         {
-            dbg_msg("num", "%i", m_MySQLThread.m_Queries);
             MySQLFreeResult(i, m_lpResults[i]->m_QueryId);
-            m_lpResults.DeleteByIndex(i);
             i--;
+        }
+        else
+        {
+            m_pLuaHandler->m_pEventListener->m_Parameters.FindFree()->Set(m_lpResults[i]->m_QueryId);
+            m_pLuaHandler->m_pEventListener->OnEvent("OnMySQLResults");
         }
     }
 }
@@ -23,7 +26,6 @@ void CLuaFile::MySQLFreeAll()
     for (int i = 0; i < m_lpResults.GetSize(); i++)
     {
         MySQLFreeResult(i, m_lpResults[i]->m_QueryId);
-        m_lpResults.DeleteByIndex(i);
         i--;
     }
 }
@@ -140,38 +142,35 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                             pField->m_Length = pMySQLField->length;
                             if (pMySQLField->type == MYSQL_TYPE_TINY)
                             {
-                                char *pNum = (char *)Row[i];
-                                pField->m_Number = *pNum;
+                                pField->m_Number = atol(Row[i]);
                                 pField->m_Type = CField::TYPE_INTEGER;
                             }
                             if (pMySQLField->type == MYSQL_TYPE_SHORT)
                             {
-                                short *pNum = (short *)Row[i];
-                                pField->m_Number = *pNum;
+                                pField->m_Number = atol(Row[i]);
                                 pField->m_Type = CField::TYPE_INTEGER;
                             }
                             if (pMySQLField->type == MYSQL_TYPE_LONG)
                             {
-                                long *pNum = (long *)Row[i];
-                                pField->m_Number = *pNum;
+                                pField->m_Number = atol(Row[i]);
                                 pField->m_Type = CField::TYPE_INTEGER;
                             }
                             if (pMySQLField->type == MYSQL_TYPE_LONGLONG)
                             {
-                                long long *pNum = (long long *)Row[i];
-                                pField->m_Number = *pNum;
-                                pField->m_Type = CField::TYPE_INTEGER;
+                                // not supported by atol
+                                // to lua as string
+                                pField->m_pData = new char[pMySQLField->length];
+                                mem_copy(pField->m_pData, Row[i], pMySQLField->length);
+                                pField->m_Type = CField::TYPE_DATA;
                             }
                             if (pMySQLField->type == MYSQL_TYPE_FLOAT)
                             {
-                                float *pNum = (float *)Row[i];
-                                pField->m_Float = *pNum;
+                                pField->m_Float = atof(Row[i]);
                                 pField->m_Type = CField::TYPE_FLOAT;
                             }
                             if (pMySQLField->type == MYSQL_TYPE_DOUBLE)
                             {
-                                double *pNum = (double *)Row[i];
-                                pField->m_Float = *pNum;
+                                pField->m_Float = atof(Row[i]);
                                 pField->m_Type = CField::TYPE_FLOAT;
                             }
                             if (pMySQLField->type == MYSQL_TYPE_TIMESTAMP || pMySQLField->type == MYSQL_TYPE_DATE || pMySQLField->type == MYSQL_TYPE_TIME || pMySQLField->type == MYSQL_TYPE_DATETIME)
@@ -210,6 +209,61 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
         }
     }
     lock_release(pData->m_MySSQLLock);
+}
+
+int CLuaFile::MySQLFetchResults(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    int QueryId = lua_tointeger(L, 1);
+    for (int i = 0; i < pSelf->m_lpResults.GetSize(); i++)
+    {
+        if (pSelf->m_lpResults[i]->m_QueryId == QueryId)
+        {
+            CResults *pResult = pSelf->m_lpResults[i];
+            int Values = 0;
+            lua_newtable(L);
+            int ReturnTableIndex = lua_gettop(L);
+            for (int RowId = 0; RowId < pResult->m_lpRows.GetSize(); RowId++)
+            {
+                CRow *pRow = pResult->m_lpRows[RowId];
+                Values++;
+                lua_pushinteger(L, Values);
+                lua_newtable(L);
+                int RowTableIndex = lua_gettop(L);
+                for (int FieldId = 0; FieldId < pRow->m_lpFields.GetSize(); FieldId++)
+                {
+                    CField *pField = pRow->m_lpFields[FieldId];
+                    if (pField->m_pName == 0)
+                        continue;
+                    lua_pushstring(L, pField->m_pName);
+                    if (pField->m_Type == CField::TYPE_INTEGER)
+                    {
+                        lua_pushinteger(L, pField->m_Number);
+                    }
+                    else if (pField->m_Type == CField::TYPE_FLOAT)
+                    {
+                        lua_pushnumber(L, pField->m_Float);
+                    }
+                    else if (pField->m_Type == CField::TYPE_DATA)
+                    {
+                        lua_pushlstring(L, pField->m_pData, pField->m_Length);
+                    }
+                    else
+                    {
+                        lua_pushnil(L);
+                    }
+                    lua_settable(L, RowTableIndex);
+                }
+                lua_settable(L, ReturnTableIndex);
+            }
+            pSelf->MySQLFreeResult(i, QueryId);
+            return 1;
+        }
+    }
+    return 0;
 }
 
 int CLuaFile::MySQLConnect(lua_State *L)

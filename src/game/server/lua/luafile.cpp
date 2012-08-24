@@ -54,7 +54,6 @@ CLuaFile::CLuaFile()
 
 CLuaFile::~CLuaFile()
 {
-    dbg_msg("kill", "lua");
     m_MySQLThread.m_Running = false;
     lock_wait(m_MySQLThread.m_MySSQLLock);
     lock_release(m_MySQLThread.m_MySSQLLock);
@@ -282,6 +281,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("MySQLIsConnected"), this->MySQLIsConnected);
     lua_register(m_pLua, ToLower("MySQLQuery"), this->MySQLQuery);
     lua_register(m_pLua, ToLower("MySQLClose"), this->MySQLClose);
+    lua_register(m_pLua, ToLower("MySQLFetchResults"), this->MySQLFetchResults);
 
 
     lua_pushlightuserdata(m_pLua, this);

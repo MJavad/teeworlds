@@ -259,20 +259,22 @@ public:
 
     //mysql stuff - welcome to the next level
 
-    MYSQL m_MySQL;
-    bool m_MySQLConnected;
-    inline void MySQLTick();
-    inline void MySQLFreeResult(int Id, int QueryId);
-    inline void MySQLFreeAll();
-    inline void MySQLInit();
+    //lua functions
     static inline int MySQLConnect(lua_State *L);
     static inline int MySQLEscapeString(lua_State *L);
     static inline int MySQLSelectDatabase(lua_State *L);
     static inline int MySQLIsConnected(lua_State *L);
     static inline int MySQLQuery(lua_State *L);
     static inline int MySQLClose(lua_State *L);
+    static inline int MySQLFetchResults(lua_State *L);
 
-
+    // internal stuff
+    MYSQL m_MySQL;
+    bool m_MySQLConnected;
+    inline void MySQLTick();
+    inline void MySQLFreeResult(int Id, int QueryId);
+    inline void MySQLFreeAll();
+    inline void MySQLInit();
     int m_IncrementalQueryId;
     struct CQuery
     {
