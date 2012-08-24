@@ -199,6 +199,7 @@ T CArray<T>::operator[] (unsigned long long i)
         }
         if (m_SelectedIndex == i)
         {
+            lock_release(m_Lock);
             return m_pSelectedItem->m_Value;
         }
     }

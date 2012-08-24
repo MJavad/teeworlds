@@ -1,3 +1,5 @@
+//Copyright (c) by MAP94 2012
+
 #ifndef SHARED_ARRAY_H
 #define SHARED_ARRAY_H
 #include <base/system.h>

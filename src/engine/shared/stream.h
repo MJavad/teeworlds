@@ -1,3 +1,5 @@
+//Copyright (c) by MAP94 2012
+
 #ifndef ENGINE_SHARED_STREAM_H
 #define ENGINE_SHARED_STREAM_H
 #include <base/system.h>
