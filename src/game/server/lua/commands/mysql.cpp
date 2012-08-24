@@ -197,9 +197,7 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                 pResult->m_Error = true;
             }
 
-            dbg_msg("Add", "muh");
             pData->m_pLua->m_lpResults.Insert(pResult);
-            dbg_msg("Add", "mäh");
             pData->m_Queries--;
             delete []pQuery->m_pQuery;
             delete []pQuery;
