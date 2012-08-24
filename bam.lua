@@ -267,9 +267,10 @@ function build(settings)
 			client_settings.link.libs:Add("GL")
 			client_settings.link.libs:Add("GLU")
             if arch == "amd64" then
-                server_settings.link.libpath:Add("other/mysql/linux/lib64")
-            else
-                server_settings.link.libpath:Add("other/mysql/linux/lib32")
+                server_settings.link.libpath:Add("other/mysql/linux/lib_x86_64")
+            end
+            if arch == "ia32" then
+                server_settings.link.libpath:Add("other/mysql/linux/lib_x86_32")
             end
 		end
 
