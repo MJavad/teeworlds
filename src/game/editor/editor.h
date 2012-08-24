@@ -266,6 +266,7 @@ class CEditorMap
 public:
 	CEditor *m_pEditor;
 	bool m_Modified;
+	int m_UndoModified;
 
 	CEditorMap()
 	{
@@ -284,6 +285,7 @@ public:
 	CEnvelope *NewEnvelope(int Channels)
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		CEnvelope *e = new CEnvelope(Channels);
 		m_lEnvelopes.add(e);
 		return e;
@@ -294,6 +296,7 @@ public:
 	CLayerGroup *NewGroup()
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		CLayerGroup *g = new CLayerGroup;
 		g->m_pMap = this;
 		m_lGroups.add(g);
@@ -306,6 +309,7 @@ public:
 		if(Index1 < 0 || Index1 >= m_lGroups.size()) return Index0;
 		if(Index0 == Index1) return Index0;
 		m_Modified = true;
+		m_UndoModified++;
 		swap(m_lGroups[Index0], m_lGroups[Index1]);
 		return Index1;
 	}
@@ -314,6 +318,7 @@ public:
 	{
 		if(Index < 0 || Index >= m_lGroups.size()) return;
 		m_Modified = true;
+		m_UndoModified++;
 		delete m_lGroups[Index];
 		m_lGroups.remove_index(Index);
 	}
@@ -321,6 +326,7 @@ public:
 	void ModifyImageIndex(INDEX_MODIFY_FUNC pfnFunc)
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		for(int i = 0; i < m_lGroups.size(); i++)
 			m_lGroups[i]->ModifyImageIndex(pfnFunc);
 	}
@@ -328,6 +334,7 @@ public:
 	void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC pfnFunc)
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		for(int i = 0; i < m_lGroups.size(); i++)
 			m_lGroups[i]->ModifyEnvelopeIndex(pfnFunc);
 	}
@@ -614,6 +621,7 @@ public:
 	virtual void UpdateAndRender();
 	virtual bool HasUnsavedData() { return m_Map.m_Modified; }
 
+    int64 m_LastUndoUpdateTime;
 	void CreateUndoStep(const char *pName = 0);
 	int UndoStep();
 	struct CUndo

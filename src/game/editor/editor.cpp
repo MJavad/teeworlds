@@ -122,18 +122,18 @@ void CLayerGroup::Render()
 
 void CLayerGroup::AddLayer(CLayer *l)
 {
-    m_pMap->m_pEditor->CreateUndoStep(Localize("Add layer"));
 	m_pMap->m_Modified = true;
+	m_pMap->m_UndoModified++;
 	m_lLayers.add(l);
 }
 
 void CLayerGroup::DeleteLayer(int Index)
 {
 	if(Index < 0 || Index >= m_lLayers.size()) return;
-    m_pMap->m_pEditor->CreateUndoStep(Localize("Delete layer"));
 	delete m_lLayers[Index];
 	m_lLayers.remove_index(Index);
 	m_pMap->m_Modified = true;
+	m_pMap->m_UndoModified++;
 }
 
 void CLayerGroup::GetSize(float *w, float *h)
@@ -154,8 +154,8 @@ int CLayerGroup::SwapLayers(int Index0, int Index1)
 	if(Index0 < 0 || Index0 >= m_lLayers.size()) return Index0;
 	if(Index1 < 0 || Index1 >= m_lLayers.size()) return Index0;
 	if(Index0 == Index1) return Index0;
-    m_pMap->m_pEditor->CreateUndoStep(Localize("Swap layer"));
 	m_pMap->m_Modified = true;
+	m_pMap->m_UndoModified++;
 	swap(m_lLayers[Index0], m_lLayers[Index1]);
 	return Index1;
 }
@@ -707,6 +707,8 @@ void CEditor::CallbackOpenMap(const char *pFileName, int StorageType, void *pUse
 		pEditor->SortImages();
 		pEditor->m_Dialog = DIALOG_NONE;
 		pEditor->m_Map.m_Modified = false;
+		pEditor->m_Map.m_UndoModified = 0;
+        pEditor->m_LastUndoUpdateTime = time_get();
 	}
 }
 void CEditor::CallbackAppendMap(const char *pFileName, int StorageType, void *pUser)
@@ -736,6 +738,8 @@ void CEditor::CallbackSaveMap(const char *pFileName, int StorageType, void *pUse
 		str_copy(pEditor->m_aFileName, pFileName, sizeof(pEditor->m_aFileName));
 		pEditor->m_ValidSaveFilename = StorageType == IStorage::TYPE_SAVE && pEditor->m_pFileDialogPath == pEditor->m_aFileDialogCurrentFolder;
 		pEditor->m_Map.m_Modified = false;
+		pEditor->m_Map.m_UndoModified = 0;
+        pEditor->m_LastUndoUpdateTime = time_get();
 	}
 
 	pEditor->m_Dialog = DIALOG_NONE;
@@ -757,8 +761,6 @@ void CEditor::CallbackOpenLua(const char *pFileName, int StorageType, void *pUse
         return;
     }
 
-    pEditor->CreateUndoStep(Localize("Change Lua"));
-
     int Size = io_length(LuaFile);
     char *pData = new char[Size + 1];
     mem_zero(pData, Size + 1);
@@ -775,6 +777,7 @@ void CEditor::CallbackOpenLua(const char *pFileName, int StorageType, void *pUse
 	io_close(LuaFile);
     pEditor->m_Dialog = DIALOG_NONE;
     pEditor->m_Map.m_Modified = true;
+    pEditor->m_Map.m_UndoModified++;
 }
 
 void CEditor::DoToolbar(CUIRect ToolBar)
@@ -2018,10 +2021,7 @@ void CEditor::DoMapEditor(CUIRect View, CUIRect ToolBar)
 				// release mouse
 				if(!UI()->MouseButton(0))
 				{
-				    if (s_Operation == OP_BRUSH_DRAW)
-				        CreateUndoStep(Localize("Brush draw"));
-				    if (s_Operation == OP_BRUSH_PAINT)
-				        CreateUndoStep(Localize("Brush paint"));
+				    m_Map.m_UndoModified++;
 					s_Operation = OP_NONE;
 					UI()->SetActiveItem(0);
 				}
@@ -3393,8 +3393,8 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 		static int s_New4dButton = 0;
 		if(DoButton_Editor(&s_New4dButton, "Color+", 0, &Button, 0, "Creates a new color envelope"))
 		{
-            CreateUndoStep(Localize("Create color envelope"));
 			m_Map.m_Modified = true;
+			m_Map.m_UndoModified++;
 			pNewEnv = m_Map.NewEnvelope(4);
 		}
 
@@ -3403,8 +3403,8 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 		static int s_New2dButton = 0;
 		if(DoButton_Editor(&s_New2dButton, "Pos.+", 0, &Button, 0, "Creates a new pos envelope"))
 		{
-            CreateUndoStep(Localize("Create position envelope"));
 			m_Map.m_Modified = true;
+			m_Map.m_UndoModified++;
 			pNewEnv = m_Map.NewEnvelope(3);
 		}
 
@@ -3416,8 +3416,8 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 			static int s_DelButton = 0;
 			if(DoButton_Editor(&s_DelButton, "Delete", 0, &Button, 0, "Delete this envelope"))
 			{
-                CreateUndoStep(Localize("Delete envelope"));
 				m_Map.m_Modified = true;
+				m_Map.m_UndoModified++;
 				m_Map.DeleteEnvelope(m_SelectedEnvelope);
 				if(m_SelectedEnvelope >= m_Map.m_lEnvelopes.size())
 					m_SelectedEnvelope = m_Map.m_lEnvelopes.size()-1;
@@ -3466,7 +3466,10 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 
 			static float s_NameBox = 0;
 			if(DoEditBox(&s_NameBox, &Button, pEnvelope->m_aName, sizeof(pEnvelope->m_aName), 10.0f, &s_NameBox))
+			{
 				m_Map.m_Modified = true;
+				m_Map.m_UndoModified++;
+			}
 		}
 	}
 
@@ -3557,7 +3560,6 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 			{
 				if(UI()->MouseButtonClicked(1))
 				{
-                    CreateUndoStep(Localize("Create a new envelope-point"));
 					// add point
 					int Time = (int)(((UI()->MouseX()-View.x)*TimeScale)*1000.0f);
 					//float env_y = (UI()->MouseY()-view.y)/TimeScale;
@@ -3567,6 +3569,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 						f2fx(aChannels[0]), f2fx(aChannels[1]),
 						f2fx(aChannels[2]), f2fx(aChannels[3]));
 					m_Map.m_Modified = true;
+					m_Map.m_UndoModified++;
 				}
 
 				m_ShowEnvelopePreview = 1;
@@ -3708,7 +3711,6 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 					{
 						if(!UI()->MouseButton(0))
 						{
-                            CreateUndoStep(Localize("Updated a envelope-point"));
 							m_SelectedQuadEnvelope = -1;
 							m_SelectedEnvelopePoint = -1;
 
@@ -3742,6 +3744,7 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 							m_ShowEnvelopePreview = 1;
 							m_SelectedEnvelopePoint = i;
 							m_Map.m_Modified = true;
+							m_Map.m_UndoModified++;
 						}
 
 						ColorMod = 100.0f;
@@ -3759,9 +3762,9 @@ void CEditor::RenderEnvelopeEditor(CUIRect View)
 						// remove point
 						if(UI()->MouseButtonClicked(1))
 						{
-                            CreateUndoStep(Localize("Remove a envelope-point"));
 							pEnvelope->m_lPoints.remove_index(i);
 							m_Map.m_Modified = true;
+							m_Map.m_UndoModified++;
 						}
 
 						m_ShowEnvelopePreview = 1;
@@ -4143,6 +4146,8 @@ void CEditor::Reset(bool CreateDefault)
 	m_MouseDeltaWy = 0;
 
 	m_Map.m_Modified = false;
+	m_Map.m_UndoModified = 0;
+    m_LastUndoUpdateTime = time_get();
 
 	m_ShowEnvelopePreview = 0;
 }
@@ -4171,6 +4176,7 @@ void CEditorMap::DeleteEnvelope(int Index)
 		return;
 
 	m_Modified = true;
+	m_UndoModified++;
 
 	// fix links between envelopes and quads
 	for(int i = 0; i < m_lGroups.size(); ++i)
@@ -4244,6 +4250,7 @@ void CEditorMap::Clean()
 	m_pGameGroup = 0x0;
 
 	m_Modified = false;
+	m_UndoModified = 0;
 }
 
 void CEditorMap::CreateDefault(int EntitiesTexture)
@@ -4303,11 +4310,12 @@ void CEditor::Init()
 
 	Reset();
 	m_Map.m_Modified = false;
+	m_Map.m_UndoModified = 0;
+    m_LastUndoUpdateTime = time_get();
 }
 
 void CEditor::DoMapBorder()
 {
-    CreateUndoStep(Localize("Border"));
 	CLayerTiles *pT = (CLayerTiles *)GetSelectedLayerType(0, LAYERTYPE_TILES);
 
 	for(int i = 0; i < pT->m_Width*2; ++i)
@@ -4325,10 +4333,10 @@ void CEditor::DoMapBorder()
 
 void CEditor::CreateUndoStep(const char *pName)
 {
-    dbg_msg("step", "%s %i", pName, m_lUndoSteps.size());
-
     CUndo NewStep;
-    str_copy(NewStep.m_aName, pName, sizeof(NewStep.m_aName));
+    str_timestamp(NewStep.m_aName, sizeof(NewStep.m_aName));
+    if (pName)
+        str_copy(NewStep.m_aName, pName, sizeof(NewStep.m_aName));
     if (m_lUndoSteps.size())
         NewStep.m_FileNum = m_lUndoSteps[m_lUndoSteps.size() - 1].m_FileNum + 1;
     else
@@ -4409,6 +4417,13 @@ void CEditor::UpdateAndRender()
 	if(Input()->KeyDown(KEY_F10))
 		m_ShowMousePointer = false;
 
+    dbg_msg("c", "%i", m_Map.m_UndoModified);
+    if ((m_LastUndoUpdateTime + time_freq() * 60 < time_get() && m_Map.m_UndoModified) || m_Map.m_UndoModified >= 10)
+    {
+        m_Map.m_UndoModified = 0;
+        m_LastUndoUpdateTime = time_get();
+        CreateUndoStep();
+    }
 	Render();
 
 	if(Input()->KeyDown(KEY_F10))
