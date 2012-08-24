@@ -87,13 +87,11 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
         }
         if (pData->m_pLua->m_lpQueries.GetSize() > 0)
         {
-            dbg_msg("mysql", "start query");
             CQuery *pQuery = pData->m_pLua->m_lpQueries[0];
             pData->m_pLua->m_lpQueries.DeleteByIndex(0);
 
             CResults *pResult = new CResults();
             pResult->m_QueryId = pQuery->m_QueryId;
-            dbg_msg("mysql", pQuery->m_pQuery);
             if (mysql_real_query(&pData->m_pLua->m_MySQL, pQuery->m_pQuery, pQuery->m_Length) == 0)
             {
                 MYSQL_RES *pMySQLResult = mysql_store_result(&pData->m_pLua->m_MySQL);
@@ -115,7 +113,6 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                             {
                                 pField->m_pName = new char[pMySQLField->name_length + 1]; //null?
                                 str_copy(pField->m_pName, pMySQLField->name, pMySQLField->name_length + 1);
-                                dbg_msg("Name", pField->m_pName);
                             }
                             /*enum enum_field_types { MYSQL_TYPE_DECIMAL, MYSQL_TYPE_TINY,
                         MYSQL_TYPE_SHORT,  MYSQL_TYPE_LONG,
