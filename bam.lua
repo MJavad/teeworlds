@@ -137,6 +137,7 @@ luahash = CHashLua("src/game/generated/luahash.cpp", "src/game/client/lua.h", "s
 client_link_other = {}
 client_depends = {}
 server_link_other = {}
+server_sql_depends = {}
 
 if family == "windows" then
 	if platform == "win32" then
@@ -146,6 +147,7 @@ if family == "windows" then
 		table.insert(client_depends, CopyToDirectory(".", "other\\freetype\\lib64\\freetype.dll"))
 		table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\lib64\\SDL.dll"))
 	end
+	table.insert(server_sql_depends, CopyToDirectory(".", "other\\mysql\\vc2005libs\\libmysql.dll"))
 
 	if config.compiler.driver == "cl" or config.compiler.driver == "icl" then
 		client_link_other = {ResCompile("other/icons/teeworlds_cl.rc")}
@@ -183,6 +185,9 @@ function build(settings)
 	-- set some platform specific settings
 	settings.cc.includes:Add("src")
 
+	--include mysql
+	settings.cc.includes:Add("other/mysql/include")
+
 	if family == "unix" then
    		if platform == "macosx" then
 			settings.link.frameworks:Add("Carbon")
@@ -219,17 +224,23 @@ function build(settings)
 	-- build the small libraries
 	settings.cc.includes:Add("src/engine/external/lua")
 	lua = Compile(settings, Collect("src/engine/external/lua/*.c"))
+
 	settings.cc.defines:Add("SQLITE_WITHOUT_ZONEMALLOC") --for mac osx compatibilitys
     settings.cc.includes:Add("src/engine/external/sqlite")
     sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
+
 	settings.cc.includes:Add("src/engine/external/libogg")
 	ogg = Compile(settings, Collect("src/engine/external/libogg/*.c"))
+
 	settings.cc.includes:Add("src/engine/external/libvorbis")
 	vorbis = Compile(settings, Collect("src/engine/external/libvorbis/*.c"))
+
 	settings.cc.includes:Add("src/engine/external/libtheora")
 	theora = Compile(settings, Collect("src/engine/external/libtheora/*.c"))
+
 	settings.cc.includes:Add("src/engine/external/libvpx")
 	vpx = Compile(settings, Collect("src/engine/external/libvpx/vpx/src/*.c"))
+
 	wavpack = Compile(settings, Collect("src/engine/external/wavpack/*.c"))
 	json = Compile(settings, Collect("src/engine/external/json/*.cpp"))
 	pnglite = Compile(settings, Collect("src/engine/external/pnglite/*.c"))
@@ -241,6 +252,8 @@ function build(settings)
 	launcher_settings = engine_settings:Copy()
 
 	if family == "unix" then
+        server_settings.link.libs:Add("libmysql")
+        server_settings.link.libs:Add("mysqlclient")
    		if platform == "macosx" then
 			client_settings.link.frameworks:Add("OpenGL")
             client_settings.link.frameworks:Add("AGL")
@@ -248,16 +261,24 @@ function build(settings)
             client_settings.link.frameworks:Add("Cocoa")
             launcher_settings.link.frameworks:Add("Cocoa")
             client_settings.link.flags:Add("-dylib_file /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib")
+            server_settings.link.libpath:Add("other/mysql/mac/lib32")
 		else
 			client_settings.link.libs:Add("X11")
 			client_settings.link.libs:Add("GL")
 			client_settings.link.libs:Add("GLU")
+            if arch == "amd64" then
+                server_settings.link.libpath:Add("other/mysql/linux/lib64")
+            else
+                server_settings.link.libpath:Add("other/mysql/linux/lib32")
+            end
 		end
 
 	elseif family == "windows" then
 		client_settings.link.libs:Add("opengl32")
 		client_settings.link.libs:Add("glu32")
 		client_settings.link.libs:Add("winmm")
+        server_settings.link.libpath:Add("other/mysql/vc2005libs")
+        server_settings.link.libs:Add("libmysql")
 	end
 
 	-- apply sdl settings
@@ -297,7 +318,7 @@ function build(settings)
 		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis, json, vpx,
 		client_link_other, client_osxlaunch)
 
-	server_exe = Link(server_settings, "teeworlds_srv", engine, server, json,
+	server_exe = Link(server_settings, "teeworlds_srv", engine, server, json, mysql, ssl, regex, taocrypt,
         game_shared, game_server, zlib, server_link_other, lua, sqlite)
 
 	serverlaunch = {}
