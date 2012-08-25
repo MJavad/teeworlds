@@ -767,7 +767,6 @@ void CServer::SendMap(int ClientID)
 
 void CServer::SendFile(int ClientID)
 {
-    dbg_msg("y", "y");
     if (m_lModFiles.size() == 0)
         return;
 	CMsgPacker Msg(NETMSG_FILE_CHANGE);

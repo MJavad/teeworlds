@@ -3439,8 +3439,6 @@ int CLuaFile::PlaySound(lua_State *L)
         y = lua_tonumber(L, 3);
     }
 
-    dbg_msg("", "play sound: %i", lua_tointeger(L, 1));
-
     pSelf->m_pClient->m_pSounds->Play(CSounds::CHN_WORLD, lua_tointeger(L, 1), 1.0f, vec2(x, y));
     return 0;
 }

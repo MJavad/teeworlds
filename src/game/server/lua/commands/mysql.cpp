@@ -155,10 +155,9 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                             if (pMySQLField->type == MYSQL_TYPE_LONGLONG)
                             {
                                 // not supported by atol
-                                // to lua as string
-                                pField->m_pData = new char[pMySQLField->length];
-                                mem_copy(pField->m_pData, Row[i], pMySQLField->length);
-                                pField->m_Type = CField::TYPE_DATA;
+                                // todo!
+                                pField->m_Number = atol(Row[i]);
+                                pField->m_Type = CField::TYPE_INTEGER;
                             }
                             if (pMySQLField->type == MYSQL_TYPE_FLOAT)
                             {
@@ -359,6 +358,7 @@ int CLuaFile::MySQLEscapeString(lua_State *L)
 
         unsigned long EscapedLength = mysql_real_escape_string(&pSelf->m_MySQL, pEscapedStr, pStr, StrLength);
         lua_pushlstring(L, pEscapedStr, EscapedLength);
+        return 1;
     }
     return 0;
 }
