@@ -104,6 +104,8 @@ char *CEventVariable::GetString()
 
 int CEventVariable::GetInteger()
 {
+    if (m_Type == EVENT_TYPE_STRING)
+        return str_toint((char *)m_pData);
     if (IsNumeric() == false)
         return 0;
     if (!m_pData)
@@ -113,6 +115,8 @@ int CEventVariable::GetInteger()
 
 float CEventVariable::GetFloat()
 {
+    if (m_Type == EVENT_TYPE_STRING)
+        return str_tofloat((char *)m_pData);
     if (IsNumeric() == false)
         return 0;
     if (!m_pData)

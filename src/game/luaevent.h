@@ -190,17 +190,20 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
                 {
                     if (lua_isboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {
+                        dbg_msg("add", "bool");
                         m_Returns.m_aVars[i].Set(lua_toboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                     }
-                    if (lua_isnumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
+                    else if (lua_isnumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {
+                        dbg_msg("add", "num");
                         if (lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1) == lua_tonumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                             m_Returns.m_aVars[i].Set(lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                         else
                             m_Returns.m_aVars[i].Set((float)lua_tonumber(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                     }
-                    if (lua_isstring(r.front().m_pLuaFile->m_pLua, Start + i + 1))
+                    else if (lua_isstring(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {
+                        dbg_msg("add", "str");
                         int Size = 0;
                         const char *pData = lua_tolstring(r.front().m_pLuaFile->m_pLua, Start + i + 1, (size_t *)&Size);
                         if (str_length(pData) == Size)

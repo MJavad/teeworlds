@@ -452,7 +452,19 @@ void CCharacter::FireWeapon()
 	if(!m_ReloadTimer)
 		m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
     if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[3].GetInteger())
-        m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetInteger();
+        m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[3].GetInteger();
+
+    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_ReloadTimer);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnReloadTimer");
+    dbg_msg("type", "%i", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetType());
+    dbg_msg("type", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetString());
+    if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].IsNumeric())
+    {
+        dbg_msg("r", "%i", m_ReloadTimer);
+        m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger();
+        dbg_msg("m", "%i", m_ReloadTimer);
+    }
 }
 
 void CCharacter::HandleWeapons()
