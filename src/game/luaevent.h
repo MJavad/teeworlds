@@ -69,7 +69,6 @@ public:
     CEventVariable m_aVars[MAX_EVENT_VARIABLES];
     void Reset();
     CEventVariable *FindFree();
-    bool m_Used;
 };
 
 template <class T>
@@ -86,7 +85,6 @@ class CLuaEventListener
     typedef array<CLuaListenerData> TEventList;
     TEventList m_aListeners;
 
-    bool m_Used;
 public:
     void AddEventListener(T *pLuaFile, char *pEvent, char *pLuaFunction);
     void RemoveEventListener(T *pLuaFile, char *pEvent);
@@ -94,32 +92,52 @@ public:
 
     void OnEvent(const char *pEvent);
 
-    CEvent m_Parameters;
-    CEvent m_Returns;
+    #define EVENTSTACKSIZE 32
+    int m_StackSize;
+    CEvent m_aStackParameters[EVENTSTACKSIZE];
+    CEvent m_aStackReturns[EVENTSTACKSIZE];
+
+    int CreateEventStack();
+    CEvent *GetParameters(int StackIndex);
+    CEvent *GetReturns(int StackIndex);
 
     CLuaEventListener();
     ~CLuaEventListener();
-
-    void SetState(bool Used)
-    {
-        m_Parameters.m_Used = Used;
-        m_Returns.m_Used = Used;
-        m_Used = Used;
-    }
-    bool GetState() { return m_Used; }
 };
 
 //Eventlistener
 template <class T>
 CLuaEventListener<T>::CLuaEventListener()
 {
-    m_Used = 0;
     m_aListeners.clear();
+    m_StackSize = -1;
 }
 template <class T>
 CLuaEventListener<T>::~CLuaEventListener()
 {
     m_aListeners.clear();
+}
+
+template <class T>
+int CLuaEventListener<T>::CreateEventStack()
+{
+    return ++m_StackSize;
+}
+
+template <class T>
+CEvent *CLuaEventListener<T>::GetParameters(int StackIndex)
+{
+    if (StackIndex < 0 || StackIndex >= EVENTSTACKSIZE)
+        return 0;
+    return &m_aStackParameters[StackIndex];
+}
+
+template <class T>
+CEvent *CLuaEventListener<T>::GetReturns(int StackIndex)
+{
+    if (StackIndex < 0 || StackIndex >= EVENTSTACKSIZE)
+        return 0;
+    return &m_aStackReturns[StackIndex];
 }
 
 template <class T>
@@ -135,15 +153,14 @@ void CLuaEventListener<T>::AddEventListener(T *pLuaFile, char *pEvent, char *pLu
 template <class T>
 void CLuaEventListener<T>::OnEvent(const char *pEvent)
 {
-    if (GetState())
+    /*if (GetState())
     {
         return; //fixes a event called in an event listener
         //should check for function names! to support event by event
         //to do this we have to copy the result and the parameters -.-
         //have to be done before L1.4
-    }
-    SetState(1);
-    m_Returns.Reset();
+    }*/
+    m_aStackReturns[m_StackSize].Reset();
 	for(plain_range<CLuaListenerData> r = m_aListeners.all(); !r.empty(); r.pop_front())
     {
         if (r.front().m_aEvent && str_comp_nocase(r.front().m_aEvent, pEvent) == 0)
@@ -155,29 +172,29 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
                 r.front().m_pLuaFile->FunctionPrepare(r.front().m_aLuaFunction);
                 for (int i = 0; i < MAX_EVENT_VARIABLES; i++)
                 {
-                    if (m_Parameters.m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_INTEGER)
+                    if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_INTEGER)
                     {
-                        r.front().m_pLuaFile->PushInteger(m_Parameters.m_aVars[i].GetInteger());
+                        r.front().m_pLuaFile->PushInteger(m_aStackParameters[m_StackSize].m_aVars[i].GetInteger());
                     }
-                    else if (m_Parameters.m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_CHAR)
+                    else if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_CHAR)
                     {
-                        r.front().m_pLuaFile->PushInteger(m_Parameters.m_aVars[i].GetInteger());
+                        r.front().m_pLuaFile->PushInteger(m_aStackParameters[m_StackSize].m_aVars[i].GetInteger());
                     }
-                    else if (m_Parameters.m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_FLOAT)
+                    else if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_FLOAT)
                     {
-                        r.front().m_pLuaFile->PushFloat(m_Parameters.m_aVars[i].GetInteger());
+                        r.front().m_pLuaFile->PushFloat(m_aStackParameters[m_StackSize].m_aVars[i].GetInteger());
                     }
-                    else if (m_Parameters.m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_BOOL)
+                    else if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_BOOL)
                     {
-                        r.front().m_pLuaFile->PushBoolean(m_Parameters.m_aVars[i].GetInteger());
+                        r.front().m_pLuaFile->PushBoolean(m_aStackParameters[m_StackSize].m_aVars[i].GetInteger());
                     }
-                    else if (m_Parameters.m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_STRING)
+                    else if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_STRING)
                     {
-                        r.front().m_pLuaFile->PushString(m_Parameters.m_aVars[i].GetString());
+                        r.front().m_pLuaFile->PushString(m_aStackParameters[m_StackSize].m_aVars[i].GetString());
                     }
-                    else if (m_Parameters.m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_DATA)
+                    else if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_DATA)
                     {
-                        r.front().m_pLuaFile->PushData((char *)m_Parameters.m_aVars[i].Get(), m_Parameters.m_aVars[i].GetSize());
+                        r.front().m_pLuaFile->PushData((char *)m_aStackParameters[m_StackSize].m_aVars[i].Get(), m_aStackParameters[m_StackSize].m_aVars[i].GetSize());
                     }
                     else
                     {
@@ -190,26 +207,23 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
                 {
                     if (lua_isboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {
-                        dbg_msg("add", "bool");
-                        m_Returns.m_aVars[i].Set(lua_toboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1));
+                        m_aStackReturns[m_StackSize].m_aVars[i].Set(lua_toboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                     }
                     else if (lua_isnumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {
-                        dbg_msg("add", "num");
                         if (lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1) == lua_tonumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
-                            m_Returns.m_aVars[i].Set(lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1));
+                            m_aStackReturns[m_StackSize].m_aVars[i].Set(lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                         else
-                            m_Returns.m_aVars[i].Set((float)lua_tonumber(r.front().m_pLuaFile->m_pLua, Start + i + 1));
+                            m_aStackReturns[m_StackSize].m_aVars[i].Set((float)lua_tonumber(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                     }
                     else if (lua_isstring(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {
-                        dbg_msg("add", "str");
                         int Size = 0;
                         const char *pData = lua_tolstring(r.front().m_pLuaFile->m_pLua, Start + i + 1, (size_t *)&Size);
                         if (str_length(pData) == Size)
-                            m_Returns.m_aVars[i].Set(pData);
+                            m_aStackReturns[m_StackSize].m_aVars[i].Set(pData);
                         else
-                            m_Returns.m_aVars[i].Set(pData, Size);
+                            m_aStackReturns[m_StackSize].m_aVars[i].Set(pData, Size);
                     }
                 }
                 for (int i = 0; i < Num; i++) //pop values
@@ -221,8 +235,8 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
             }
         }
     }
-    m_Parameters.Reset(); //
-    SetState(0);
+    m_aStackParameters[m_StackSize].Reset(); //
+    m_StackSize--;
 }
 
 template <class T>

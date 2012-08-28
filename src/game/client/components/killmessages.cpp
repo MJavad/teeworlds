@@ -36,12 +36,13 @@ void CKillMessages::OnMessage(int MsgType, void *pRawMsg)
 		Kill.m_ModeSpecial = pMsg->m_ModeSpecial;
 		Kill.m_Tick = Client()->GameTick();
 
-        m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Kill.m_KillerID);
-        m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Kill.m_VictimID);
-        m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Kill.m_Weapon);
+        int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+        m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Kill.m_KillerID);
+        m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Kill.m_VictimID);
+        m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Kill.m_Weapon);
         m_pClient->m_pLua->m_pEventListener->OnEvent("OnKill");
 
-        if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0)
         {
             // add the message
             m_KillmsgCurrent = (m_KillmsgCurrent+1)%MAX_KILLMSGS;

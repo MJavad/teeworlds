@@ -275,8 +275,6 @@ void CPlayer::TryRespawn(bool Force)
 	if(!GameServer()->m_pController->CanSpawn(m_Team, &SpawnPos, Force))
 		return;
 
-    dbg_msg("Spawning", "Yeah");
-
 	m_Spawning = false;
 	m_pCharacter = new(m_ClientID) CCharacter(&GameServer()->m_World);
 	m_pCharacter->Spawn(this, SpawnPos);

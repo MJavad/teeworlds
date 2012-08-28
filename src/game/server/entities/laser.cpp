@@ -19,9 +19,6 @@ CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEner
 	m_DecreaseEnergyFactor = DecreaseEnergyFactor;
 	m_EvalTick = 0;
 	m_FakeEvalTick = FakeEvalTick;
-	dbg_msg("MB", "%i", m_MaxBounces);
-	dbg_msg("De", "%i", m_Delay);
-	dbg_msg("Da", "%i", m_Damage);
 	GameWorld()->InsertEntity(this);
 	DoBounce();
 }

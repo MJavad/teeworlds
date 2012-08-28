@@ -15,7 +15,8 @@ void CLuaFile::MySQLTick()
         }
         else
         {
-            m_pLuaHandler->m_pEventListener->m_Parameters.FindFree()->Set(m_lpResults[i]->m_QueryId);
+            int EventID = m_pLuaHandler->m_pEventListener->CreateEventStack();
+            m_pLuaHandler->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_lpResults[i]->m_QueryId);
             m_pLuaHandler->m_pEventListener->OnEvent("OnMySQLResults");
         }
     }

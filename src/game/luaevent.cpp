@@ -170,8 +170,6 @@ CEventVariable *CEvent::FindFree()
 {
     static CEventVariable Workaround; //remove me!!
     Workaround.Reset();
-    if (m_Used)
-        return &Workaround;
     for (int i = 0; i < MAX_EVENT_VARIABLES; i++)
     {
         if (m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_INVALID)

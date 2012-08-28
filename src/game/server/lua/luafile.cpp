@@ -254,6 +254,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CharacterGetAmmo"), this->CharacterGetAmmo);
     lua_register(m_pLua, ToLower("CharacterGetInputTarget"), this->CharacterGetInputTarget);
     lua_register(m_pLua, ToLower("CharacterGetActiveWeapon"), this->CharacterGetActiveWeapon);
+    lua_register(m_pLua, ToLower("CharacterSetActiveWeapon"), this->CharacterSetActiveWeapon);
     lua_register(m_pLua, ToLower("CharacterDirectInput"), this->CharacterDirectInput);
     lua_register(m_pLua, ToLower("CharacterPredictedInput"), this->CharacterPredictedInput);
 

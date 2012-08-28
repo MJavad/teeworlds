@@ -434,10 +434,11 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
                 TextRender()->SetCursor(&Cursor, Button.x, Button.y, 12.0f*UI()->Scale(), TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
                 Cursor.m_LineWidth = Button.w;
 
-                m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pItem->m_aGameType);
+                int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+                m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set((char *)pItem->m_aGameType);
                 m_pClient->m_pLua->m_pEventListener->OnEvent("OnServerBrowserGameTypeRender");
-                if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].IsNumeric() && m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[1].IsNumeric() && m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[2].IsNumeric() && m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[3].IsNumeric())
-                    TextRender()->TextColor(m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetFloat(), m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetFloat(), m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetFloat(), m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[3].GetFloat());
+                if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+                    TextRender()->TextColor(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetFloat(), m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetFloat(), m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetFloat(), m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat());
                 else
                     TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 

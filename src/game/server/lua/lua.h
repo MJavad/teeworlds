@@ -222,6 +222,7 @@ public:
 
     static inline int CharacterGetInputTarget(lua_State *L);
     static inline int CharacterGetActiveWeapon(lua_State *L);
+    static inline int CharacterSetActiveWeapon(lua_State *L);
 
     static inline int CharacterDirectInput(lua_State *L);
     static inline int CharacterPredictedInput(lua_State *L);
