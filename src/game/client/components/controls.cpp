@@ -186,6 +186,7 @@ int CControls::SnapInput(int *pData, int *pPredictionData)
             m_pClient->m_pLuaBinding->m_ControlTargetXPre = m_InputData.m_TargetX;
             m_pClient->m_pLuaBinding->m_ControlTargetYPre = m_InputData.m_TargetY;
 
+            int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
             m_pClient->m_pLua->m_pEventListener->OnEvent("OnControlChange");
 
             if (m_pClient->m_pLuaBinding->m_ControlDirectionIsSet)

@@ -302,6 +302,7 @@ void CItems::OnRender()
 	if(Client()->State() < IClient::STATE_ONLINE)
 		return;
 
+    int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
     m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderLevelItem1");
 
 	int Num = Client()->SnapNumItems(IClient::SNAP_CURRENT);
@@ -355,7 +356,7 @@ void CItems::OnRender()
 		else
 			RenderProjectile(&m_aExtraProjectiles[i], 0);
 	}
-
+    EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
 	m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderLevelItem2");
 }
 

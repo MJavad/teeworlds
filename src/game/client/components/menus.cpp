@@ -1951,7 +1951,10 @@ void CMenus::RenderBackground()
 	Graphics()->QuadsEnd();
 
     if (m_pClient && m_pClient->m_pLua)
+    {
+        int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
         m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderBackground");
+    }
 
 	// restore screen
     {CUIRect Screen = *UI()->Screen();
