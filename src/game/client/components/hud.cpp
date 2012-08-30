@@ -108,7 +108,7 @@ void CHud::RenderScoreHud()
 
 				if(GameFlags&GAMEFLAG_FLAGS)
 				{
-					int BlinkTimer = (m_pClient->m_FlagDropTick[t] != 0 && 
+					int BlinkTimer = (m_pClient->m_FlagDropTick[t] != 0 &&
 										(Client()->GameTick()-m_pClient->m_FlagDropTick[t])/Client()->GameTickSpeed() >= 25) ? 10 : 20;
 					if(FlagCarrier[t] == FLAG_ATSTAND || (FlagCarrier[t] == FLAG_TAKEN && ((Client()->GameTick()/BlinkTimer)&1)))
 					{
@@ -364,42 +364,58 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 
 	Graphics()->QuadsBegin();
 
-	// if weaponstage is active, put a "glow" around the stage ammo
-	RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[pCharacter->m_Weapon%NUM_WEAPONS].m_pSpriteProj);
-	IGraphics::CQuadItem Array[10];
 	int i;
-	for (i = 0; i < min(pCharacter->m_AmmoCount, 10); i++)
-		Array[i] = IGraphics::CQuadItem(x+i*12,y+24,10,10);
-	Graphics()->QuadsDrawTL(Array, i);
-	Graphics()->QuadsEnd();
-
-	Graphics()->QuadsBegin();
 	int h = 0;
 
-	// render health
-	RenderTools()->SelectSprite(SPRITE_HEALTH_FULL);
-	for(; h < min(pCharacter->m_Health, 10); h++)
-		Array[h] = IGraphics::CQuadItem(x+h*12,y,10,10);
-	Graphics()->QuadsDrawTL(Array, h);
+    IGraphics::CQuadItem Array[10];
+    int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->OnEvent("OnAmmoRender");
+    if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_INVALID)
+    {
+        // if weaponstage is active, put a "glow" around the stage ammo
+        RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[pCharacter->m_Weapon%NUM_WEAPONS].m_pSpriteProj);
+        for (i = 0; i < min(pCharacter->m_AmmoCount, 10); i++)
+            Array[i] = IGraphics::CQuadItem(x+i*12,y+24,10,10);
+        Graphics()->QuadsDrawTL(Array, i);
+        Graphics()->QuadsEnd();
 
-	i = 0;
-	RenderTools()->SelectSprite(SPRITE_HEALTH_EMPTY);
-	for(; h < 10; h++)
-		Array[i++] = IGraphics::CQuadItem(x+h*12,y,10,10);
-	Graphics()->QuadsDrawTL(Array, i);
+        Graphics()->QuadsBegin();
+    }
 
-	// render armor meter
-	h = 0;
-	RenderTools()->SelectSprite(SPRITE_ARMOR_FULL);
-	for(; h < min(pCharacter->m_Armor, 10); h++)
-		Array[h] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
-	Graphics()->QuadsDrawTL(Array, h);
+    EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->OnEvent("OnHealthRender");
+    if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_INVALID)
+    {
+        // render health
+        RenderTools()->SelectSprite(SPRITE_HEALTH_FULL);
+        for(; h < min(pCharacter->m_Health, 10); h++)
+            Array[h] = IGraphics::CQuadItem(x+h*12,y,10,10);
+        Graphics()->QuadsDrawTL(Array, h);
 
-	i = 0;
-	RenderTools()->SelectSprite(SPRITE_ARMOR_EMPTY);
-	for(; h < 10; h++)
-		Array[i++] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
-	Graphics()->QuadsDrawTL(Array, i);
+        i = 0;
+        RenderTools()->SelectSprite(SPRITE_HEALTH_EMPTY);
+        for(; h < 10; h++)
+            Array[i++] = IGraphics::CQuadItem(x+h*12,y,10,10);
+        Graphics()->QuadsDrawTL(Array, i);
+    }
+
+    EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->OnEvent("OnArmorRender");
+    if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_INVALID)
+    {
+        // render armor meter
+        h = 0;
+        RenderTools()->SelectSprite(SPRITE_ARMOR_FULL);
+        for(; h < min(pCharacter->m_Armor, 10); h++)
+            Array[h] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
+        Graphics()->QuadsDrawTL(Array, h);
+
+        i = 0;
+        RenderTools()->SelectSprite(SPRITE_ARMOR_EMPTY);
+        for(; h < 10; h++)
+            Array[i++] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
+        Graphics()->QuadsDrawTL(Array, i);
+    }
 	Graphics()->QuadsEnd();
 }
 
