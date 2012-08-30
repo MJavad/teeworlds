@@ -292,6 +292,14 @@ void CHud::RenderVoting()
 	if(!m_pClient->m_pVoting->IsVoting() || Client()->State() == IClient::STATE_DEMOPLAYBACK)
 		return;
 
+    int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->OnEvent("OnVoteRender");
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pClient->m_pVoting->VoteReason());
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pClient->m_pVoting->VoteDescription());
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pClient->m_pVoting->SecondsLeft());
+    if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
+        return;
+
 	Graphics()->TextureSet(-1);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(0,0,0,0.40f);
