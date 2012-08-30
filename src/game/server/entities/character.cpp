@@ -494,9 +494,21 @@ void CCharacter::HandleWeapons()
 
 			if ((Server()->Tick() - m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart) >= AmmoRegenTime * Server()->TickSpeed() / 1000)
 			{
-				// Add some ammo
-				m_aWeapons[m_ActiveWeapon].m_Ammo = min(m_aWeapons[m_ActiveWeapon].m_Ammo + 1, 10);
-				m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = -1;
+                int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+                GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+                GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_ActiveWeapon);
+                GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_aWeapons[m_ActiveWeapon].m_Ammo);
+                GameServer()->m_pLua->m_pEventListener->OnEvent("OnAmmoRegen");
+                if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+                {
+                    m_aWeapons[m_ActiveWeapon].m_Ammo = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+                }
+                else //std
+                {
+                    // Add some ammo
+                    m_aWeapons[m_ActiveWeapon].m_Ammo = min(m_aWeapons[m_ActiveWeapon].m_Ammo + 1, 10);
+                }
+                m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = -1;
 			}
 		}
 		else
@@ -510,12 +522,34 @@ void CCharacter::HandleWeapons()
 
 bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 {
-	if(m_aWeapons[Weapon].m_Ammo < g_pData->m_Weapons.m_aId[Weapon].m_Maxammo || !m_aWeapons[Weapon].m_Got)
-	{
-		m_aWeapons[Weapon].m_Got = true;
-		m_aWeapons[Weapon].m_Ammo = min(g_pData->m_Weapons.m_aId[Weapon].m_Maxammo, Ammo);
-		return true;
-	}
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Ammo);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_aWeapons[Weapon].m_Ammo);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_aWeapons[Weapon].m_Got);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnGiveWeapon");
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+    {
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+            m_aWeapons[Weapon].m_Got = (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+        else
+            m_aWeapons[Weapon].m_Got = true;
+        m_aWeapons[Weapon].m_Ammo = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+            return (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+        else
+            return true;
+    }
+    else
+    {
+        if(m_aWeapons[Weapon].m_Ammo < g_pData->m_Weapons.m_aId[Weapon].m_Maxammo || !m_aWeapons[Weapon].m_Got)
+        {
+            m_aWeapons[Weapon].m_Got = true;
+            m_aWeapons[Weapon].m_Ammo = min(g_pData->m_Weapons.m_aId[Weapon].m_Maxammo, Ammo);
+            return true;
+        }
+    }
 	return false;
 }
 
