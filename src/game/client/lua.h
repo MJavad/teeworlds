@@ -393,6 +393,7 @@ public:
     static inline int TextureLoad(lua_State *L);
     static inline int TextureUnload(lua_State *L);
     static inline int RenderTexture(lua_State *L);
+    static inline int RenderSprite(lua_State *L);
 
 
     static inline int GetScreenWidth(lua_State *L);

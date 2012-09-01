@@ -337,6 +337,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("TextureLoad"), this->TextureLoad);
     lua_register(m_pLua, ToLower("TextureUnload"), this->TextureUnload);
     lua_register(m_pLua, ToLower("RenderTexture"), this->RenderTexture);
+    lua_register(m_pLua, ToLower("RenderSprite"), this->RenderSprite);
     lua_register(m_pLua, ToLower("ReplaceGameTexture"), this->ReplaceGameTexture);
 
     //Net
@@ -3192,11 +3193,11 @@ int CLuaFile::UiDirectLabel(lua_State *L)
     pSelf->m_pClient->TextRender()->TextColor(Color.r, Color.g, Color.b, Color.a);
     float tw = pSelf->m_pClient->TextRender()->TextWidth(0, Size, pText, -1);
     if (Align == -1) //left
-        pSelf->m_pClient->TextRender()->Text(0, x, y, Size, pText, -1);
+        pSelf->m_pClient->TextRender()->Text(0, x-tw, y, Size, pText, -1);
     if (Align == 0) //center
         pSelf->m_pClient->TextRender()->Text(0, x-tw/2.0f, y, Size, pText, -1);
     if (Align == 1) //right
-        pSelf->m_pClient->TextRender()->Text(0, x-tw, y, Size, pText, -1);
+        pSelf->m_pClient->TextRender()->Text(0, x, y, Size, pText, -1);
     pSelf->m_pClient->TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
     pSelf->m_pClient->TextRender()->TextOutlineColor(0.0f, 0.0f, 0.0f, 0.3f);
     return 0;
@@ -3369,6 +3370,36 @@ int CLuaFile::RenderTexture(lua_State *L)
     pSelf->m_pClient->Graphics()->QuadsSetSubset(ClipX1, ClipY1, ClipX2, ClipY2);
     IGraphics::CQuadItem QuadItem(x, y, Width, Height);
     pSelf->m_pClient->Graphics()->QuadsDrawTL(&QuadItem, 1);
+    pSelf->m_pClient->Graphics()->QuadsEnd();
+    return 0;
+}
+
+int CLuaFile::RenderSprite(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    //1 texture
+    //2 sprite
+    //3 x
+    //4 y
+    //5 (size)
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3) || !lua_isnumber(L, 4))
+        return 0;
+
+    float x = lua_tonumber(L, 3);
+    float y = lua_tonumber(L, 4);
+    float Size = lua_isnumber(L, 5) ? lua_tonumber(L, 5) : 1.0f;
+    if (pSelf->m_pClient->Graphics()->OnScreen(x, y, Size, Size) == false)
+        return 0;
+
+    pSelf->m_pClient->Graphics()->TextureSet(lua_tointeger(L, 1));
+    pSelf->m_pClient->Graphics()->QuadsBegin();
+    pSelf->m_pClient->RenderTools()->SelectSprite(lua_tointeger(L, 2));
+    pSelf->m_pClient->RenderTools()->DrawSprite(x, y, Size);
     pSelf->m_pClient->Graphics()->QuadsEnd();
     return 0;
 }
