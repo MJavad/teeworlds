@@ -245,50 +245,118 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
 
 	Graphics()->BlendNormal();
 	Graphics()->TextureSet(-1);
-	Graphics()->QuadsBegin();
 
 	//vec4 inner_color(0.15f,0.35f,0.75f,1.0f);
 	//vec4 outer_color(0.65f,0.85f,1.0f,1.0f);
 
-	// do outline
 	vec4 OuterColor(0.075f, 0.075f, 0.25f, 1.0f);
-	Graphics()->SetColor(OuterColor.r, OuterColor.g, OuterColor.b, 1.0f);
-	Out = vec2(Dir.y, -Dir.x) * (7.0f*Ia);
-
-	IGraphics::CFreeformItem Freeform(
-			From.x-Out.x, From.y-Out.y,
-			From.x+Out.x, From.y+Out.y,
-			Pos.x-Out.x, Pos.y-Out.y,
-			Pos.x+Out.x, Pos.y+Out.y);
-	Graphics()->QuadsDrawFreeform(&Freeform, 1);
-
-	// do inner
 	vec4 InnerColor(0.5f, 0.5f, 1.0f, 1.0f);
-	Out = vec2(Dir.y, -Dir.x) * (5.0f*Ia);
-	Graphics()->SetColor(InnerColor.r, InnerColor.g, InnerColor.b, 1.0f); // center
 
-	Freeform = IGraphics::CFreeformItem(
-			From.x-Out.x, From.y-Out.y,
-			From.x+Out.x, From.y+Out.y,
-			Pos.x-Out.x, Pos.y-Out.y,
-			Pos.x+Out.x, Pos.y+Out.y);
-	Graphics()->QuadsDrawFreeform(&Freeform, 1);
+    int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From.x);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From.y);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.y);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.y);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(a);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.r);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.g);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.b);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.a);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.r);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.g);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.b);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.a);
+    m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderLaser");
+    if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() == false || m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0)
+    {
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+            OuterColor.r = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+            OuterColor.g = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+            OuterColor.b = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
+            OuterColor.a = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[5].IsNumeric())
+            InnerColor.r = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[5].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[6].IsNumeric())
+            InnerColor.g = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[6].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[7].IsNumeric())
+            InnerColor.b = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[7].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[8].IsNumeric())
+            InnerColor.a = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[8].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[9].IsNumeric())
+            a = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[9].GetFloat(), 0.0f, 1.0f);
+        Ia = 1-a; //re-evalute
 
-	Graphics()->QuadsEnd();
+        Graphics()->QuadsBegin();
+        // do outline
+        Graphics()->SetColor(OuterColor.r, OuterColor.g, OuterColor.b, OuterColor.a);
+        Out = vec2(Dir.y, -Dir.x) * (7.0f*Ia);
+
+        IGraphics::CFreeformItem Freeform(
+                From.x-Out.x, From.y-Out.y,
+                From.x+Out.x, From.y+Out.y,
+                Pos.x-Out.x, Pos.y-Out.y,
+                Pos.x+Out.x, Pos.y+Out.y);
+        Graphics()->QuadsDrawFreeform(&Freeform, 1);
+
+        // do inner
+        Out = vec2(Dir.y, -Dir.x) * (5.0f*Ia);
+        Graphics()->SetColor(InnerColor.r, InnerColor.g, InnerColor.b, InnerColor.a); // center
+
+        Freeform = IGraphics::CFreeformItem(
+                From.x-Out.x, From.y-Out.y,
+                From.x+Out.x, From.y+Out.y,
+                Pos.x-Out.x, Pos.y-Out.y,
+                Pos.x+Out.x, Pos.y+Out.y);
+        Graphics()->QuadsDrawFreeform(&Freeform, 1);
+
+        Graphics()->QuadsEnd();
+    }
 
 	// render head
-	{
-		Graphics()->BlendNormal();
-		Graphics()->TextureSet(g_pData->m_aImages[IMAGE_PARTICLES].m_Id);
+    Graphics()->BlendNormal();
+    Graphics()->TextureSet(g_pData->m_aImages[IMAGE_PARTICLES].m_Id);
+
+    EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.r);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.g);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.b);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.a);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.r);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.g);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.b);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(InnerColor.a);
+    m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderLaserHead");
+    if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() == false || m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0)
+    {
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+            OuterColor.r = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+            OuterColor.g = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+            OuterColor.b = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
+            OuterColor.a = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[5].IsNumeric())
+            InnerColor.r = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[5].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[6].IsNumeric())
+            InnerColor.g = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[6].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[7].IsNumeric())
+            InnerColor.b = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[7].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[8].IsNumeric())
+            InnerColor.a = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[8].GetFloat();
+
 		Graphics()->QuadsBegin();
 
 		int Sprites[] = {SPRITE_PART_SPLAT01, SPRITE_PART_SPLAT02, SPRITE_PART_SPLAT03};
 		RenderTools()->SelectSprite(Sprites[Client()->GameTick()%3]);
 		Graphics()->QuadsSetRotation(Client()->GameTick());
-		Graphics()->SetColor(OuterColor.r, OuterColor.g, OuterColor.b, 1.0f);
+		Graphics()->SetColor(OuterColor.r, OuterColor.g, OuterColor.b, OuterColor.a);
 		IGraphics::CQuadItem QuadItem(Pos.x, Pos.y, 24, 24);
 		Graphics()->QuadsDraw(&QuadItem, 1);
-		Graphics()->SetColor(InnerColor.r, InnerColor.g, InnerColor.b, 1.0f);
+		Graphics()->SetColor(InnerColor.r, InnerColor.g, InnerColor.b, InnerColor.a);
 		QuadItem = IGraphics::CQuadItem(Pos.x, Pos.y, 20, 20);
 		Graphics()->QuadsDraw(&QuadItem, 1);
 		Graphics()->QuadsEnd();
