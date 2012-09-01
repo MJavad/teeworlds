@@ -370,8 +370,6 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
 
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_GAME].m_Id);
 
-	Graphics()->QuadsBegin();
-
 	int i;
 	int h = 0;
 
@@ -380,20 +378,20 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
     m_pClient->m_pLua->m_pEventListener->OnEvent("OnAmmoRender");
     if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_INVALID)
     {
+        Graphics()->QuadsBegin();
         // if weaponstage is active, put a "glow" around the stage ammo
         RenderTools()->SelectSprite(g_pData->m_Weapons.m_aId[pCharacter->m_Weapon%NUM_WEAPONS].m_pSpriteProj);
         for (i = 0; i < min(pCharacter->m_AmmoCount, 10); i++)
             Array[i] = IGraphics::CQuadItem(x+i*12,y+24,10,10);
         Graphics()->QuadsDrawTL(Array, i);
         Graphics()->QuadsEnd();
-
-        Graphics()->QuadsBegin();
     }
 
     EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
     m_pClient->m_pLua->m_pEventListener->OnEvent("OnHealthRender");
     if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_INVALID)
     {
+        Graphics()->QuadsBegin();
         // render health
         RenderTools()->SelectSprite(SPRITE_HEALTH_FULL);
         for(; h < min(pCharacter->m_Health, 10); h++)
@@ -405,12 +403,14 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
         for(; h < 10; h++)
             Array[i++] = IGraphics::CQuadItem(x+h*12,y,10,10);
         Graphics()->QuadsDrawTL(Array, i);
+        Graphics()->QuadsEnd();
     }
 
     EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
     m_pClient->m_pLua->m_pEventListener->OnEvent("OnArmorRender");
     if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_INVALID)
     {
+        Graphics()->QuadsBegin();
         // render armor meter
         h = 0;
         RenderTools()->SelectSprite(SPRITE_ARMOR_FULL);
@@ -423,8 +423,8 @@ void CHud::RenderHealthAndAmmo(const CNetObj_Character *pCharacter)
         for(; h < 10; h++)
             Array[i++] = IGraphics::CQuadItem(x+h*12,y+12,10,10);
         Graphics()->QuadsDrawTL(Array, i);
+        Graphics()->QuadsEnd();
     }
-	Graphics()->QuadsEnd();
 }
 
 void CHud::RenderSpectatorHud()
