@@ -22,11 +22,6 @@
 /*DGI:Event:OnConsoleRemote*/
 /*DGI:Event:OnConsole*/
 /*DGI:Event:OnMusicChange*/
-/*DGI:Event:OnNetEventDamageInd*/
-/*DGI:Event:OnNetEventExplosion*/
-/*DGI:Event:OnNetEventHammerHit*/
-/*DGI:Event:OnNetEventSpawn*/
-/*DGI:Event:OnNetEventDeath*/
 #include <time.h>
 #include <base/math.h>
 

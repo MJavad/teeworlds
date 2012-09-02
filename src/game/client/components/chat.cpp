@@ -66,21 +66,23 @@ void CChat::OnStateChange(int NewState, int OldState)
 
 void CChat::ConSay(IConsole::IResult *pResult, void *pUserData)
 {
-	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(MODE_ALL);
-	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pResult->GetString(0));
+	int EventID = ((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(MODE_ALL);
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set((char *)pResult->GetString(0));
 	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
 
-	if (((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+	if (((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0)
 		((CChat*)pUserData)->Say(0, pResult->GetString(0));
 }
 
 void CChat::ConSayTeam(IConsole::IResult *pResult, void *pUserData)
 {
-	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(MODE_TEAM);
-	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pResult->GetString(0));
+	int EventID = ((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(MODE_TEAM);
+	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set((char *)pResult->GetString(0));
 	((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
 
-	if (((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+	if (((CChat*)pUserData)->m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0)
 		((CChat*)pUserData)->Say(1, pResult->GetString(0));
 }
 
@@ -174,11 +176,12 @@ bool CChat::OnInput(IInput::CEvent Event)
 	{
 		if(m_Input.GetString()[0])
 		{
-			m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_Mode);
-			m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)m_Input.GetString());
+			int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+			m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_Mode);
+			m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set((char *)m_Input.GetString());
 			m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
 
-			if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0 && (m_Mode == MODE_ALL || m_Mode == MODE_TEAM))
+			if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0 && (m_Mode == MODE_ALL || m_Mode == MODE_TEAM))
 				Say(m_Mode == MODE_ALL ? 0 : 1, m_Input.GetString());
 			
 			char *pEntry = m_History.Allocate(m_Input.GetLength()+1);
