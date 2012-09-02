@@ -99,6 +99,7 @@ void CMusic::Tick()
         CNMsg::CPopupMsg Msg;
         str_copy(Msg.m_aTitle, Localize("Music"), sizeof(Msg.m_aTitle));
         str_copy(Msg.m_aText, m_Files[m_pClient->Sound()->m_MusicPlayIndex].m_aFilename, sizeof(Msg.m_aText));
+        int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
         m_pClient->m_pLua->m_pEventListener->OnEvent("OnMusicChange");
         Msg.m_Show = true;
         Msg.m_Time = 1;

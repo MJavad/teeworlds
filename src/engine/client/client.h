@@ -200,7 +200,13 @@ class CClient : public IClient, public CDemoPlayer::IListner
 	CVersionInfo m_VersionLuaInfo;
 
 	char m_DisconnectReason[64];
-	
+
+	//demo recorder
+	int m_RecordStart;
+    char m_aRecordDemoName[1024];
+    int m_RecordDemoFPS;
+    int m_RecordDemoFormat;
+    int m_RecordDemoStorageType;
 public:
 	IEngine *Engine() { return m_pEngine; }
 	IEngineGraphics *Graphics() { return m_pGraphics; }
@@ -313,13 +319,14 @@ public:
 	static void Con_AddFavorite(IConsole::IResult *pResult, void *pUserData);
 	static void Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Play(IConsole::IResult *pResult, void *pUserData);
+	static void Con_Rec(IConsole::IResult *pResult, void *pUserData);
 	static void Con_Record(IConsole::IResult *pResult, void *pUserData);
 	static void Con_StopRecord(IConsole::IResult *pResult, void *pUserData);
 	static void ConchainServerBrowserUpdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData);
 
 	void RegisterCommands();
 
-	const char *DemoPlayer_Record(const char *pFilename, int StorageType);
+	const char *DemoPlayer_Record(const char *pFilename, int StorageType, int FPS, int Format);
 	const char *DemoPlayer_Play(const char *pFilename, int StorageType);
 	void DemoRecorder_Start(const char *pFilename, bool WithTimestamp);
 	void DemoRecorder_HandleAutoStart();
@@ -333,5 +340,6 @@ public:
 	bool GetLuaSaveOption(int i){return m_Lua.GetLuaSaveOption(i);};
 
 	virtual int64 DemoTimeGet() { return m_DemoPlayer.Info()->m_CurrentTime; }
+	virtual bool IsRecording() { return m_DemoPlayer.m_Recording; }
 };
 #endif

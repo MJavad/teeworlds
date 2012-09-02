@@ -86,6 +86,9 @@ private:
 
 	bool m_Alive;
 
+	vec2 m_PrevPos;
+	int m_LastSpeedup;
+
 	// weapon info
 	CEntity *m_apHitObjects[10];
 	int m_NumObjectsHit;

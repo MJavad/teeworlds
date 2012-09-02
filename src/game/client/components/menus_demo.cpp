@@ -44,6 +44,8 @@ int CMenus::DoButton_Sprite(const void *pID, int ImageID, int SpriteID, int Chec
 
 void CMenus::RenderDemoPlayer(CUIRect MainView)
 {
+    if (m_pClient->Client()->IsRecording())
+        return;
 	const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
 
 	const float SeekBarHeight = 15.0f;
@@ -698,16 +700,9 @@ void CMenus::RenderDemoList(CUIRect MainView)
 	{
 		if(m_DemolistSelectedIndex >= 0)
 		{
-            char aBuf[512];
-            str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
-            const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType);
-            if(pError)
-                PopupMessage(Localize("Error"), str_comp(pError, "error loading demo") ? pError : Localize("Error loading demo"), Localize("Ok"));
-            else
-            {
-                UI()->SetActiveItem(0);
-                return;
-            }
+            UI()->SetActiveItem(0);
+		    m_Popup = POPUP_CONVERT_DEMO;
+		    return;
 		}
 	}
 

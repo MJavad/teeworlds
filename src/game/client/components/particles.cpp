@@ -147,13 +147,8 @@ void CParticles::OnRender()
         {
             t = Client()->DemoTimeGet();
             float TimePassed = (float)((t-LastTime)/(double)time_freq());
-            Update(TimePassed / 2);
-            //i really don't understand the particle system at the moment but it seems that we have a main update and a post update
-            //this line fixes the particle bug
-            if (LastTime == 0) //set if not set then mix
-                LastTime = t;
-            LastTime = mix(t, LastTime, 0.5);
-            //this looks like a ugly hack but i am tired and don't want to search a better solution
+            Update(TimePassed);
+            LastTime = t;
             return;
         }
         else

@@ -1,10 +1,8 @@
 pi = 3.141592654
 
 SetScriptTitle("Dynamic Camera Bind")
-SetScriptInfo("(c) by MAP94 and Mosii")
+SetScriptInfo("(c) by MAP94")
 SetScriptUseSettingPage(0)
-
---Print("DynCam", "(c) 2011 by MAP94 and Mosii")
 
 GlobalCameraSwitch = 0
 function SwitchCamera(s)

@@ -265,6 +265,33 @@ int mem_check_imp()
 	return 1;
 }
 
+IOHANDLE p_open(const char *filename, int flags)
+{
+	if(flags == IOFLAG_READ)
+	#if defined(CONF_FAMILY_WINDOWS)
+		return (IOHANDLE)_popen(filename, "r");
+    #else
+		return (IOHANDLE)popen(filename, "r");
+    #endif
+	if(flags == IOFLAG_WRITE)
+	#if defined(CONF_FAMILY_WINDOWS)
+		return (IOHANDLE)_popen(filename, "w");
+    #else
+		return (IOHANDLE)popen(filename, "w");
+    #endif
+	return 0x0;
+}
+
+int p_close(IOHANDLE io)
+{
+	#if defined(CONF_FAMILY_WINDOWS)
+		(IOHANDLE)_pclose((FILE*)io);
+    #else
+		(IOHANDLE)pclose((FILE*)io);
+    #endif
+	return 0;
+}
+
 IOHANDLE io_open(const char *filename, int flags)
 {
 	if(flags == IOFLAG_READ)
@@ -1260,6 +1287,15 @@ int net_would_block()
 #endif
 }
 
+int net_in_progress()
+{
+#if defined(CONF_FAMILY_WINDOWS)
+    return net_errno() == WSAEWOULDBLOCK;
+#else
+    return net_errno() == EINPROGRESS;
+#endif
+}
+
 int net_init()
 {
 #if defined(CONF_FAMILY_WINDOWS)
@@ -1510,6 +1546,54 @@ int net_socket_read_wait(NETSOCKET sock, int time)
 		return 1;
 
 	return 0;
+}
+
+int net_socket_write_wait(NETSOCKET sock, int time)
+{
+    struct timeval tv;
+    fd_set writefds;
+    fd_set exceptfds;
+    int sockid;
+
+    tv.tv_sec = 0;
+    tv.tv_usec = 1000*time;
+    sockid = 0;
+
+    FD_ZERO(&writefds);
+    FD_ZERO(&exceptfds);
+    if(sock.ipv4sock >= 0)
+    {
+        FD_SET(sock.ipv4sock, &writefds);
+        FD_SET(sock.ipv4sock, &exceptfds);
+        sockid = sock.ipv4sock;
+    }
+    if(sock.ipv6sock >= 0)
+    {
+        FD_SET(sock.ipv6sock, &writefds);
+        FD_SET(sock.ipv6sock, &exceptfds);
+        if(sock.ipv6sock > sockid)
+            sockid = sock.ipv6sock;
+    }
+
+    select(sockid+1, NULL, &writefds, &exceptfds, &tv);
+
+    if(sock.ipv4sock >= 0)
+    {
+        if(FD_ISSET(sock.ipv4sock, &writefds))
+            return 1;
+        if(FD_ISSET(sock.ipv4sock, &exceptfds))
+            return -1;
+    }
+
+    if(sock.ipv6sock >= 0)
+    {
+        if(FD_ISSET(sock.ipv6sock, &writefds))
+            return 1;
+        if(FD_ISSET(sock.ipv6sock, &exceptfds))
+            return -1;
+    }
+
+    return 0;
 }
 
 int time_timestamp()

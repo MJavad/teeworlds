@@ -20,6 +20,8 @@
 
 #include "lua.h"
 
+#include <game/luaglobal.h>
+
 #include "commands/character.cpp"
 #include "commands/chat.cpp"
 #include "commands/collision.cpp"
@@ -31,22 +33,31 @@
 #include "commands/player.cpp"
 #include "commands/entities.cpp"
 #include "commands/dummy.cpp"
+#include "commands/mysql.cpp"
 
 #define NON_HASED_VERSION
 #include <game/version.h>
 #undef NON_HASED_VERSION
 
-#include <game/luaglobal.h>
 
 
 CLuaFile::CLuaFile()
 {
-    mem_zero(this, sizeof(CLuaFile));
+    MySQLInit(); //start mysql thread
+    m_MySQLConnected = false;
+    m_IncrementalQueryId = 0;
+    m_pLua = 0;
+    m_pLuaHandler = 0;
+    m_pServer = 0;
     Close();
 }
 
 CLuaFile::~CLuaFile()
 {
+    m_MySQLThread.m_Running = false;
+    lock_wait(m_MySQLThread.m_MySSQLLock);
+    lock_release(m_MySQLThread.m_MySSQLLock);
+    lock_destroy(m_MySQLThread.m_MySSQLLock);
 #ifndef CONF_PLATFORM_MACOSX
     End();
     if (m_pLua)
@@ -60,6 +71,7 @@ void CLuaFile::Tick()
         return;
 
     ErrorFunc(m_pLua);
+    MySQLTick(); //garbage collector -> clear old results that aren't fetched by lua
 
     FunctionPrepare("Tick");
     PushInteger((int)(time_get() * 1000 / time_freq()));
@@ -140,6 +152,8 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("RemoveEventListener"), this->RemoveEventListener);
 
     //player
+    lua_register(m_pLua, ToLower("GetPlayerIP"), this->GetPlayerIP);
+    lua_register(m_pLua, ToLower("GetPlayerSpectateID"), this->GetPlayerSpectateID);
     lua_register(m_pLua, ToLower("GetPlayerName"), this->GetPlayerName);
     lua_register(m_pLua, ToLower("GetPlayerClan"), this->GetPlayerClan);
     lua_register(m_pLua, ToLower("GetPlayerCountry"), this->GetPlayerCountry);
@@ -154,6 +168,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("SetPlayerTeam"), this->SetPlayerTeam);
     lua_register(m_pLua, ToLower("SetPlayerClan"), this->SetPlayerClan);
     lua_register(m_pLua, ToLower("SetPlayerCountry"), this->SetPlayerCountry);
+    lua_register(m_pLua, ToLower("SetPlayerSpectateID"), this->SetPlayerSpectateID);
 
     lua_register(m_pLua, ToLower("SetPlayerColorBody"), this->SetPlayerColorBody);
     lua_register(m_pLua, ToLower("SetPlayerColorFeet"), this->SetPlayerColorFeet);
@@ -239,6 +254,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CharacterGetAmmo"), this->CharacterGetAmmo);
     lua_register(m_pLua, ToLower("CharacterGetInputTarget"), this->CharacterGetInputTarget);
     lua_register(m_pLua, ToLower("CharacterGetActiveWeapon"), this->CharacterGetActiveWeapon);
+    lua_register(m_pLua, ToLower("CharacterSetActiveWeapon"), this->CharacterSetActiveWeapon);
     lua_register(m_pLua, ToLower("CharacterDirectInput"), this->CharacterDirectInput);
     lua_register(m_pLua, ToLower("CharacterPredictedInput"), this->CharacterPredictedInput);
 
@@ -259,12 +275,20 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CreateDirectory"), this->CreateDirectory);
     lua_register(m_pLua, ToLower("GetDate"), this->GetDate);
 
+    //MySQL - Yeah
+    lua_register(m_pLua, ToLower("MySQLConnect"), this->MySQLConnect);
+    lua_register(m_pLua, ToLower("MySQLEscapeString"), this->MySQLEscapeString);
+    lua_register(m_pLua, ToLower("MySQLSelectDatabase"), this->MySQLSelectDatabase);
+    lua_register(m_pLua, ToLower("MySQLIsConnected"), this->MySQLIsConnected);
+    lua_register(m_pLua, ToLower("MySQLQuery"), this->MySQLQuery);
+    lua_register(m_pLua, ToLower("MySQLClose"), this->MySQLClose);
+    lua_register(m_pLua, ToLower("MySQLFetchResults"), this->MySQLFetchResults);
+
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");
 
-    lua_register(m_pLua, ToLower("errorfunc"), this->ErrorFunc); //TODO: fix me
-    //lua_getglobal(m_pLua, "errorfunc");
+    lua_register(m_pLua, ToLower("errorfunc"), this->ErrorFunc);
 
 
     if (luaL_loadfile(m_pLua, m_aFilename) == 0)

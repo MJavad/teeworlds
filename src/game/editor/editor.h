@@ -266,6 +266,7 @@ class CEditorMap
 public:
 	CEditor *m_pEditor;
 	bool m_Modified;
+	int m_UndoModified;
 
 	CEditorMap()
 	{
@@ -277,11 +278,14 @@ public:
 	array<CEnvelope*> m_lEnvelopes;
 
 	class CLayerGame *m_pGameLayer;
+	class CLayerTele *m_pTeleLayer;
+	class CLayerSpeedup *m_pSpeedupLayer;
 	CLayerGroup *m_pGameGroup;
 
 	CEnvelope *NewEnvelope(int Channels)
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		CEnvelope *e = new CEnvelope(Channels);
 		m_lEnvelopes.add(e);
 		return e;
@@ -292,6 +296,7 @@ public:
 	CLayerGroup *NewGroup()
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		CLayerGroup *g = new CLayerGroup;
 		g->m_pMap = this;
 		m_lGroups.add(g);
@@ -304,6 +309,7 @@ public:
 		if(Index1 < 0 || Index1 >= m_lGroups.size()) return Index0;
 		if(Index0 == Index1) return Index0;
 		m_Modified = true;
+		m_UndoModified++;
 		swap(m_lGroups[Index0], m_lGroups[Index1]);
 		return Index1;
 	}
@@ -312,6 +318,7 @@ public:
 	{
 		if(Index < 0 || Index >= m_lGroups.size()) return;
 		m_Modified = true;
+		m_UndoModified++;
 		delete m_lGroups[Index];
 		m_lGroups.remove_index(Index);
 	}
@@ -319,6 +326,7 @@ public:
 	void ModifyImageIndex(INDEX_MODIFY_FUNC pfnFunc)
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		for(int i = 0; i < m_lGroups.size(); i++)
 			m_lGroups[i]->ModifyImageIndex(pfnFunc);
 	}
@@ -326,6 +334,7 @@ public:
 	void ModifyEnvelopeIndex(INDEX_MODIFY_FUNC pfnFunc)
 	{
 		m_Modified = true;
+		m_UndoModified++;
 		for(int i = 0; i < m_lGroups.size(); i++)
 			m_lGroups[i]->ModifyEnvelopeIndex(pfnFunc);
 	}
@@ -336,6 +345,9 @@ public:
 	// io
 	int Save(class IStorage *pStorage, const char *pFilename);
 	int Load(class IStorage *pStorage, const char *pFilename, int StorageType);
+
+	void MakeTeleLayer(CLayer *pLayer);
+	void MakeSpeedupLayer(CLayer *pLayer);
 
 	//Lua
 	char *m_pLuaData;
@@ -417,6 +429,8 @@ public:
 
 	int m_TexID;
 	int m_Game;
+	int m_Tele;
+	int m_Speedup;
 	int m_Image;
 	int m_Width;
 	int m_Height;
@@ -462,6 +476,40 @@ public:
 	~CLayerGame();
 
 	virtual int RenderProperties(CUIRect *pToolbox);
+};
+
+class CLayerTele : public CLayerTiles
+{
+public:
+	CLayerTele(int w, int h);
+	~CLayerTele();
+
+	CTeleTile *m_pTeleTile;
+
+	virtual void Resize(int NewW, int NewH);
+	virtual void Shift(int Direction);
+	virtual void BrushDraw(CLayer *pBrush, float wx, float wy);
+	virtual void BrushFlipX();
+	virtual void BrushFlipY();
+	virtual void BrushRotate(float Amount);
+	virtual void FillSelection(bool Empty, CLayer *pBrush, CUIRect Rect);
+};
+
+class CLayerSpeedup : public CLayerTiles
+{
+public:
+	CLayerSpeedup(int w, int h);
+	~CLayerSpeedup();
+
+	CSpeedupTile *m_pSpeedupTile;
+
+	virtual void Resize(int NewW, int NewH);
+	virtual void Shift(int Direction);
+	virtual void BrushDraw(CLayer *pBrush, float wx, float wy);
+	virtual void BrushFlipX();
+	virtual void BrushFlipY();
+	virtual void BrushRotate(float Amount);
+	virtual void FillSelection(bool Empty, CLayer *pBrush, CUIRect Rect);
 };
 
 class CEditor : public IEditor
@@ -562,12 +610,18 @@ public:
 		ms_EntitiesTexture = 0;
 
 		ms_pUiGotContext = 0;
+
+		m_TeleNum = 1;
+
+		m_SpeedupForce = 50;
+		m_SpeedupAngle = 0;
 	}
 
 	virtual void Init();
 	virtual void UpdateAndRender();
 	virtual bool HasUnsavedData() { return m_Map.m_Modified; }
 
+    int64 m_LastUndoUpdateTime;
 	void CreateUndoStep(const char *pName = 0);
 	int UndoStep();
 	struct CUndo
@@ -754,6 +808,8 @@ public:
 	static int PopupImage(CEditor *pEditor, CUIRect View);
 	static int PopupMenuFile(CEditor *pEditor, CUIRect View);
 	static int PopupSelectConfigAutoMap(CEditor *pEditor, CUIRect View);
+	static int PopupTele(CEditor *pEditor, CUIRect View);
+	static int PopupSpeedup(CEditor *pEditor, CUIRect View);
 
 	static void CallbackOpenMap(const char *pFileName, int StorageType, void *pUser);
 	static void CallbackAppendMap(const char *pFileName, int StorageType, void *pUser);
@@ -814,6 +870,11 @@ public:
 	}
 
 	int GetLineDistance();
+
+	unsigned char m_TeleNum;
+
+	unsigned char m_SpeedupForce;
+	short m_SpeedupAngle;
 };
 
 // make sure to inline this function

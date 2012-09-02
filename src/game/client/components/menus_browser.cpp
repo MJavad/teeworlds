@@ -434,10 +434,11 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
                 TextRender()->SetCursor(&Cursor, Button.x, Button.y, 12.0f*UI()->Scale(), TEXTFLAG_RENDER|TEXTFLAG_STOP_AT_END);
                 Cursor.m_LineWidth = Button.w;
 
-                m_pClient->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set((char *)pItem->m_aGameType);
+                int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+                m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set((char *)pItem->m_aGameType);
                 m_pClient->m_pLua->m_pEventListener->OnEvent("OnServerBrowserGameTypeRender");
-                if (m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].IsNumeric() && m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[1].IsNumeric() && m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[2].IsNumeric() && m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[3].IsNumeric())
-                    TextRender()->TextColor(m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetFloat(), m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetFloat(), m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetFloat(), m_pClient->m_pLua->m_pEventListener->m_Returns.m_aVars[3].GetFloat());
+                if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+                    TextRender()->TextColor(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetFloat(), m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetFloat(), m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetFloat(), m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat());
                 else
                     TextRender()->TextColor(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -1002,6 +1003,14 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
         ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
     }
 
+    /*ViewRest.VSplitLeft(100.0f, &Button, &ViewRest);
+    static int s_WarfinderButton=0;
+    if(DoButton_MenuTab(&s_WarfinderButton, Localize("Warfinder"), g_Config.m_UiServersPage==PAGE_SERVERS_WARFINDER, &Button, CUI::CORNER_T))
+    {
+        g_Config.m_UiServersPage = PAGE_SERVERS_WARFINDER;
+        ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
+    }*/
+
     MainView = View;
 
 	CUIRect ServerList, ToolBox, StatusBox, TabBar;
@@ -1102,6 +1111,8 @@ void CMenus::RenderServerbrowser(CUIRect MainView)
 				ServerBrowser()->Refresh(IServerBrowser::TYPE_FAVORITES);
 			else if(g_Config.m_UiServersPage == PAGE_SERVERS_RECENT)
 				ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
+			else if(g_Config.m_UiServersPage == PAGE_SERVERS_WARFINDER)
+				ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
             m_F5Pressed = false;
 		}
 
@@ -1143,4 +1154,6 @@ void CMenus::ConchainServerbrowserUpdate(IConsole::IResult *pResult, void *pUser
         ((CMenus *)pUserData)->ServerBrowser()->Refresh(IServerBrowser::TYPE_FAVORITES);
     if(pResult->NumArguments() && g_Config.m_UiPage == PAGE_SERVERS_RECENT && ((CMenus *)pUserData)->Client()->State() == IClient::STATE_OFFLINE)
         ((CMenus *)pUserData)->ServerBrowser()->Refresh(IServerBrowser::TYPE_RECENT);
+    if(pResult->NumArguments() && g_Config.m_UiPage == PAGE_SERVERS_WARFINDER && ((CMenus *)pUserData)->Client()->State() == IClient::STATE_OFFLINE)
+        ((CMenus *)pUserData)->ServerBrowser()->Refresh(IServerBrowser::TYPE_WARFINDER);
 }

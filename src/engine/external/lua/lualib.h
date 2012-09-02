@@ -34,25 +34,17 @@ LUAMOD_API int (luaopen_bit32) (lua_State *L);
 #define LUA_MATHLIBNAME	"math"
 LUAMOD_API int (luaopen_math) (lua_State *L);
 
-#define LUA_NETLIBNAME	"net"
-LUAMOD_API int (luaopen_net) (lua_State *L);
-
 #define LUA_DBLIBNAME	"debug"
 LUAMOD_API int (luaopen_debug) (lua_State *L);
 
 #define LUA_LOADLIBNAME	"package"
 LUAMOD_API int (luaopen_package) (lua_State *L);
 
-#define LUA_NETLIBNAME  "net"
-LUAMOD_API int (luaopen_net) (lua_State *L);
-
 #define LUA_CRYPTOLIBNAME  "crypto"
 LUAMOD_API int (luaopen_crypto) (lua_State *L);
 
-#ifndef CONF_PLATFORM_MACOSX
 #define LUA_SQLLIBNAME  "sql"
 LUAMOD_API int (luaopen_sql) (lua_State *L);
-#endif
 /* open all previous libraries */
 LUALIB_API void (luaL_openlibs) (lua_State *L);
 

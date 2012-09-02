@@ -36,7 +36,6 @@ static const luaL_Reg loadedlibs[] = {
   {LUA_STRLIBNAME, luaopen_string},
   {LUA_BITLIBNAME, luaopen_bit32},
   {LUA_MATHLIBNAME, luaopen_math},
-  {LUA_NETLIBNAME, luaopen_net},
   {LUA_SQLLIBNAME, luaopen_sql},
   {LUA_CRYPTOLIBNAME, luaopen_crypto},
   {LUA_DBLIBNAME, luaopen_debug},

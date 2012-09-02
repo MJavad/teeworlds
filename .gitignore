@@ -7,6 +7,7 @@ objs
 vs
 src/game/generated
 SDL.dll
+libmysql.dll
 freetype.dll
 autoexec.cfg
 
@@ -24,6 +25,9 @@ tileset_border*
 versionsrv*
 n-client*
 lua_compiler*
+tileset_borderadd*
+tileset_borderrem*
+tileset_borderset*
 
 /src/game/pathfinder.cpp
 /src/game/pathfinder.h

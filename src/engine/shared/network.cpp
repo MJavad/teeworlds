@@ -566,8 +566,3 @@ void CNetTCP::Tick()
         }
     }
 }
-
-
-
-
-

@@ -61,6 +61,7 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_QueuedWeapon = -1;
 
 	m_pPlayer = pPlayer;
+	m_PrevPos = Pos;
 	m_Pos = Pos;
 
 	m_Core.Reset();
@@ -77,7 +78,8 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 
 	GameServer()->m_pController->OnCharacterSpawn(this);
 
-    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->OnEvent("OnCharacterSpawn");
 
 	return true;
@@ -262,17 +264,20 @@ void CCharacter::FireWeapon()
 	if(CountInput(m_LatestPrevInput.m_Fire, m_LatestInput.m_Fire).m_Presses)
 		WillFire = true;
 
-    if (m_aWeapons[m_ActiveWeapon].m_Ammo && (WillFire || (m_LatestInput.m_Fire&1)))
+    int EventID = -1;
+    if (WillFire || (m_LatestInput.m_Fire&1))
     {
-        GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
-        GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_ActiveWeapon);
-        GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Direction.x);
-        GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Direction.y);
+        EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_ActiveWeapon);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Direction.x);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Direction.y);
 
         GameServer()->m_pLua->m_pEventListener->OnEvent("OnWeaponFire");
-        if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 1)
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
             return;
-        FullAuto = GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetInteger();
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+            FullAuto = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
     }
 
 	if(FullAuto && (m_LatestInput.m_Fire&1) && m_aWeapons[m_ActiveWeapon].m_Ammo)
@@ -286,7 +291,7 @@ void CCharacter::FireWeapon()
 	{
 		// 125ms is a magical limit of how fast a human can click
 		m_ReloadTimer = 125 * Server()->TickSpeed() / 1000;
-        if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger() == 0)
+        if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
             GameServer()->CreateSound(m_Pos, SOUND_WEAPON_NOAMMO);
 		return;
 	}
@@ -299,7 +304,7 @@ void CCharacter::FireWeapon()
 		{
 			// reset objects Hit
 			m_NumObjectsHit = 0;
-			if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger() == 0)
+            if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
 
 			CCharacter *apEnts[MAX_CLIENTS];
@@ -357,7 +362,7 @@ void CCharacter::FireWeapon()
 
 			Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
 
-			if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger() == 0)
+            if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
 		} break;
 
@@ -392,7 +397,7 @@ void CCharacter::FireWeapon()
 
 			Server()->SendMsg(&Msg, 0,m_pPlayer->GetCID());
 
-			if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger() == 0)
+            if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
 		} break;
 
@@ -415,7 +420,7 @@ void CCharacter::FireWeapon()
 				Msg.AddInt(((int *)&p)[i]);
 			Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
 
-			if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger() == 0)
+            if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
 		} break;
 
@@ -423,7 +428,7 @@ void CCharacter::FireWeapon()
 		{
 			new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
 
-			if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger() == 0)
+            if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
 		} break;
 
@@ -436,7 +441,7 @@ void CCharacter::FireWeapon()
 			m_Ninja.m_CurrentMoveTime = g_pData->m_Weapons.m_Ninja.m_Movetime * Server()->TickSpeed() / 1000;
 			m_Ninja.m_OldVelAmount = length(m_Core.m_Vel);
 
-			if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[2].GetInteger() == 0)
+            if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_NINJA_FIRE);
 		} break;
 
@@ -449,8 +454,17 @@ void CCharacter::FireWeapon()
 
 	if(!m_ReloadTimer)
 		m_ReloadTimer = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Firedelay * Server()->TickSpeed() / 1000;
-    if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[3].GetInteger())
-        m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[1].GetInteger();
+    if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetInteger())
+        m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetInteger();
+
+    EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_ReloadTimer);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnReloadTimer");
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+    {
+        m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+    }
 }
 
 void CCharacter::HandleWeapons()
@@ -480,9 +494,21 @@ void CCharacter::HandleWeapons()
 
 			if ((Server()->Tick() - m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart) >= AmmoRegenTime * Server()->TickSpeed() / 1000)
 			{
-				// Add some ammo
-				m_aWeapons[m_ActiveWeapon].m_Ammo = min(m_aWeapons[m_ActiveWeapon].m_Ammo + 1, 10);
-				m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = -1;
+                int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+                GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+                GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_ActiveWeapon);
+                GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_aWeapons[m_ActiveWeapon].m_Ammo);
+                GameServer()->m_pLua->m_pEventListener->OnEvent("OnAmmoRegen");
+                if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+                {
+                    m_aWeapons[m_ActiveWeapon].m_Ammo = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+                }
+                else //std
+                {
+                    // Add some ammo
+                    m_aWeapons[m_ActiveWeapon].m_Ammo = min(m_aWeapons[m_ActiveWeapon].m_Ammo + 1, 10);
+                }
+                m_aWeapons[m_ActiveWeapon].m_AmmoRegenStart = -1;
 			}
 		}
 		else
@@ -496,12 +522,34 @@ void CCharacter::HandleWeapons()
 
 bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 {
-	if(m_aWeapons[Weapon].m_Ammo < g_pData->m_Weapons.m_aId[Weapon].m_Maxammo || !m_aWeapons[Weapon].m_Got)
-	{
-		m_aWeapons[Weapon].m_Got = true;
-		m_aWeapons[Weapon].m_Ammo = min(g_pData->m_Weapons.m_aId[Weapon].m_Maxammo, Ammo);
-		return true;
-	}
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Ammo);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_aWeapons[Weapon].m_Ammo);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_aWeapons[Weapon].m_Got);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnGiveWeapon");
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+    {
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+            m_aWeapons[Weapon].m_Got = (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+        else
+            m_aWeapons[Weapon].m_Got = true;
+        m_aWeapons[Weapon].m_Ammo = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+            return (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+        else
+            return true;
+    }
+    else
+    {
+        if(m_aWeapons[Weapon].m_Ammo < g_pData->m_Weapons.m_aId[Weapon].m_Maxammo || !m_aWeapons[Weapon].m_Got)
+        {
+            m_aWeapons[Weapon].m_Got = true;
+            m_aWeapons[Weapon].m_Ammo = min(g_pData->m_Weapons.m_aId[Weapon].m_Maxammo, Ammo);
+            return true;
+        }
+    }
 	return false;
 }
 
@@ -589,23 +637,109 @@ void CCharacter::Tick()
 
 		m_pPlayer->m_ForceBalanced = false;
 	}
+	// save jumping state
+	int Jumped = m_Core.m_Jumped;
 
 	m_Core.m_Input = m_Input;
 	m_Core.Tick(true);
+
+	// tile index
+	int TileIndex = GameServer()->Collision()->GetIndex(m_PrevPos, m_Pos);
+
+	if(TileIndex != -1 && GameServer()->Collision()->GetTileIndex(TileIndex) == TILE_STOPL)
+	{
+		if(m_Core.m_Vel.x > 0)
+		{
+			if((int)GameServer()->Collision()->GetPos(TileIndex).x < (int)m_Core.m_Pos.x)
+				m_Core.m_Pos.x = m_PrevPos.x;
+			m_Core.m_Vel.x = 0;
+		}
+	}
+	else if(TileIndex != -1 && GameServer()->Collision()->GetTileIndex(TileIndex) == TILE_STOPR)
+	{
+		if(m_Core.m_Vel.x < 0)
+		{
+			if((int)GameServer()->Collision()->GetPos(TileIndex).x > (int)m_Core.m_Pos.x)
+				m_Core.m_Pos.x = m_PrevPos.x;
+			m_Core.m_Vel.x = 0;
+		}
+	}
+	else if(TileIndex != -1 && GameServer()->Collision()->GetTileIndex(TileIndex) == TILE_STOPB)
+	{
+		if(m_Core.m_Vel.y < 0)
+		{
+			if((int)GameServer()->Collision()->GetPos(TileIndex).y > (int)m_Core.m_Pos.y)
+				m_Core.m_Pos.y = m_PrevPos.y;
+			m_Core.m_Vel.y = 0;
+		}
+	}
+	else if(TileIndex != -1 && GameServer()->Collision()->GetTileIndex(TileIndex) == TILE_STOPT)
+	{
+		if(m_Core.m_Vel.y > 0)
+		{
+			if((int)GameServer()->Collision()->GetPos(TileIndex).y < (int)m_Core.m_Pos.y)
+				m_Core.m_Pos.y = m_PrevPos.y;
+			if(Jumped&3 && m_Core.m_Jumped != Jumped) // check double jump
+				m_Core.m_Jumped = Jumped;
+			m_Core.m_Vel.y = 0;
+		}
+	}
+
+	// handle speedup tiles
+	int CurrentSpeedup = GameServer()->Collision()->IsSpeedup(TileIndex);
+	bool SpeedupTouch = false;
+	if(m_LastSpeedup != CurrentSpeedup && CurrentSpeedup > -1)
+	{
+		vec2 Direction;
+		int Force;
+		GameServer()->Collision()->GetSpeedup(TileIndex, &Direction, &Force);
+
+		m_Core.m_Vel += Direction*Force;
+
+		SpeedupTouch = true;
+	}
+
+	m_LastSpeedup = CurrentSpeedup;
+
+	// handle teleporter
+	int z = GameServer()->Collision()->IsTeleport(TileIndex);
+	if(g_Config.m_SvTeleport && z)
+	{
+		// check double jump
+		if(Jumped&3 && m_Core.m_Jumped != Jumped)
+			m_Core.m_Jumped = Jumped;
+
+		m_Core.m_HookedPlayer = -1;
+		m_Core.m_HookState = HOOK_RETRACTED;
+		m_Core.m_Pos = GameServer()->m_pController->m_pTeleporter[z-1];
+		m_Core.m_HookPos = m_Core.m_Pos;
+		if(g_Config.m_SvStrip)
+		{
+			m_ActiveWeapon = WEAPON_HAMMER;
+			m_LastWeapon = WEAPON_HAMMER;
+			m_aWeapons[0].m_Got = true;
+			for(int i = 1; i < NUM_WEAPONS; i++)
+				m_aWeapons[i].m_Got = false;
+		}
+	}
+
+	// set Position just in case it was changed
+	m_Pos = m_Core.m_Pos;
 
 	if(m_Core.m_TriggeredEvents != 0)
 	{
 		if((m_Core.m_TriggeredEvents&COREEVENT_GROUND_JUMP))
 		{
-            GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
-            GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(0);
+		    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+            GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+            GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(0);
 			GameServer()->m_pLua->m_pEventListener->OnEvent("OnJump");
 		}
 		else if((m_Core.m_TriggeredEvents&COREEVENT_AIR_JUMP))
 		{
-
-            GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
-            GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(1);
+		    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+            GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+            GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(1);
 			GameServer()->m_pLua->m_pEventListener->OnEvent("OnJump");
 		}
 	}
@@ -624,6 +758,10 @@ void CCharacter::Tick()
 
 	// Previnput
 	m_PrevInput = m_Input;
+
+	// Prevposition
+	m_PrevPos = m_Core.m_Pos;
+
 	return;
 }
 
@@ -712,159 +850,215 @@ void CCharacter::TickDefered()
 
 bool CCharacter::IncreaseHealth(int Amount, int Max)
 {
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Amount);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Max);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnIncreaseHealth");
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+    {
+        Amount = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+    }
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+    {
+        Max = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+    }
+    //
 	if(m_Health >= Max)
 		return false;
-	m_Health = clamp(m_Health+Amount, 0, Max);
+	m_Health = clamp(m_Health + Amount, 0, Max);
 	return true;
 }
 
 bool CCharacter::IncreaseArmor(int Amount, int Max)
 {
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Amount);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Max);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnIncreaseArmor");
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+    {
+        Amount = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+    }
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+    {
+        Max = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+    }
 	if(m_Armor >= Max)
 		return false;
-	m_Armor = clamp(m_Armor+Amount, 0, Max);
+	m_Armor = clamp(m_Armor + Amount, 0, Max);
 	return true;
 }
 
 void CCharacter::Die(int Killer, int Weapon)
 {
+    CPlayer *pPlayer = m_pPlayer;
 	// we got to wait 0.5 secs before respawning
-    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Killer);
-    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
-    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Weapon);
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    dbg_msg("Die", "%i", EventID);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Killer);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
     GameServer()->m_pLua->m_pEventListener->OnEvent("OnDie");
 
-	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
+
+    //maybe the character moved to spec, so m_pPlayer is invalid
+    pPlayer->m_RespawnTick = pPlayer->Server()->Tick()+pPlayer->Server()->TickSpeed()/2;
 	int ModeSpecial = 0;
 	if (Killer >= 0 && Killer < MAX_CLIENTS)
-        ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
+        ModeSpecial = pPlayer->GameServer()->m_pController->OnCharacterDeath(this, pPlayer->GameServer()->m_apPlayers[Killer], Weapon);
 
 	char aBuf[256];
 	str_format(aBuf, sizeof(aBuf), "kill killer='%d:%s' victim='%d:%s' weapon=%d special=%d",
-		Killer, Server()->ClientName(Killer),
-		m_pPlayer->GetCID(), Server()->ClientName(m_pPlayer->GetCID()), Weapon, ModeSpecial);
-	GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
+		Killer, pPlayer->Server()->ClientName(Killer),
+		pPlayer->GetCID(), pPlayer->Server()->ClientName(pPlayer->GetCID()), Weapon, ModeSpecial);
+	pPlayer->GameServer()->Console()->Print(IConsole::OUTPUT_LEVEL_DEBUG, "game", aBuf);
 
 	// send the kill message
 	CNetMsg_Sv_KillMsg Msg;
 	Msg.m_Killer = Killer;
-	Msg.m_Victim = m_pPlayer->GetCID();
+	Msg.m_Victim = pPlayer->GetCID();
 	Msg.m_Weapon = Weapon;
 	Msg.m_ModeSpecial = ModeSpecial;
-	Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
+	pPlayer->Server()->SendPackMsg(&Msg, MSGFLAG_VITAL, -1);
 
 	// a nice sound
-	GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
+	pPlayer->GameServer()->CreateSound(m_Pos, SOUND_PLAYER_DIE);
 
 	// this is for auto respawn after 3 secs
-	m_pPlayer->m_DieTick = Server()->Tick();
+	pPlayer->m_DieTick = pPlayer->Server()->Tick();
 
 	m_Alive = false;
-	GameServer()->m_World.RemoveEntity(this);
-	GameServer()->m_World.m_Core.m_apCharacters[m_pPlayer->GetCID()] = 0;
-	GameServer()->CreateDeath(m_Pos, m_pPlayer->GetCID());
+	pPlayer->GameServer()->m_World.RemoveEntity(this);
+	pPlayer->GameServer()->m_World.m_Core.m_apCharacters[pPlayer->GetCID()] = 0;
+	pPlayer->GameServer()->CreateDeath(m_Pos, pPlayer->GetCID());
 }
 
 bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
-    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(m_pPlayer->GetCID());
-    GameServer()->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(From);
+    CPlayer *pPlayer = m_pPlayer;
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Dmg);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Force.x);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Force.y);
     GameServer()->m_pLua->m_pEventListener->OnEvent("OnTakeDamage");
-    dbg_msg("Value", "%i", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger());
-    if (GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger())
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
     {
-        dbg_msg("FF", "%i", GameServer()->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger());
         return false;
     }
+    else
+    {
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+            Weapon = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+            Dmg = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+            Force.x = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
+            Force.y = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetFloat();
+    }
+    if (pPlayer->GetCharacter()) //player may be forced to spec
+        m_Core.m_Vel += Force;
 
-	m_Core.m_Vel += Force;
+    if(pPlayer->GameServer()->m_pController->IsFriendlyFire(pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
+        return false;
 
-	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From) && !g_Config.m_SvTeamdamage)
-		return false;
+    // m_pPlayer only inflicts half damage on self
+    if(From == pPlayer->GetCID())
+        Dmg = max(1, Dmg/2);
 
-	// m_pPlayer only inflicts half damage on self
-	if(From == m_pPlayer->GetCID())
-		Dmg = max(1, Dmg/2);
+    if (pPlayer->GetCharacter()) //player may be forced to spec
+    {
+        m_DamageTaken++;
 
-	m_DamageTaken++;
+        // create healthmod indicator
+        if(Server()->Tick() < m_DamageTakenTick+25)
+        {
+            // make sure that the damage indicators doesn't group together
+            GameServer()->CreateDamageInd(m_Pos, m_DamageTaken*0.25f, Dmg);
+        }
+        else
+        {
+            m_DamageTaken = 0;
+            GameServer()->CreateDamageInd(m_Pos, 0, Dmg);
+        }
 
-	// create healthmod indicator
-	if(Server()->Tick() < m_DamageTakenTick+25)
-	{
-		// make sure that the damage indicators doesn't group together
-		GameServer()->CreateDamageInd(m_Pos, m_DamageTaken*0.25f, Dmg);
-	}
-	else
-	{
-		m_DamageTaken = 0;
-		GameServer()->CreateDamageInd(m_Pos, 0, Dmg);
-	}
+        if(Dmg)
+        {
+            if(m_Armor)
+            {
+                if(Dmg > 1)
+                {
+                    m_Health--;
+                    Dmg--;
+                }
 
-	if(Dmg)
-	{
-		if(m_Armor)
-		{
-			if(Dmg > 1)
-			{
-				m_Health--;
-				Dmg--;
-			}
+                if(Dmg > m_Armor)
+                {
+                    Dmg -= m_Armor;
+                    m_Armor = 0;
+                }
+                else
+                {
+                    m_Armor -= Dmg;
+                    Dmg = 0;
+                }
+            }
 
-			if(Dmg > m_Armor)
-			{
-				Dmg -= m_Armor;
-				m_Armor = 0;
-			}
-			else
-			{
-				m_Armor -= Dmg;
-				Dmg = 0;
-			}
-		}
+            m_Health -= Dmg;
+        }
 
-		m_Health -= Dmg;
-	}
-
-	m_DamageTakenTick = Server()->Tick();
+        m_DamageTakenTick = Server()->Tick();
+    }
 
 	// do damage Hit sound
-	if(From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
+	if(From >= 0 && From != pPlayer->GetCID() && pPlayer->GameServer()->m_apPlayers[From])
 	{
 		int Mask = CmaskOne(From);
 		for(int i = 0; i < MAX_CLIENTS; i++)
 		{
-			if(GameServer()->m_apPlayers[i] && GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS && GameServer()->m_apPlayers[i]->m_SpectatorID == From)
+			if(pPlayer->GameServer()->m_apPlayers[i] && pPlayer->GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS && pPlayer->GameServer()->m_apPlayers[i]->m_SpectatorID == From)
 				Mask |= CmaskOne(i);
 		}
-		GameServer()->CreateSound(GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT, Mask);
+		pPlayer->GameServer()->CreateSound(pPlayer->GameServer()->m_apPlayers[From]->m_ViewPos, SOUND_HIT, Mask);
 	}
 
-	// check for death
-	if(m_Health <= 0)
-	{
-		Die(From, Weapon);
+    if (pPlayer->GetCharacter()) //player may be forced to spec
+    {
+        // check for death
+        if(m_Health <= 0)
+        {
+            Die(From, Weapon);
 
-		// set attacker's face to happy (taunt!)
-		if (From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
-		{
-			CCharacter *pChr = GameServer()->m_apPlayers[From]->GetCharacter();
-			if (pChr)
-			{
-				pChr->m_EmoteType = EMOTE_HAPPY;
-				pChr->m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
-			}
-		}
+            if (!pPlayer->GetCharacter())
+                return false;
 
-		return false;
-	}
+            // set attacker's face to happy (taunt!)
+            if (From >= 0 && From != m_pPlayer->GetCID() && GameServer()->m_apPlayers[From])
+            {
+                CCharacter *pChr = GameServer()->m_apPlayers[From]->GetCharacter();
+                if (pChr)
+                {
+                    pChr->m_EmoteType = EMOTE_HAPPY;
+                    pChr->m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
+                }
+            }
 
-	if (Dmg > 2)
-		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
-	else
-		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_SHORT);
+            return false;
+        }
 
-	m_EmoteType = EMOTE_PAIN;
-	m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
+        if (Dmg > 2)
+            GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_LONG);
+        else
+            GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_SHORT);
+
+        m_EmoteType = EMOTE_PAIN;
+        m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
+    }
 
 	return true;
 }

@@ -104,6 +104,8 @@ char *CEventVariable::GetString()
 
 int CEventVariable::GetInteger()
 {
+    if (m_Type == EVENT_TYPE_STRING)
+        return str_toint((char *)m_pData);
     if (IsNumeric() == false)
         return 0;
     if (!m_pData)
@@ -113,6 +115,8 @@ int CEventVariable::GetInteger()
 
 float CEventVariable::GetFloat()
 {
+    if (m_Type == EVENT_TYPE_STRING)
+        return str_tofloat((char *)m_pData);
     if (IsNumeric() == false)
         return 0;
     if (!m_pData)
@@ -164,6 +168,8 @@ void CEvent::Reset()
 
 CEventVariable *CEvent::FindFree()
 {
+    static CEventVariable Workaround; //remove me!!
+    Workaround.Reset();
     for (int i = 0; i < MAX_EVENT_VARIABLES; i++)
     {
         if (m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_INVALID)
@@ -171,7 +177,7 @@ CEventVariable *CEvent::FindFree()
             return &m_aVars[i];
         }
     }
-    return 0;
+    return &Workaround;
 }
 
 

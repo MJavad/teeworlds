@@ -304,6 +304,12 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 	m_RecivedSnapshots = 0;
 
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
+
+    m_RecordStart = 0;
+    m_aRecordDemoName[0] = 0;
+    m_RecordDemoFPS = 0;
+    m_RecordDemoFormat = 0;
+    m_RecordDemoStorageType = 0;
 }
 
 // ----- send functions -----
@@ -1806,6 +1812,20 @@ void CClient::Update()
 	if(State() == IClient::STATE_DEMOPLAYBACK)
 	{
 		m_DemoPlayer.Update();
+		if (m_DemoPlayer.m_Recording)
+		{
+		    dbg_msg("%%%", "%f[!]", (float)(m_DemoPlayer.Info()->m_Info.m_CurrentTick - m_DemoPlayer.Info()->m_Info.m_FirstTick) / (float)(m_DemoPlayer.Info()->m_Info.m_LastTick - m_DemoPlayer.Info()->m_Info.m_FirstTick));
+		}
+		if (!m_DemoPlayer.IsPlaying() && m_DemoPlayer.m_Recording)
+        {
+            m_DemoPlayer.m_Recording = false;
+            m_DemoVideoRecorder.Stop();
+            m_pGraphics->SetCallback(0, 0);
+            dbg_msg("!!!recording done!!!", ""); // i am done \o/
+            thread_sleep(1000); //wait for message to be recived :) and quit hard, dont save config
+            exit(0);
+            return;
+        }
 		if(m_DemoPlayer.IsPlaying())
 		{
 			// update timers
@@ -1940,6 +1960,15 @@ void CClient::Update()
 	// update the server browser
 	m_ServerBrowser.Update(m_ResortServerBrowser);
 	m_ResortServerBrowser = false;
+
+    //dbg_msg("", "%i", m_RecordStart);
+    if (m_RecordStart)
+        m_RecordStart++;
+    if (m_RecordStart == 60)
+    {
+        m_RecordStart = 0;
+        DemoPlayer_Record(m_aRecordDemoName, m_RecordDemoStorageType, m_RecordDemoFPS, m_RecordDemoFormat);
+    }
 }
 
 void CClient::VersionUpdate()
@@ -2353,14 +2382,14 @@ void CClient::Con_RemoveFavorite(IConsole::IResult *pResult, void *pUserData)
 		pSelf->m_ServerBrowser.RemoveFavorite(Addr);
 }
 
-const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType)
+const char *CClient::DemoPlayer_Record(const char *pFilename, int StorageType, int FPS, int Format)
 {
     const char *pRet = DemoPlayer_Play(pFilename, StorageType);
     if (pRet == 0)
     {
         m_DemoPlayer.m_Recording = true;
-        m_DemoPlayer.m_FPS = 500;
-        m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight(), m_DemoPlayer.m_FPS);
+        m_DemoPlayer.m_FPS = clamp(FPS, 18, 600);
+        m_DemoVideoRecorder.Init(m_pGraphics->ScreenWidth(), m_pGraphics->ScreenHeight(), m_DemoPlayer.m_FPS, Format, pFilename);
         m_pGraphics->SetCallback(m_DemoVideoRecorder.OnData, &m_DemoVideoRecorder);
     }
     return pRet;
@@ -2473,6 +2502,16 @@ void CClient::Con_Record(IConsole::IResult *pResult, void *pUserData)
 		pSelf->DemoRecorder_Start("demo", true);
 }
 
+void CClient::Con_Rec(IConsole::IResult *pResult, void *pUserData)
+{
+	CClient *pSelf = (CClient *)pUserData;
+	str_copy(pSelf->m_aRecordDemoName, pResult->GetString(0), sizeof(pSelf->m_aRecordDemoName));
+	pSelf->m_RecordDemoFPS = pResult->GetInteger(2);
+	pSelf->m_RecordDemoFormat = pResult->GetInteger(3);
+	pSelf->m_RecordDemoStorageType = pResult->GetInteger(1);
+	pSelf->m_RecordStart = 1;
+}
+
 void CClient::Con_StopRecord(IConsole::IResult *pResult, void *pUserData)
 {
 	CClient *pSelf = (CClient *)pUserData;
@@ -2519,6 +2558,7 @@ void CClient::RegisterCommands()
 	m_pConsole->Register("stoprecord", "", CFGFLAG_CLIENT, Con_StopRecord, this, "Stop recording");
 	m_pConsole->Register("add_favorite", "s", CFGFLAG_CLIENT, Con_AddFavorite, this, "Add a server as a favorite");
 	m_pConsole->Register("remove_favorite", "s", CFGFLAG_CLIENT, Con_RemoveFavorite, this, "Remove a server from favorites");
+	m_pConsole->Register("rec", "siii", CFGFLAG_CLIENT, Con_Rec, this, "Convert demo to video");
 
 	// used for server browser update
 	m_pConsole->Chain("br_filter_string", ConchainServerBrowserUpdate, this);

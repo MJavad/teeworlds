@@ -98,12 +98,11 @@ public:
 		int m_Max;
 	} m_Latency;
 
+	CGameContext *GameServer() const { return m_pGameServer; }
+	IServer *Server() const;
 private:
 	CCharacter *m_pCharacter;
 	CGameContext *m_pGameServer;
-
-	CGameContext *GameServer() const { return m_pGameServer; }
-	IServer *Server() const;
 
 	//
 	bool m_Spawning;

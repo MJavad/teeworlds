@@ -21,6 +21,7 @@ public:
 	char m_aDatadir[MAX_PATH_LENGTH];
 	char m_aUserdir[MAX_PATH_LENGTH];
 	char m_aCurrentdir[MAX_PATH_LENGTH];
+	const char *m_pExecFile;
 
 	CStorage()
 	{
@@ -32,6 +33,7 @@ public:
 
 	int Init(const char *pApplicationName, int NumArgs, const char **ppArguments)
 	{
+	    m_pExecFile = ppArguments[0];
 		// get userdir
 		fs_storage_path(pApplicationName, m_aUserdir, sizeof(m_aUserdir));
 
@@ -248,6 +250,11 @@ public:
 		str_format(pBuffer, BufferSize, "%s%s%s", m_aaStoragePaths[Type], !m_aaStoragePaths[Type][0] ? "" : "/", pDir);
 		return pBuffer;
 	}
+
+    const char *GetExecFilename()
+    {
+        return m_pExecFile;
+    }
 
 	virtual IOHANDLE OpenFile(const char *pFilename, int Flags, int Type, char *pBuffer = 0, int BufferSize = 0)
 	{

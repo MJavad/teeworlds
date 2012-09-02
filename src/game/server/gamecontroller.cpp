@@ -33,10 +33,44 @@ IGameController::IGameController(class CGameContext *pGameServer)
 	m_aNumSpawnPoints[0] = 0;
 	m_aNumSpawnPoints[1] = 0;
 	m_aNumSpawnPoints[2] = 0;
+
+	m_pTeleporter = 0;
 }
 
 IGameController::~IGameController()
 {
+	delete[] m_pTeleporter;
+}
+
+void IGameController::InitTeleporter()
+{
+	int ArraySize = 0;
+	if(GameServer()->Collision()->Layers()->TeleLayer())
+	{
+		for(int i = 0; i < GameServer()->Collision()->Layers()->TeleLayer()->m_Width*GameServer()->Collision()->Layers()->TeleLayer()->m_Height; i++)
+		{
+			// get the array size
+			if(GameServer()->Collision()->m_pTele[i].m_Number > ArraySize)
+				ArraySize = GameServer()->Collision()->m_pTele[i].m_Number;
+		}
+	}
+
+	if(!ArraySize)
+	{
+		m_pTeleporter = 0x0;
+		dbg_msg("teleporter", "no teleport layer");
+		return;
+	}
+
+	m_pTeleporter = new vec2[ArraySize];
+	mem_zero(m_pTeleporter, ArraySize*sizeof(vec2));
+
+	// assign the values
+	for(int i = 0; i < GameServer()->Collision()->Layers()->TeleLayer()->m_Width*GameServer()->Collision()->Layers()->TeleLayer()->m_Height; i++)
+	{
+		if(GameServer()->Collision()->m_pTele[i].m_Number > 0 && GameServer()->Collision()->m_pTele[i].m_Type == TILE_TELEOUT)
+			m_pTeleporter[GameServer()->Collision()->m_pTele[i].m_Number-1] = vec2(i%GameServer()->Collision()->Layers()->TeleLayer()->m_Width*32+16, i/GameServer()->Collision()->Layers()->TeleLayer()->m_Width*32+16);
+	}
 }
 
 float IGameController::EvaluateSpawnPos(CSpawnEval *pEval, vec2 Pos)
@@ -100,15 +134,14 @@ bool IGameController::CanSpawn(int Team, vec2 *pOutPos, bool Force)
 	if(Team == TEAM_SPECTATORS)
 		return false;
 
-    if (m_pGameServer->m_AutoRespawn == false && Force == false)
-        return false;
     if (Force)
-    {
         return true;
-    }
-    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Team);
+    if (m_pGameServer->m_AutoRespawn == false)
+        return false;
+    int EventID = m_pGameServer->m_pLua->m_pEventListener->CreateEventStack();
+    m_pGameServer->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Team);
     m_pGameServer->m_pLua->m_pEventListener->OnEvent("OnCanSpawn");
-    if (m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetType() != CEventVariable::EVENT_TYPE_INVALID && m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger() == 0)
+    if (m_pGameServer->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() != CEventVariable::EVENT_TYPE_INVALID && m_pGameServer->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0)
         return false;
 
 	if(IsTeamplay())
@@ -140,12 +173,13 @@ bool IGameController::OnEntity(int Index, vec2 Pos)
 {
 	int Type = -1;
 	int SubType = 0;
-    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Pos.x);
-    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Pos.y);
-    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(Index);
+    int EventID = m_pGameServer->m_pLua->m_pEventListener->CreateEventStack();
+    m_pGameServer->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.x);
+    m_pGameServer->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.y);
+    m_pGameServer->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Index);
 	GameServer()->m_pLua->m_pEventListener->OnEvent("OnEntity");
-	if (m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].IsNumeric())
-        Index = m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger();
+	if (m_pGameServer->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+        Index = m_pGameServer->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
 	if(Index == ENTITY_SPAWN)
 		m_aaSpawnPoints[0][m_aNumSpawnPoints[0]++] = Pos;
 	else if(Index == ENTITY_SPAWN_RED)
@@ -394,12 +428,13 @@ void IGameController::DoWarmup(int Seconds)
 
 bool IGameController::IsFriendlyFire(int ClientID1, int ClientID2)
 {
-    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID1);
-    m_pGameServer->m_pLua->m_pEventListener->m_Parameters.FindFree()->Set(ClientID2);
+    int EventID = m_pGameServer->m_pLua->m_pEventListener->CreateEventStack();
+    m_pGameServer->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(ClientID1);
+    m_pGameServer->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(ClientID2);
     m_pGameServer->m_pLua->m_pEventListener->OnEvent("OnFriendlyFire");
-    if (m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].IsNumeric())
+    if (m_pGameServer->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
     {
-        return m_pGameServer->m_pLua->m_pEventListener->m_Returns.m_aVars[0].GetInteger();
+        return m_pGameServer->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
     }
 	if(ClientID1 == ClientID2)
 		return false;

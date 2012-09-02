@@ -21,7 +21,7 @@ enum
 	NUM_VOICES = 128,
 	NUM_CHANNELS = 16,
 
-	MAX_FRAMES = 8192 // i hate bufferoverflows! RAGE!
+	MAX_FRAMES = 65536 // i hate bufferoverflows! RAGE!
 };
 
 struct CSample
@@ -162,9 +162,12 @@ static void LoadMusicWavThread(void *pUser)
 static void Mix(short *pFinalOut, unsigned Frames)
 {
     CSound *pSelf = m_pSelf;
-	int aMixBuffer[MAX_FRAMES*2] = {0};
-	int aMusicBuffer[MAX_FRAMES*2] = {0};
-	int aLuaBuffer[MAX_FRAMES*2] = {0};
+	int *pMixBuffer = new int[MAX_FRAMES * 2];
+	int *pMusicBuffer = new int[MAX_FRAMES * 2];
+	int *pLuaBuffer = new int[MAX_FRAMES * 2];
+    mem_zero(pMixBuffer, sizeof(int) * MAX_FRAMES * 2);
+    mem_zero(pMusicBuffer, sizeof(int) * MAX_FRAMES * 2);
+    mem_zero(pLuaBuffer, sizeof(int) * MAX_FRAMES * 2);
 	int MasterVol;
 	int MasterMusicVol;
 	int MasterLuaVol;
@@ -182,7 +185,7 @@ static void Mix(short *pFinalOut, unsigned Frames)
 		{
 			// mix voice
 			CVoice *v = &m_aVoices[i];
-			int *pOut = aMixBuffer;
+			int *pOut = pMixBuffer;
 
 			int Step = v->m_pSample->m_Channels; // setup input sources
 			short *pInL = &v->m_pSample->m_pData[v->m_Tick*Step];
@@ -267,8 +270,8 @@ static void Mix(short *pFinalOut, unsigned Frames)
         {
             for(unsigned i = 0; i < Frames; i++)
             {
-                aMusicBuffer[i * 2] = (int)(((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 0]) * 256 + ((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 1])) * 100;
-                aMusicBuffer[i * 2 + 1] = (int)(((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 2]) * 256 + ((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 3])) * 100;
+                pMusicBuffer[i * 2] = (int)(((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 0]) * 256 + ((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 1])) * 100;
+                pMusicBuffer[i * 2 + 1] = (int)(((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 2]) * 256 + ((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 3])) * 100;
                 pSelf->m_MusicPeakL += (int)(((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 0]) * 256 + ((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 1]));
                 pSelf->m_MusicPeakR += (int)(((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 2]) * 256 + ((unsigned int)pSelf->m_MusicTmpBuffer[pSelf->m_MusicTmpBufferWrite][i * 4 + 3]));
             }
@@ -283,8 +286,8 @@ static void Mix(short *pFinalOut, unsigned Frames)
     {
         for(unsigned i = 0; i < Frames; i++)
         {
-            aLuaBuffer[i * 2] = (int)(((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 0]) * 256 + ((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 1])) * 100;
-            aLuaBuffer[i * 2 + 1] = (int)(((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 2]) * 256 + ((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 3])) * 100;
+            pLuaBuffer[i * 2] = (int)(((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 0]) * 256 + ((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 1])) * 100;
+            pLuaBuffer[i * 2 + 1] = (int)(((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 2]) * 256 + ((unsigned int)pSelf->m_LuaTmpBuffer[pSelf->m_LuaTmpBufferWrite][i * 4 + 3])) * 100;
         }
         pSelf->m_LuaTmpBufferWrite++;
         pSelf->m_LuaTmpBufferIn--;
@@ -330,12 +333,12 @@ static void Mix(short *pFinalOut, unsigned Frames)
 		for(unsigned i = 0; i < Frames; i++)
 		{
 			int j = i<<1;
-			int vl = ((aMixBuffer[j]*MasterVol)/101)>>8;
-			vl += ((aMusicBuffer[j]*MasterMusicVol)/101)>>8;
-			vl += ((aLuaBuffer[j]*MasterLuaVol)/101)>>8;
-			int vr = ((aMixBuffer[j+1]*MasterVol)/101)>>8;
-			vr += ((aMusicBuffer[j+1]*MasterMusicVol)/101)>>8;
-			vr += ((aLuaBuffer[j+1]*MasterLuaVol)/101)>>8;
+			int vl = ((pMixBuffer[j]*MasterVol)/101)>>8;
+			vl += ((pMusicBuffer[j]*MasterMusicVol)/101)>>8;
+			vl += ((pLuaBuffer[j]*MasterLuaVol)/101)>>8;
+			int vr = ((pMixBuffer[j+1]*MasterVol)/101)>>8;
+			vr += ((pMusicBuffer[j+1]*MasterMusicVol)/101)>>8;
+			vr += ((pLuaBuffer[j+1]*MasterLuaVol)/101)>>8;
 
 			pFinalOut[j] = Int2Short(vl);
 			pFinalOut[j+1] = Int2Short(vr);
@@ -344,6 +347,10 @@ static void Mix(short *pFinalOut, unsigned Frames)
 #if defined(CONF_ARCH_ENDIAN_BIG)
 	swap_endian(pFinalOut, sizeof(short), Frames * 2);
 #endif
+
+    delete[] pMixBuffer;
+    delete[] pMusicBuffer;
+    delete[] pLuaBuffer;
 }
 
 void CSound::MixHook(short *pFinalOut, unsigned Frames)

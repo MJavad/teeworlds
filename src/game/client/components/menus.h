@@ -262,6 +262,10 @@ class CMenus : public CComponent
 	void SetActive(bool Active);
 public:
 
+    //demo recorder ui
+    bool m_Recording;
+    IOHANDLE m_RecordingProcess;
+
 	enum
 	{
 		POPUP_NONE=0,
@@ -274,6 +278,8 @@ public:
 		POPUP_COUNTRY,
 		POPUP_DELETE_DEMO,
 		POPUP_RENAME_DEMO,
+		POPUP_CONVERT_DEMO,
+		POPUP_CONVERT_DEMO_PROGRESS,
 		POPUP_REMOVE_FRIEND,
 		POPUP_SOUNDERROR,
 		POPUP_PASSWORD,
@@ -302,6 +308,7 @@ public:
 		PAGE_SERVERS_LAN,
 		PAGE_SERVERS_FAVORITES,
 		PAGE_SERVERS_RECENT,
+		PAGE_SERVERS_WARFINDER,
 	};
 	// found in menus_popup.cpp
 	void RenderPopus(CUIRect MainView);

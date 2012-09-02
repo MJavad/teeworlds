@@ -185,6 +185,32 @@ enum {
 typedef struct IOINTERNAL *IOHANDLE;
 
 /*
+	Function: p_open
+		Opens a process.
+
+	Parameters:
+		filename - execfile to open.
+		flags - A set of flags. IOFLAG_READ, IOFLAG_WRITE, IOFLAG_RANDOM.
+
+	Returns:
+		Returns a handle to the process on success and 0 on failure.
+
+*/
+IOHANDLE p_open(const char *filename, int flags);
+
+/*
+	Function: p_close
+		Closes a process.
+
+	Parameters:
+		io - Handle to the process.
+
+	Returns:
+		Returns 0 on success.
+*/
+int p_close(IOHANDLE io);
+
+/*
 	Function: io_open
 		Opens a file.
 
@@ -1155,7 +1181,11 @@ int net_errno();
 */
 int net_would_block();
 
+int net_in_progress();
+
 int net_socket_read_wait(NETSOCKET sock, int time);
+
+int net_socket_write_wait(NETSOCKET sock, int time);
 
 void mem_debug_dump(IOHANDLE file);
 

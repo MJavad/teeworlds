@@ -1,13 +1,13 @@
---Todos: Flags, Katana, Reset
 SetScriptTitle("Scoreboard")
 SetScriptInfo("(c) by MAP94")
 SetScriptUseSettingPage(0)
 
-AddEventListener("OnScoreboardRender", "Test")
+AddEventListener("OnScoreboardRender", "Render")
 AddEventListener("OnKill", "Kill")
+AddEventListener("OnStateChange", "StateChange")
 
 Ui = table
-Ui.Activ = false
+Ui.Active = false
 Ui.BaseRect = nil
 Ui.Highlight = {}
 Ui.CountryFlag = {}
@@ -37,18 +37,26 @@ for i = 1, 16 do
     Players[i] = {}
     Players[i]["frags"] = {}
     Players[i]["frags"]["all"] = 0
+    Players[i]["frags"][-3] = 0
+    Players[i]["frags"][-2] = 0
+    Players[i]["frags"][-1] = 0
     Players[i]["frags"][0] = 0
     Players[i]["frags"][1] = 0
     Players[i]["frags"][2] = 0
     Players[i]["frags"][3] = 0
     Players[i]["frags"][4] = 0
+    Players[i]["frags"][5] = 0
     Players[i]["deaths"] = {}
     Players[i]["deaths"]["all"] = 0
+    Players[i]["deaths"][-3] = 0
+    Players[i]["deaths"][-2] = 0
+    Players[i]["deaths"][-1] = 0
     Players[i]["deaths"][0] = 0
     Players[i]["deaths"][1] = 0
     Players[i]["deaths"][2] = 0
     Players[i]["deaths"][3] = 0
     Players[i]["deaths"][4] = 0
+    Players[i]["deaths"][5] = 0
     Players[i]["clientid"] = 0
     Players[i]["team"] = 0
 end
@@ -56,10 +64,7 @@ end
 StartTime = nil
 ActualTime = nil
 
-function Kill()
-    Killer = KillGetKillerID()
-    Victim = KillGetVictimID()
-    Weapon = KillGetWeapon()
+function Kill(Killer, Victim, Weapon)
     if (Killer ~= Victim) then
         Players[Killer + 1]["frags"][Weapon] = Players[Killer + 1]["frags"][Weapon] + 1
     end
@@ -111,9 +116,8 @@ function deepcopy(t)
     return res
 end
 
-function Test()
-    ScoreboardAbortRender()
-    if (MenuActiv() == false) then
+function Render()
+    if (MenuActive() == false) then
         Width = UiGetScreenWidth()
         Height = UiGetScreenHeight()
         w = CorrectValue(1600)
@@ -138,6 +142,9 @@ function Test()
                 Players[i]["score"] = nil
                 Players[i]["frags"] = {}
                 Players[i]["frags"]["all"] = 0
+                Players[i]["frags"][-3] = 0
+                Players[i]["frags"][-2] = 0
+                Players[i]["frags"][-1] = 0
                 Players[i]["frags"][0] = 0
                 Players[i]["frags"][1] = 0
                 Players[i]["frags"][2] = 0
@@ -145,6 +152,9 @@ function Test()
                 Players[i]["frags"][4] = 0
                 Players[i]["deaths"] = {}
                 Players[i]["deaths"]["all"] = 0
+                Players[i]["deaths"][-3] = 0
+                Players[i]["deaths"][-2] = 0
+                Players[i]["deaths"][-1] = 0
                 Players[i]["deaths"][0] = 0
                 Players[i]["deaths"][1] = 0
                 Players[i]["deaths"][2] = 0
@@ -155,7 +165,7 @@ function Test()
         PlayersSorted = deepcopy(Players)
         table.sort(PlayersSorted, SortTeamScore)
 
-        Ui.Activ = true
+        Ui.Active = true
 
         Ui.BaseRect = UiDoRect(x, y, w, h, 0, 15, CorrectValue(17), 0, 0, 0, 0.5)
         y = y + 5
@@ -241,6 +251,37 @@ function Test()
             end
         end
     end
+    return true
+end
+
+function StateChange(New, Old)
+    for i = 1, 16 do
+        Players[i] = {}
+        Players[i]["frags"] = {}
+        Players[i]["frags"]["all"] = 0
+        Players[i]["frags"][-3] = 0
+        Players[i]["frags"][-2] = 0
+        Players[i]["frags"][-1] = 0
+        Players[i]["frags"][0] = 0
+        Players[i]["frags"][1] = 0
+        Players[i]["frags"][2] = 0
+        Players[i]["frags"][3] = 0
+        Players[i]["frags"][4] = 0
+        Players[i]["frags"][5] = 0
+        Players[i]["deaths"] = {}
+        Players[i]["deaths"]["all"] = 0
+        Players[i]["deaths"][-3] = 0
+        Players[i]["deaths"][-2] = 0
+        Players[i]["deaths"][-1] = 0
+        Players[i]["deaths"][0] = 0
+        Players[i]["deaths"][1] = 0
+        Players[i]["deaths"][2] = 0
+        Players[i]["deaths"][3] = 0
+        Players[i]["deaths"][4] = 0
+        Players[i]["deaths"][5] = 0
+        Players[i]["clientid"] = 0
+        Players[i]["team"] = 0
+    end
 end
 
 iTick = 0
@@ -251,10 +292,10 @@ function Tick(Time, ServerTick)
     if (StartTime == nil) then
         StartTime = Time
     end
-        ActualTime = Time
+    ActualTime = Time
 
 
-    if (Ui.Activ == true) then
+    if (Ui.Active == true) then
         UiRemoveElement(Ui.BaseRect)
 
         for i = 0, 16 do
@@ -276,6 +317,36 @@ function Tick(Time, ServerTick)
             UiRemoveElement(Ui.Katana[i])
             UiRemoveElement(Ui.Flags[i])
             UiRemoveElement(Ui.ID[i])
+        end
+    end
+
+    if (StateOnline() == false) then
+        for i = 1, 16 do
+            Players[i] = {}
+            Players[i]["frags"] = {}
+            Players[i]["frags"]["all"] = 0
+            Players[i]["frags"][-3] = 0
+            Players[i]["frags"][-2] = 0
+            Players[i]["frags"][-1] = 0
+            Players[i]["frags"][0] = 0
+            Players[i]["frags"][1] = 0
+            Players[i]["frags"][2] = 0
+            Players[i]["frags"][3] = 0
+            Players[i]["frags"][4] = 0
+            Players[i]["frags"][5] = 0
+            Players[i]["deaths"] = {}
+            Players[i]["deaths"]["all"] = 0
+            Players[i]["deaths"][-3] = 0
+            Players[i]["deaths"][-2] = 0
+            Players[i]["deaths"][-1] = 0
+            Players[i]["deaths"][0] = 0
+            Players[i]["deaths"][1] = 0
+            Players[i]["deaths"][2] = 0
+            Players[i]["deaths"][3] = 0
+            Players[i]["deaths"][4] = 0
+            Players[i]["deaths"][5] = 0
+            Players[i]["clientid"] = 0
+            Players[i]["team"] = 0
         end
     end
 end

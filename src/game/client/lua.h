@@ -3,13 +3,13 @@
 #define GAME_CLIENT_LUA_H
 
 #include "gameclient.h"
-#include <engine/engine.h>
 #include <engine/shared/config.h>
 #include <engine/config.h>
 #include <engine/input.h>
 #include <base/tl/array.h>
 #include <base/tl/sorted_array.h>
 #include <game/luaevent.h>
+#include <engine/engine.h>
 #include <engine/shared/network.h>
 
 #define GAME_LUA_VERSION "1.3"
@@ -161,7 +161,7 @@ public:
 
     enum
     {
-        LUAMAXUIELEMENTS = 256,
+        LUAMAXUIELEMENTS = 1024, //642 kb
     };
 
     CLuaUi m_aUiElements[LUAMAXUIELEMENTS];
@@ -257,6 +257,11 @@ public:
     //Character
     static inline int GetLocalCharacterId(lua_State *L);
     static inline int GetLocalCharacterPos(lua_State *L);
+    static inline int GetLocalCharacterWeapon(lua_State *L);
+    static inline int GetLocalCharacterWeaponAmmo(lua_State *L);
+    static inline int GetLocalCharacterHealth(lua_State *L);
+    static inline int GetLocalCharacterArmor(lua_State *L);
+
     static inline int GetCharacterPos(lua_State *L);
     static inline int SetCharacterPos(lua_State *L);
     static inline int GetCharacterVel(lua_State *L);
@@ -268,7 +273,6 @@ public:
     static inline int GetCharacterHookPos(lua_State *L);
     static inline int GetCharacterHookDir(lua_State *L);
     static inline int GetCharacterHookState(lua_State *L);
-    static inline int GetCharacterWeaponAmmo(lua_State *L);
 
 
     //collision
@@ -377,6 +381,9 @@ public:
     static inline int UiGetParticleTextureID(lua_State *L);
     static inline int UiGetFlagTextureID(lua_State *L);
 
+    static inline int UiDirectEditBox(lua_State *L);
+    static inline int UiDirectSlider(lua_State *L);
+    static inline int UiDirectButton(lua_State *L);
     static inline int UiDirectRect(lua_State *L);
     static inline int UiDirectLine(lua_State *L);
     static inline int UiDirectLabel(lua_State *L);
@@ -391,6 +398,11 @@ public:
     static inline int TextureLoad(lua_State *L);
     static inline int TextureUnload(lua_State *L);
     static inline int RenderTexture(lua_State *L);
+    static inline int RenderSprite(lua_State *L);
+
+
+    static inline int GetScreenWidth(lua_State *L);
+    static inline int GetScreenHeight(lua_State *L);
 
     //Music
     static inline int MusicPlay(lua_State *L);
@@ -459,15 +471,13 @@ public:
 
     //filesystem
     static inline int CreateDirectory(lua_State *L);
-
-	static inline int GetIntraGameTick(lua_State *L);
-
-	static inline int GetKeyID(lua_State *L);
-	static inline int GetKeyName(lua_State *L);
-
-	static inline int GetTextWidth(lua_State *L);
-
-	static inline int SetDisconnectReason(lua_State *L);
+    static inline int ListDirectory(lua_State *L);
+    struct CListDirectoryData
+    {
+        lua_State *m_L;
+        int m_Number;
+    };
+    static inline int ListDirectoryInternal(const char *pName, int IsDir, int DirType, void *pUser);
 
 	static inline int TCPConnect(lua_State *L);
 	static inline int TCPSend(lua_State *L);
@@ -478,6 +488,15 @@ public:
 	static inline int TCPClose(lua_State *L);
 	static inline int HostLookup(lua_State *L);
 	static inline int HostLookupGetResult(lua_State *L);
+
+	static inline int GetIntraGameTick(lua_State *L);
+
+	static inline int GetKeyID(lua_State *L);
+	static inline int GetKeyName(lua_State *L);
+
+	static inline int GetTextWidth(lua_State *L);
+
+	static inline int SetDisconnectReason(lua_State *L);
 };
 
 class CLua

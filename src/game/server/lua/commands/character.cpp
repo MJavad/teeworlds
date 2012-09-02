@@ -159,7 +159,7 @@ int CLuaFile::CharacterKill(lua_State *L)
     {
         if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter())
         {
-            pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->Die(lua_tointeger(L, 1), WEAPON_GAME);
+            pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->Die(lua_isnumber(L, 3) ? lua_tointeger(L, 3) : lua_tointeger(L, 1), lua_isnumber(L, 2) ? lua_tointeger(L, 2) : WEAPON_GAME);
         }
     }
     return 0;
@@ -344,6 +344,24 @@ int CLuaFile::CharacterGetActiveWeapon(lua_State *L)
         {
             lua_pushinteger(L, pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_ActiveWeapon);
             return 1;
+        }
+    }
+    return 0;
+}
+
+int CLuaFile::CharacterSetActiveWeapon(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1))
+    {
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() && lua_tointeger(L, 2))
+        {
+            pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->m_ActiveWeapon = lua_tointeger(L, 2);
         }
     }
     return 0;

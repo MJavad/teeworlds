@@ -20,7 +20,7 @@ else
     checkfile:close()
 end
 Include ("lua/bloodpatch.config")
-Blood = TextureLoad("lua/blood.png")
+Blood = TextureLoad("blood.png")
 
 Ui = table
 Ui.SettingsRect = nil

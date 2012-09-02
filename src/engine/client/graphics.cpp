@@ -150,6 +150,9 @@ CGraphics_OpenGL::CGraphics_OpenGL()
 	m_ScreenHeight = -1;
 
 	m_Rotation = 0;
+	m_Center.x = -1;
+	m_Center.y = -1;
+	m_Center.z = -1;
 	m_Drawing = 0;
 	m_InvalidTexture = 0;
 
@@ -527,7 +530,8 @@ void CGraphics_OpenGL::ScreenshotDirect(const char *pFilename)
         ScreenshotData->m_w = w;
         ScreenshotData->m_pPixelData = pPixelData;
         ScreenshotData->m_pSelf = this;
-        thread_create(ScreenShotThread, ScreenshotData);
+        void *t = thread_create(ScreenShotThread, ScreenshotData);
+        thread_detach(t);
 	}
 	else
 	{
@@ -589,6 +593,7 @@ void CGraphics_OpenGL::QuadsBegin()
 
 	QuadsSetSubset(0,0,1,1);
 	QuadsSetRotation(0);
+	QuadsSetRotationCenter(0, 0);
 	SetColor(1,1,1,1);
 }
 
@@ -603,6 +608,15 @@ void CGraphics_OpenGL::QuadsSetRotation(float Angle)
 {
 	dbg_assert(m_Drawing == DRAWING_QUADS, "called Graphics()->QuadsSetRotation without begin");
 	m_Rotation = Angle;
+	m_Center.x = -1;
+	m_Center.y = -1;
+}
+
+void CGraphics_OpenGL::QuadsSetRotationCenter(int x, int y)
+{
+	dbg_assert(m_Drawing == DRAWING_QUADS, "called Graphics()->QuadsSetRotation without begin");
+	m_Center.x = x;
+	m_Center.y = y;
 }
 
 void CGraphics_OpenGL::SetColorVertex(const CColorVertex *pArray, int Num)
@@ -694,6 +708,12 @@ void CGraphics_OpenGL::QuadsDrawTL(const CQuadItem *pArray, int Num)
 		{
 			Center.x = pArray[i].m_X + pArray[i].m_Width/2;
 			Center.y = pArray[i].m_Y + pArray[i].m_Height/2;
+
+            if (m_Center.x != -1 && m_Center.y != -1)
+            {
+                Center.x = pArray[i].m_X + m_Center.x;
+                Center.y = pArray[i].m_Y + m_Center.y;
+            }
 
 			Rotate4(Center, &m_aVertices[m_NumVertices + 4*i]);
 		}
@@ -969,7 +989,12 @@ void CGraphics_SDL::TakeScreenshot(const char *pFilename)
 {
 	char aDate[20];
 	str_timestamp(aDate, sizeof(aDate));
-	str_format(m_aScreenshotName, sizeof(m_aScreenshotName), "screenshots/%s_%s.png", pFilename?pFilename:"screenshot", aDate);
+	if (str_comp(aDate, m_aScreenshotDate) == 0)
+	    m_ScreenshotNum++;
+	else
+        m_ScreenshotNum = 0;
+    str_copy(m_aScreenshotDate, aDate, sizeof(m_aScreenshotDate));
+	str_format(m_aScreenshotName, sizeof(m_aScreenshotName), "screenshots/%s_%s_%i.png", pFilename?pFilename:"screenshot", aDate, m_ScreenshotNum);
 	m_DoScreenshot = true;
 }
 
