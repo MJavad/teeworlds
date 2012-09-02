@@ -329,6 +329,11 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
     Graphics()->TextureSet(g_pData->m_aImages[IMAGE_PARTICLES].m_Id);
 
     EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From.x);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From.y);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.x);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.y);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(a);
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.r);
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.g);
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.b);
