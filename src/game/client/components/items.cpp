@@ -289,13 +289,13 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
             a = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[9].GetFloat(), 0.0f, 1.0f);
         Ia = 1-a; //re-evalute
         if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[10].IsNumeric())
-            From.x = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[10].GetFloat(), 0.0f, 1.0f);
+            From.x = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[10].GetFloat();
         if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[11].IsNumeric())
-            From.y = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[11].GetFloat(), 0.0f, 1.0f);
+            From.y = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[11].GetFloat();
         if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[12].IsNumeric())
-            Pos.x = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[12].GetFloat(), 0.0f, 1.0f);
+            Pos.x = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[12].GetFloat();
         if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[13].IsNumeric())
-            Pos.y = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[13].GetFloat(), 0.0f, 1.0f);
+            Pos.y = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[13].GetFloat();
 		Dir = normalize(Pos-From);
 
         Graphics()->QuadsBegin();
