@@ -182,7 +182,7 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
                     }
                     else if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_FLOAT)
                     {
-                        r.front().m_pLuaFile->PushFloat(m_aStackParameters[m_StackSize].m_aVars[i].GetInteger());
+                        r.front().m_pLuaFile->PushFloat(m_aStackParameters[m_StackSize].m_aVars[i].GetFloat());
                     }
                     else if (m_aStackParameters[m_StackSize].m_aVars[i].GetType() == CEventVariable::EVENT_TYPE_BOOL)
                     {
@@ -205,16 +205,16 @@ void CLuaEventListener<T>::OnEvent(const char *pEvent)
                 Num = lua_gettop(r.front().m_pLuaFile->m_pLua) - Num; //get number of returns
                 for (int i = 0; i < Num; i++) //lua stack begins with 1 - so manipulate every i
                 {
-                    if (lua_isboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1))
-                    {
-                        m_aStackReturns[m_StackSize].m_aVars[i].Set(lua_toboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1));
-                    }
-                    else if (lua_isnumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
+                	if (lua_isnumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {
                         if (lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1) == lua_tonumber(r.front().m_pLuaFile->m_pLua, Start + i + 1))
-                            m_aStackReturns[m_StackSize].m_aVars[i].Set(lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1));
+                            m_aStackReturns[m_StackSize].m_aVars[i].Set((int)lua_tointeger(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                         else
                             m_aStackReturns[m_StackSize].m_aVars[i].Set((float)lua_tonumber(r.front().m_pLuaFile->m_pLua, Start + i + 1));
+                    }
+                    else if (lua_isboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1))
+                    {
+                        m_aStackReturns[m_StackSize].m_aVars[i].Set(lua_toboolean(r.front().m_pLuaFile->m_pLua, Start + i + 1));
                     }
                     else if (lua_isstring(r.front().m_pLuaFile->m_pLua, Start + i + 1))
                     {

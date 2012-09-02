@@ -288,6 +288,15 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
         if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[9].IsNumeric())
             a = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[9].GetFloat(), 0.0f, 1.0f);
         Ia = 1-a; //re-evalute
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[10].IsNumeric())
+            From.x = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[10].GetFloat(), 0.0f, 1.0f);
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[11].IsNumeric())
+            From.y = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[11].GetFloat(), 0.0f, 1.0f);
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[12].IsNumeric())
+            Pos.x = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[12].GetFloat(), 0.0f, 1.0f);
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[13].IsNumeric())
+            Pos.y = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[13].GetFloat(), 0.0f, 1.0f);
+		Dir = normalize(Pos-From);
 
         Graphics()->QuadsBegin();
         // do outline

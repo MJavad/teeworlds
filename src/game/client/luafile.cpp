@@ -438,6 +438,8 @@ void CLuaFile::Close()
     //-Frees textures
     End();
 
+    m_Error = false;
+
     //kill lua
     if (m_pLua)
         lua_close(m_pLua);
