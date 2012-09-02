@@ -3,12 +3,14 @@
 #define GAME_CLIENT_LUA_H
 
 #include "gameclient.h"
+#include <engine/engine.h>
 #include <engine/shared/config.h>
 #include <engine/config.h>
 #include <engine/input.h>
 #include <base/tl/array.h>
 #include <base/tl/sorted_array.h>
 #include <game/luaevent.h>
+#include <engine/shared/network.h>
 
 #define GAME_LUA_VERSION "1.3"
 
@@ -143,6 +145,7 @@ public:
     ~CLuaFile();
     class CLua *m_pLuaHandler;
     CGameClient *m_pClient;
+    CNetTCP m_NetTCP;
     void UiTick();
     void Tick();
     void End();
@@ -190,6 +193,8 @@ public:
     int m_FunctionVarNum;
 
     int m_Error;
+
+	CHostLookup m_Lookup;
 
     //Functions:
     //Settings
@@ -464,6 +469,15 @@ public:
 
 	static inline int SetDisconnectReason(lua_State *L);
 
+	static inline int TCPConnect(lua_State *L);
+	static inline int TCPSend(lua_State *L);
+	static inline int TCPStreamSize(lua_State *L);
+	static inline int TCPStreamClear(lua_State *L);
+	static inline int TCPStreamRead(lua_State *L);
+	static inline int TCPGetStatus(lua_State *L);
+	static inline int TCPClose(lua_State *L);
+	static inline int HostLookup(lua_State *L);
+	static inline int HostLookupGetResult(lua_State *L);
 };
 
 class CLua

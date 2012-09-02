@@ -391,6 +391,16 @@ void CLuaFile::Init(const char *pFile)
 
 	lua_register(m_pLua, ToLower("SetDisconnectReason"), this->SetDisconnectReason);
 
+	lua_register(m_pLua, ToLower("TCPConnect"), this->TCPConnect);
+	lua_register(m_pLua, ToLower("TCPSend"), this->TCPSend);
+	lua_register(m_pLua, ToLower("TCPStreamSize"), this->TCPStreamSize);
+	lua_register(m_pLua, ToLower("TCPStreamClear"), this->TCPStreamClear);
+	lua_register(m_pLua, ToLower("TCPStreamRead"), this->TCPStreamRead);
+	lua_register(m_pLua, ToLower("TCPGetStatus"), this->TCPGetStatus);
+	lua_register(m_pLua, ToLower("TCPClose"), this->TCPClose);
+	lua_register(m_pLua, ToLower("HostLookup"), this->HostLookup);
+	lua_register(m_pLua, ToLower("HostLookupGetResult"), this->HostLookupGetResult);
+
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");
 
@@ -452,8 +462,10 @@ int CLuaFile::ErrorFunc(lua_State *L)
     if (lua_tostring(L, -1) == 0)
         return 0;
 
-    dbg_msg("Lua", pSelf->m_aFilename);
-    dbg_msg("Lua", lua_tostring(L, -1));
+    //dbg_msg("Lua", pSelf->m_aFilename);
+    //dbg_msg("Lua", lua_tostring(L, -1));
+    pSelf->m_pClient->Console()->Print(1, "Lua", pSelf->m_aFilename);
+    pSelf->m_pClient->Console()->Print(1, "Lua", lua_tostring(L, -1));
 
     dbg_msg("Lua", "Backtrace:");
     while(lua_getstack(L, depth, &frame) == 1)
@@ -4183,7 +4195,7 @@ int CLuaFile::CreateDirectory(lua_State *L)
     return 1;
 }
 
-int CLuaFile::GetDate (lua_State *L) //from loslib.c
+int CLuaFile::GetDate(lua_State *L) //from loslib.c
 {
     const char *s = luaL_optstring(L, 1, "%c");
     time_t t = luaL_opt(L, (time_t)luaL_checknumber, 2, time(NULL));
@@ -4323,6 +4335,7 @@ int CLuaFile::GetTextWidth(lua_State *L)
 
 	return 1;
 }
+
 int CLuaFile::SetDisconnectReason(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -4337,5 +4350,130 @@ int CLuaFile::SetDisconnectReason(lua_State *L)
 
 	pSelf->m_pClient->Client()->SetDisconnectReason(lua_tostring(L, 1));
 
+	return 0;
+}
+
+int CLuaFile::TCPConnect(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(!lua_isnumber(L, 1) || !lua_isstring(L, 2))
+		return 0;
+
+	NETADDR ConnAddr;
+	net_addr_from_str(&ConnAddr, lua_tostring(L, 2));
+
+	NETADDR BindAddr;
+	mem_zero(&BindAddr, sizeof(BindAddr));
+	BindAddr.type = NETTYPE_IPV4;
+	BindAddr.port = 0;
+
+	if(pSelf->m_NetTCP.Open(BindAddr))
+	{
+		lua_pushnumber(L, pSelf->m_NetTCP.Connect(ConnAddr));
+		return 1;
+	}
+	return 0;
+}
+
+int CLuaFile::TCPSend(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(!lua_isstring(L, 1) || !lua_isnumber(L, 2))
+		return 0;
+	lua_pushnumber(L, pSelf->m_NetTCP.Send(lua_tostring(L, 1), lua_tonumber(L, 2)));
+	return 1;
+}
+
+int CLuaFile::TCPStreamSize(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	lua_pushnumber(L, pSelf->m_NetTCP.StreamSize());
+	return 1;
+}
+
+int CLuaFile::TCPStreamClear(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	pSelf->m_NetTCP.StreamClear();
+	return 0;
+}
+
+int CLuaFile::TCPStreamRead(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+		return 0;
+
+	char Buf[STREAM_SIZE];
+	bool Move;
+
+	if(lua_tonumber(L, 2)!=0)
+		Move = true;
+	else
+		Move = false;
+
+	pSelf->m_NetTCP.StreamRead(lua_tonumber(L, 1), (char *)&Buf, Move);
+	lua_pushstring(L, Buf);
+	return 1;
+}
+
+int CLuaFile::TCPGetStatus(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	lua_pushnumber(L, pSelf->m_NetTCP.GetStatus());
+	return 1;
+}
+
+int CLuaFile::TCPClose(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	pSelf->m_NetTCP.Close();
+	return 0;
+}
+
+int CLuaFile::HostLookup(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(!lua_isstring(L, 1))
+		return 0;
+	CHostLookup tmp;
+	pSelf->m_Lookup = tmp;
+	pSelf->m_pClient->Engine()->HostLookup(&pSelf->m_Lookup, lua_tostring(L, 1), NETTYPE_IPV4);
+	return 0;
+}
+
+int CLuaFile::HostLookupGetResult(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(pSelf->m_Lookup.m_Job.Status() != CJob::STATE_DONE)
+	{
+		lua_pushnumber(L, 0);
+		return 1;
+	}
+	else
+	{
+		if(pSelf->m_Lookup.m_Job.Result() == 0)
+		{
+			lua_pushnumber(L, 1);
+			char aAddrStr[NETADDR_MAXSTRSIZE];
+			net_addr_str(&pSelf->m_Lookup.m_Addr, aAddrStr, sizeof(aAddrStr), false);
+			lua_pushstring(L, aAddrStr);
+			return 2;
+		}
+		else
+		{
+			lua_pushnumber(L, -1);
+			return 1;
+		}
+	}
 	return 0;
 }

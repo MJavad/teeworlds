@@ -409,7 +409,7 @@ void CNetTCP::Close()
     m_Socket.ipv6sock = 0;
 }
 
-void CNetTCP::Connect(NETADDR ConnAddr)
+int CNetTCP::Connect(NETADDR ConnAddr)
 {
     if (m_Status == 0)
     {
@@ -418,7 +418,11 @@ void CNetTCP::Connect(NETADDR ConnAddr)
     m_Status = 6; //connecting
     m_ConnectStartTime = time_get();
     net_set_non_blocking(m_Socket);
-    net_tcp_connect(m_Socket, &ConnAddr);
+    int st;
+	st = net_tcp_connect(m_Socket, &ConnAddr);
+	if( st != -1 )
+		m_Status = 7; //connected
+	return st;
 }
 
 void CNetTCP::ListenAccept(NETADDR LocalAddr, NETADDR ListenAddr)
@@ -447,7 +451,18 @@ void CNetTCP::ListenAcceptThread(void *pUser)
 int CNetTCP::Send(const char *data, int size)
 {
     m_BytesSend += size;
-    return net_tcp_send(m_Socket, (const void*)data, size);
+    int bytes = net_tcp_send(m_Socket, (const void*)data, size);
+
+	if (m_Status == 6 || m_Status == 7)
+	{
+		int status = net_tcp_send(m_Socket, 0, 0);
+		if (status == -1 && m_Status != 6)
+			m_Status = 0; // closed
+		if (status == 0)
+			m_Status = 7; // connected
+	}
+
+	return bytes;
 }
 
 int CNetTCP::StreamSize()
@@ -509,50 +524,22 @@ int CNetTCP::StreamRead(int len, char *buf, bool move)
     return len;
 }
 
-void CNetTCP::SendPing()
+int CNetTCP::GetStatus()
 {
-    char TmpStream[] = {0, 0, 2, 0, 2, 0, 0, 0, 'P', 0};
-    Send(TmpStream, 10);
-}
-
-void CNetTCP::SendResp()
-{
-    char TmpStream[] = {0, 0, 2, 0, 2, 0, 0, 0, 'R', 0};
-    Send(TmpStream, 10);
+	return m_Status;
 }
 
 void CNetTCP::Tick()
 {
-    //Do status checks first
-    if(m_Status != m_OldStatus)
-    {
-        m_OldStatus = m_Status;
-        if (m_Status == 3)
-        {
-            Close();
-            return;
-        }
-    }
+	if (m_Status == 6 || m_Status == 7)
+	{
+		int status = net_tcp_send(m_Socket, 0, 0);
+		if (status == -1 && m_Status != 6)
+			m_Status = 0; // closed
+		if (status == 0)
+			m_Status = 7; // connected
+	}
 
-    if (m_Status == 6)
-    {
-        m_LastPingResponse = time_get();
-        if ((time_get() - m_LastPing) / time_freq() > 1)
-        {
-            m_LastPing = time_get();
-            dbg_msg("TCP", "[Send] Ping");
-            SendPing();
-        }
-    }
-    if (m_Status == 7)
-    {
-        if ((time_get() - m_LastPing) / time_freq() > PINGDELAY)
-        {
-            m_LastPing = time_get();
-            dbg_msg("TCP", "[Send] Ping");
-            SendPing();
-        }
-    }
     if (StreamSize() < PACKET_SIZE)
     {
         char buf[PACKET_SIZE + 1]; // allocate 1 byte for the null-terminator
@@ -565,7 +552,7 @@ void CNetTCP::Tick()
             buf[size] = 0;
             m_Status = 7; // connected
             m_BytesRecv += size;
-            dbg_msg("Recv", "");
+            //dbg_msg("Recv", "");
         }
         if (size > 0)
         {
@@ -577,10 +564,6 @@ void CNetTCP::Tick()
                         m_inbuffer_write = 0;
             }
         }
-    }
-    if (m_LastPingResponse < time_get() - time_freq() * TIMEOUT && m_Status == 7)
-    {
-        m_Status = 3;
     }
 }
 

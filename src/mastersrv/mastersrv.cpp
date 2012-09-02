@@ -97,7 +97,7 @@ void BuildPackets()
 	int PacketIndexLegacy = 0;
 	while(ServersLeft-- && (m_NumPackets + m_NumPacketsLegacy) < MAX_PACKETS)
 	{
-		if(pCurrent->m_Type == SERVERTYPE_NORMAL)
+		if(pCurrent->m_Type == SERVERTYPE_NORMAL || pCurrent->m_Type == SERVERTYPE_STATIC)
 		{
 			if(PacketIndex % MAX_SERVERS_PER_PACKET == 0)
 			{
@@ -297,7 +297,7 @@ void PurgeServers()
 	int i = 0;
 	while(i < m_NumServers)
 	{
-		if(m_aServers[i].m_Expire < Now)
+		if(m_aServers[i].m_Type != SERVERTYPE_STATIC && m_aServers[i].m_Expire < Now)
 		{
 			// remove server
 			char aAddrStr[NETADDR_MAXSTRSIZE];
@@ -315,6 +315,14 @@ void ReloadBans()
 {
 	m_NetBan.UnbanAll();
 	m_pConsole->ExecuteFile("master.cfg");
+}
+
+void ConAddStatic(IConsole::IResult *pResult, void *pUserData)
+{
+	const char *pAddrStr = pResult->GetString(0);
+	NETADDR Addr;
+	net_addr_from_str(&Addr, pAddrStr);
+	AddServer(&Addr, SERVERTYPE_STATIC);
 }
 
 int main(int argc, const char **argv) // ignore_convention
@@ -357,6 +365,12 @@ int main(int argc, const char **argv) // ignore_convention
 
 	if(RegisterFail)
 		return -1;
+
+	//register commands
+	m_pConsole->Register("add_static", "s", CFGFLAG_MASTER, ConAddStatic, 0, "Adds an static server");
+
+	// execute autoexec file
+	m_pConsole->ExecuteFile("autoexec.cfg");
 	
 	dbg_msg("mastersrv", "started");
 	

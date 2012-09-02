@@ -353,7 +353,7 @@ release_settings_optimized.debug = 0
 release_settings_optimized.optimize = 1
 release_settings_optimized.cc.defines:Add("CONF_RELEASE")
 if family == "windows" then
-    release_settings_optimized.link.flags:Add("/subsystem:\"windows\" /entry:\"mainCRTStartup\"") -- hide the console
+    -- release_settings_optimized.link.flags:Add("/subsystem:\"windows\" /entry:\"mainCRTStartup\"") -- hide the console
 end
 if family == "unix" then
     release_settings_optimized.cc.flags:Add("-O3")
