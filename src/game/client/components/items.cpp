@@ -288,6 +288,15 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
         if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[9].IsNumeric())
             a = clamp(m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[9].GetFloat(), 0.0f, 1.0f);
         Ia = 1-a; //re-evalute
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[10].IsNumeric())
+            From.x = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[10].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[11].IsNumeric())
+            From.y = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[11].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[12].IsNumeric())
+            Pos.x = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[12].GetFloat();
+        if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[13].IsNumeric())
+            Pos.y = m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[13].GetFloat();
+		Dir = normalize(Pos-From);
 
         Graphics()->QuadsBegin();
         // do outline
@@ -320,6 +329,11 @@ void CItems::RenderLaser(const struct CNetObj_Laser *pCurrent)
     Graphics()->TextureSet(g_pData->m_aImages[IMAGE_PARTICLES].m_Id);
 
     EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From.x);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From.y);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.x);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Pos.y);
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(a);
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.r);
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.g);
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OuterColor.b);

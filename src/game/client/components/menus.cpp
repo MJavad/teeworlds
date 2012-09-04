@@ -1433,7 +1433,7 @@ int CMenus::Render()
 				    io_write(TmpSettings, "gfx_screen_width 1920\n", sizeof("gfx_screen_width 1920\n") - 1);
 				    io_write(TmpSettings, "gfx_screen_height 1080\n", sizeof("gfx_screen_height 1080\n") - 1);
 				    io_write(TmpSettings, "gfx_fullscreen 0\n", sizeof("gfx_fullscreen 0\n") - 1);
-				    io_write(TmpSettings, "gfx_vsync 0\n", sizeof("gfx_vsync 0\n") - 1);
+				    io_write(TmpSettings, "gfx_vsync 1\n", sizeof("gfx_vsync 1\n") - 1);
 				    io_write(TmpSettings, "snd_volume 100\n", sizeof("snd_volume 100\n") - 1);
                     str_format(aBuf, sizeof(aBuf), "rec \"%s/%s\" %i %i %i", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, s_Format);
 				    io_write(TmpSettings, aBuf, str_length(aBuf));
