@@ -393,6 +393,7 @@ void CLuaFile::Init(const char *pFile)
     //thanks to MJavad. Great job
 	lua_register(m_pLua, ToLower("TCPConnect"), this->TCPConnect);
 	lua_register(m_pLua, ToLower("TCPSend"), this->TCPSend);
+	lua_register(m_pLua, ToLower("TCPStreamSize"), this->TCPStreamSize);
 	lua_register(m_pLua, ToLower("TCPStreamClear"), this->TCPStreamClear);
 	lua_register(m_pLua, ToLower("TCPStreamRead"), this->TCPStreamRead);
 	lua_register(m_pLua, ToLower("TCPGetStatus"), this->TCPGetStatus);
