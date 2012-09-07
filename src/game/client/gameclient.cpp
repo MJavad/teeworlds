@@ -600,7 +600,6 @@ void CGameClient::OnRender()
         Console()->Register("lua_eval", "r", CFGFLAG_CLIENT, ConLuaEval, this, "Evaluate a lua statement");
     }
 
-    int64 overalltime = time_get(); //Debug timing
     m_Music->Tick();
     m_Msgs->Tick();
     m_pLua->Tick();
