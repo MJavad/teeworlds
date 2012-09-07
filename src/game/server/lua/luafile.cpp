@@ -78,6 +78,9 @@ void CLuaFile::Tick()
     PushInteger(m_pServer->Server()->Tick());
     FunctionExec();
 
+	if (m_pServer->Server()->Tick() % (m_pServer->Server()->TickSpeed() * 60) == 0)
+		dbg_msg("lua", "%i kiB", lua_gc(m_pLua, LUA_GCCOUNT, 0));
+
     lua_gc(m_pLua, LUA_GCCOLLECT, 1000);
 
     ErrorFunc(m_pLua);
@@ -134,7 +137,9 @@ void CLuaFile::Init(const char *pFile)
     str_copy(m_aFilename, pFile, sizeof(m_aFilename));
 
     m_pLua = luaL_newstate();
+	dbg_msg("lua", "%i kiB (loaded state)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
     luaL_openlibs(m_pLua);
+	dbg_msg("lua", "%i kiB (loaded libs)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
 
     lua_atpanic(m_pLua, &Panic);
 
@@ -290,11 +295,12 @@ void CLuaFile::Init(const char *pFile)
 
     lua_register(m_pLua, ToLower("errorfunc"), this->ErrorFunc);
 
-
+	dbg_msg("lua", "%i kiB (loaded fx)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
     if (luaL_loadfile(m_pLua, m_aFilename) == 0)
     {
         lua_pcall(m_pLua, 0, LUA_MULTRET, 0);
         ErrorFunc(m_pLua);
+		dbg_msg("lua", "%i kiB (loaded file)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
     }
     else
     {
