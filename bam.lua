@@ -260,7 +260,7 @@ function build(settings)
             client_settings.link.frameworks:Add("Cocoa")
             launcher_settings.link.frameworks:Add("Cocoa")
             client_settings.link.flags:Add("-dylib_file /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib")
-            server_settings.link.libpath:Add("other/mysql/mac/lib32")
+            server_settings.link.libpath:Add("other/mysql/macosx/10.4/lib_ppc_32")
 		else
 			client_settings.link.libs:Add("X11")
 			client_settings.link.libs:Add("GL")
