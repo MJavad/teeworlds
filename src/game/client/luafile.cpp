@@ -214,6 +214,11 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("SetCharacterVel"), this->SetCharacterVel);
     lua_register(m_pLua, ToLower("GetCharacterActiveWeapon"), this->GetCharacterActiveWeapon);
     lua_register(m_pLua, ToLower("CharacterHasFlag"), this->CharacterHasFlag);
+    lua_register(m_pLua, ToLower("GetCharacterHookPos"), this->GetCharacterHookPos);
+    lua_register(m_pLua, ToLower("GetCharacterHookDir"), this->GetCharacterHookDir);
+    lua_register(m_pLua, ToLower("GetCharacterHookState"), this->GetCharacterHookState);
+    lua_register(m_pLua, ToLower("GetCharacterHookedPlayer"), this->GetCharacterHookedPlayer);
+    lua_register(m_pLua, ToLower("GetCharacterHookTick"), this->GetCharacterHookTick);
 
     //Music
     lua_register(m_pLua, ToLower("MusicPlay"), this->MusicPlay);
@@ -1558,6 +1563,78 @@ int CLuaFile::CharacterHasFlag(lua_State *L)
     if (!lua_isnumber(L, 1))
         return 0;
     lua_pushboolean(L, false); //todo
+    return 1;
+}
+
+int CLuaFile::GetCharacterHookPos(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    lua_pushnumber(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_HookX);
+    lua_pushnumber(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_HookY);
+    return 2;
+}
+
+int CLuaFile::GetCharacterHookDir(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    lua_pushnumber(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_HookDx);
+    lua_pushnumber(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_HookDy);
+    return 2;
+}
+
+int CLuaFile::GetCharacterHookState(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    lua_pushinteger(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_HookState);
+    return 1;
+}
+
+int CLuaFile::GetCharacterHookedPlayer(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    lua_pushinteger(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_HookedPlayer);
+    return 1;
+}
+
+int CLuaFile::GetCharacterHookTick(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+    lua_pushinteger(L, pSelf->m_pClient->m_Snap.m_aCharacters[lua_tointeger(L, 1)].m_Cur.m_HookTick);
     return 1;
 }
 
