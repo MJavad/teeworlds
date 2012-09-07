@@ -8,7 +8,6 @@ CLuaInput::CLuaInput(int Level)
 
 bool CLuaInput::OnInput(IInput::CEvent Event)
 {
-    dbg_msg("E", "x");
     int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Event.m_Key);
     m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Event.m_Unicode);

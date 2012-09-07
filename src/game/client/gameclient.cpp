@@ -284,6 +284,9 @@ void CGameClient::OnConsoleInit()
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->m_pClient = this;
 
+	for(int i = 0; i < m_Input.m_Num; i++)
+		m_Input.m_paComponents[i]->m_pClient = this;
+
 	// let all the other components register their console commands
 	for(int i = 0; i < m_All.m_Num; i++)
 		m_All.m_paComponents[i]->OnConsoleInit();
