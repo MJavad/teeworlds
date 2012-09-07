@@ -935,7 +935,7 @@ int CMenus::Render()
 		else if(g_Config.m_UiPage == PAGE_SETTINGS)
 			RenderSettings(MainView);
 
-        if (((Client()->State() == IClient::STATE_OFFLINE && g_Config.m_UiPage != PAGE_SETTINGS) || (Client()->State() != IClient::STATE_OFFLINE && m_GamePage != PAGE_SETTINGS)) && m_ActivLuaFile != -1)
+        if ((Client()->State() == IClient::STATE_OFFLINE && g_Config.m_UiPage != PAGE_SETTINGS) && m_ActivLuaFile != -1)
         {
             m_pClient->m_pLua->m_aLuaFiles[m_ActivLuaFile].ConfigClose();
             m_ActivLuaFile = -1;
@@ -1819,6 +1819,11 @@ void CMenus::OnRender()
             Graphics()->QuadsEnd();
         }
 
+        if (m_ActivLuaFile != -1)
+        {
+            m_pClient->m_pLua->m_aLuaFiles[m_ActivLuaFile].ConfigClose();
+            m_ActivLuaFile = -1;
+        }
 		return;
 	}
 
