@@ -113,6 +113,18 @@ static CLuaRender gs_LuaRenderLayerLevel18(18);
 static CLuaRender gs_LuaRenderLayerLevel19(19);
 static CLuaRender gs_LuaRenderLayerLevel20(20);
 
+static CLuaRender gs_LuaInputLayerLevel1(1);
+static CLuaRender gs_LuaInputLayerLevel2(2);
+static CLuaRender gs_LuaInputLayerLevel3(3);
+static CLuaRender gs_LuaInputLayerLevel4(4);
+static CLuaRender gs_LuaInputLayerLevel5(5);
+static CLuaRender gs_LuaInputLayerLevel6(6);
+static CLuaRender gs_LuaInputLayerLevel7(7);
+static CLuaRender gs_LuaInputLayerLevel8(8);
+static CLuaRender gs_LuaInputLayerLevel9(9);
+static CLuaRender gs_LuaInputLayerLevel10(10);
+static CLuaRender gs_LuaInputLayerLevel11(11);
+
 CGameClient::CStack::CStack() { m_Num = 0; }
 void CGameClient::CStack::Add(class CComponent *pComponent) { m_paComponents[m_Num++] = pComponent; }
 
@@ -220,16 +232,27 @@ void CGameClient::OnConsoleInit()
 	m_All.Add(&gs_LuaRenderLayerLevel20); // lua
 
 	// build the input stack
+	m_Input.Add(&gs_LuaInputLayerLevel1); // can block every event (delete?)
 	m_Input.Add(&m_pMenus->m_Binder); // this will take over all input when we want to bind a key
+	m_Input.Add(&gs_LuaInputLayerLevel2);
 	m_Input.Add(&m_pBinds->m_SpecialBinds);
+	m_Input.Add(&gs_LuaInputLayerLevel3);
 	m_Input.Add(m_pGameConsole);
+	m_Input.Add(&gs_LuaInputLayerLevel4);
 	m_Input.Add(m_pChat); // chat has higher prio due to tha you can quit it by pressing esc
+	m_Input.Add(&gs_LuaInputLayerLevel5);
 	m_Input.Add(m_pMotd); // for pressing esc to remove it
+	m_Input.Add(&gs_LuaInputLayerLevel6);
 	m_Input.Add(m_pMenus);
+	m_Input.Add(&gs_LuaInputLayerLevel7);
 	m_Input.Add(&gs_Spectator);
+	m_Input.Add(&gs_LuaInputLayerLevel8);
 	m_Input.Add(&gs_Emoticon);
+	m_Input.Add(&gs_LuaInputLayerLevel9);
 	m_Input.Add(m_pControls);
+	m_Input.Add(&gs_LuaInputLayerLevel10);
 	m_Input.Add(m_pBinds);
+	m_Input.Add(&gs_LuaInputLayerLevel11);
 
 	// add the some console commands
 	Console()->Register("team", "i", CFGFLAG_CLIENT, ConTeam, this, "Switch team");
@@ -337,7 +360,6 @@ void CGameClient::DispatchInput()
 	}
 	else
 	{
-	    dbg_msg("xDD", "xDD");
         Input()->MouseModeAbsolute();
 	}
 	if(x != 0.0f || y != 0.0f)
@@ -353,12 +375,6 @@ void CGameClient::DispatchInput()
 	for(int i = 0; i < Input()->NumEvents(); i++)
 	{
 		IInput::CEvent e = Input()->GetEvent(i);
-
-        int EventID = m_pLua->m_pEventListener->CreateEventStack();
-        m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(e.m_Key);
-        m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(e.m_Unicode);
-        m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(e.m_Flags);
-        m_pLua->m_pEventListener->OnEvent("OnKeyEvent");
 
 		for(int h = 0; h < m_Input.m_Num; h++)
 		{
