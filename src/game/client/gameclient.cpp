@@ -1374,7 +1374,7 @@ void CGameClient::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pU
 		((CGameClient*)pUserData)->SendInfo(false);
 }
 
-void CGameClient::RenderLoading(char *pText)
+void CGameClient::RenderLoading(const char *pText)
 {
     UI()->ClipDisable();
     m_pMenus->RenderLoadingEx(pText);

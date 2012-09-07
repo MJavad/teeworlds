@@ -184,7 +184,7 @@ public:
 	virtual const char *NetVersion() = 0;
 	virtual const char *NetVersionLua() = 0;
 
-	virtual void RenderLoading(char *pText) = 0;
+	virtual void RenderLoading(const char *pText) = 0;
 };
 
 extern IGameClient *CreateGameClient();

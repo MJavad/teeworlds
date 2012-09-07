@@ -43,7 +43,7 @@ void CCollision::Init(class CLayers *pLayers)
 
 	for(int i = 0; i < m_Width*m_Height; i++)
 	{
-		int Index = m_pTiles[i].m_Index;
+		//int Index = m_pTiles[i].m_Index;
 
         //lua eventlistener
         //OnCollisionInit

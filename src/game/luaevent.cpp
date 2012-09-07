@@ -12,13 +12,13 @@ CEventVariable::CEventVariable()
 CEventVariable::~CEventVariable()
 {
     if (m_pData)
-        delete []m_pData;
+        delete [](char *)m_pData;
 }
 
 void CEventVariable::Allocate(int Size)
 {
     if (m_pData)
-        delete []m_pData;
+        delete [](char *)m_pData;
     m_Size = Size;
     m_pData = 0;
     if (Size > 0)

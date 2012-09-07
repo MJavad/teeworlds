@@ -330,7 +330,7 @@ public:
 	CMenus();
 
 	void RenderLoading();
-	void RenderLoadingEx(char *pText);
+	void RenderLoadingEx(const char *pText);
 
 	bool IsActive() const { return m_MenuActive; }
 

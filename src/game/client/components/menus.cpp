@@ -732,7 +732,7 @@ void CMenus::RenderLoading()
         Graphics()->UnloadTexture(sTextureLogo);
 }
 
-void CMenus::RenderLoadingEx(char *pText)
+void CMenus::RenderLoadingEx(const char *pText)
 {
     CUIRect Screen = *UI()->Screen();
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
