@@ -137,7 +137,8 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                         MAX_NO_FIELD_TYPES
 };
 */
-                            pField->m_Length = pMySQLField->length;
+                            //pField->m_Length = pMySQLField->length;
+                            pField->m_Length = pLength[i]; //this is better?
                             if (pMySQLField->type == MYSQL_TYPE_TINY)
                             {
                                 pField->m_Number = atol(Row[i]);
@@ -172,15 +173,21 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                             }
                             if (pMySQLField->type == MYSQL_TYPE_TIMESTAMP || pMySQLField->type == MYSQL_TYPE_DATE || pMySQLField->type == MYSQL_TYPE_TIME || pMySQLField->type == MYSQL_TYPE_DATETIME)
                             {
-                                pField->m_pData = new char[pMySQLField->length];
-                                mem_copy(pField->m_pData, Row[i], pMySQLField->length);
-                                pField->m_Type = CField::TYPE_DATA;
+                            	if (pField->m_Length > 0)
+                            	{
+									pField->m_pData = new char[pField->m_Length];
+									mem_copy(pField->m_pData, Row[i], pField->m_Length);
+									pField->m_Type = CField::TYPE_DATA;
+                            	}
                             }
                             if (pMySQLField->type == MYSQL_TYPE_STRING || pMySQLField->type == MYSQL_TYPE_VAR_STRING ||  pMySQLField->type == MYSQL_TYPE_BLOB)
                             {
-                                pField->m_pData = new char[pMySQLField->length];
-                                mem_copy(pField->m_pData, Row[i], pMySQLField->length);
-                                pField->m_Type = CField::TYPE_DATA;
+                            	if (pField->m_Length > 0)
+                            	{
+									pField->m_pData = new char[pField->m_Length];
+									mem_copy(pField->m_pData, Row[i], pField->m_Length);
+									pField->m_Type = CField::TYPE_DATA;
+                            	}
                             }
                             pRow->m_lpFields.Insert(pField);
                         }
@@ -356,6 +363,7 @@ int CLuaFile::MySQLEscapeString(lua_State *L)
     {
         pStr = lua_tolstring(L, 1, &StrLength);
         pEscapedStr = new char[StrLength * 2]; //should be enough
+        mem_zero(pEscapedStr, StrLength * 2);
 
         unsigned long EscapedLength = mysql_real_escape_string(&pSelf->m_MySQL, pEscapedStr, pStr, StrLength);
         lua_pushlstring(L, pEscapedStr, EscapedLength);
