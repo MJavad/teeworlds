@@ -39,6 +39,7 @@
 
 #include <mastersrv/mastersrv.h>
 #include <versionsrv/versionsrv.h>
+#include <game/generated/luahash.cpp>
 
 #include "friends.h"
 #include "lua.h"
