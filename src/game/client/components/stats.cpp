@@ -42,7 +42,7 @@ void CStatsRecords::Remove()
         return;
     CRecordRow *Tmp = m_pFirstRecords;
     CRecordRow *TmpRmv = 0;
-    while (Tmp = Tmp->m_pNext)
+    while ((Tmp = Tmp->m_pNext))
     {
         if (TmpRmv)
         {
@@ -77,7 +77,7 @@ void CStats::OnMessage(int MsgType, void *pRawMsg)
 		{
 			const char *pHeystack;
 			const char *pNeedle = "flag was captured by ";
-			if(pHeystack = str_find_nocase(pMsg->m_pMessage, pNeedle))
+			if((pHeystack = str_find_nocase(pMsg->m_pMessage, pNeedle)))
 			{
 				char aName[64];
 				pHeystack += str_length(pNeedle);

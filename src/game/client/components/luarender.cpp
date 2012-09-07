@@ -8,6 +8,6 @@ CLuaRender::CLuaRender(int Level)
 
 void CLuaRender::OnRender()
 {
-    int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
+    m_pClient->m_pLua->m_pEventListener->CreateEventStack();
     m_pClient->m_pLua->m_pEventListener->OnEvent(m_aEventString);
 }

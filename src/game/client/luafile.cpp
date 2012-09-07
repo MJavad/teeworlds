@@ -2669,6 +2669,7 @@ int CLuaFile::UiDirectRectArray(lua_State *L)
     while(lua_next(L, -2) != 0)
     {
         CUIRect Rect;
+        mem_zero(&Rect, sizeof(Rect));
         vec4 Color = vec4(0, 0, 0, 0.5f);
         int Corners = CUI::CORNER_ALL;
         float Rounding = 5.0f;
@@ -3077,7 +3078,7 @@ int CLuaFile::SendPacket(lua_State *L)
     size_t InSize = 0;
     const char *pData = lua_tolstring(L, 1, &InSize);
     char aData[8192];
-    int Size = sizeof(aData);
+    size_t Size = sizeof(aData);
     CMsgPacker P(NETMSG_LUA_DATA);
     if (compress2((Bytef *)aData, (uLongf *)&Size, (Bytef *)pData, InSize, Z_BEST_COMPRESSION) == Z_OK && Size < InSize)
     {
@@ -3580,7 +3581,7 @@ int CLuaFile::AddWaveToStream(lua_State *L)
 
     size_t Size = 0;
     const char *pData = lua_tolstring(L, 1, &Size);
-    if (Size != pSelf->m_pClient->Sound()->GetWaveFrameSize())
+    if ((int)Size != pSelf->m_pClient->Sound()->GetWaveFrameSize())
         dbg_msg("msg", "got: %i - wanted: %i", Size, pSelf->m_pClient->Sound()->GetWaveFrameSize()); //quote: westerwave
     lua_pushinteger(L, pSelf->m_pClient->Sound()->AddWaveToStream(pData));
     return 1;
