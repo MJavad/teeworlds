@@ -24,7 +24,7 @@ extern "C" { // lua
     #include <engine/external/lua/lualib.h> /* luaL_openlibs */
     #include <engine/external/lua/lauxlib.h> /* luaL_loadfile */
 
-    #include "mysql.h"
+    #include <mysql.h>
 
 }
 
