@@ -1499,7 +1499,7 @@ void CGameContext::ConLSet(IConsole::IResult *pResult, void *pUserData)
 	CGameContext *pSelf = (CGameContext *)pUserData;
     for (int i = 0; i < MAX_LUA_FILES; i++)
     {
-        luaL_dostring(pSelf->m_pLua->m_aLuaFiles[i].m_pLua, pResult->GetString(0));
+        pSelf->m_pLua->Eval(pResult->GetString(0));
     }
 }
 

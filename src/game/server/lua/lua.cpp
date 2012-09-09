@@ -21,6 +21,15 @@ void CLua::Tick()
         else if (m_aLuaFiles[i].GetScriptName()[0])
             m_aLuaFiles[i].Tick();
     }
+    for (array<char *>::range r = m_lpEvalBuffer.all(); !r.empty(); r.pop_front())
+    {
+        for (int i = 0; i < MAX_LUA_FILES; i++)
+        {
+            if (m_aLuaFiles[i].m_pLua)
+                luaL_dostring(m_aLuaFiles[i].m_pLua, r.front());
+        }
+    }
+    m_lpEvalBuffer.clear();
 }
 void CLua::TickDefered()
 {
@@ -41,6 +50,13 @@ void CLua::PostTick()
         else if (m_aLuaFiles[i].GetScriptName()[0])
             m_aLuaFiles[i].PostTick();
     }
+}
+
+void CLua::Eval(const char *pCode)
+{
+    char *pBuf = new char[str_length(pCode) + 1];
+    str_copy(pBuf, pCode, str_length(pCode) + 1);
+    m_lpEvalBuffer.add(pBuf);
 }
 
 void CLua::End()

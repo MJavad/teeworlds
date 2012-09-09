@@ -358,6 +358,8 @@ public:
 
     bool m_ConsoleInit;
 
+    array<char *>m_lpEvalBuffer;
+    void Eval(const char *pCode);
     CLuaFile m_aLuaFiles[MAX_LUA_FILES];
     class CLuaEventListener<CLuaFile> *m_pEventListener;
 
