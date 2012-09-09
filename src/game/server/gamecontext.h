@@ -70,6 +70,7 @@ class CGameContext : public IGameServer
 
 	//lua
 	static void ConLua(IConsole::IResult *pResult, void *pUserData);
+	static void ConLSet(IConsole::IResult *pResult, void *pUserData);
 
 	CGameContext(int Resetting);
 	void Construct(int Resetting);
