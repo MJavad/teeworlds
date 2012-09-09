@@ -194,7 +194,6 @@ void CLuaFile::Init(const char *pFile)
     //Emote
     lua_register(m_pLua, ToLower("Emote"), this->Emote);
 
-    //lua_register(m_pLua, ToLower("CreateParticleEmitter", CreateParticleEmitter); //particleemitter gibt es noch nicht
     lua_register(m_pLua, ToLower("CreateParticle"), this->CreateParticle);
     lua_register(m_pLua, ToLower("CreateDamageIndicator"), this->CreateDamageIndicator);
 
