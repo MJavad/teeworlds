@@ -35,6 +35,9 @@ int CLuaFile::EntityGetCharacterId(lua_State *L)
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
 
+    if (!lua_isnumber(L, 1))
+        return 0;
+
     CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
     if (pChr)
     {
@@ -331,74 +334,6 @@ int CLuaFile::ProjectileCreate(lua_State *L)
 
     CNetObj_Projectile p;
     pProj->FillInfo(&p);
-    return 0;
-}
-
-int CLuaFile::CharacterTakeDamage(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (!lua_isnumber(L, 1))
-        return 0;
-
-    CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
-    if (pChr && pChr->GetType() == CGameWorld::ENTTYPE_CHARACTER)
-    {
-        int Dmg = 1;
-        int From = -1;
-        int Weapon = -1;
-        if (lua_isnumber(L, 2))
-            Dmg = lua_tonumber(L, 2);
-        if (lua_isnumber(L, 3))
-            From = lua_tonumber(L, 3);
-        if (lua_isnumber(L, 4))
-            Weapon = lua_tonumber(L, 4);
-        pChr->TakeDamage(vec2(0, 0), Dmg, From, Weapon);
-    }
-    return 0;
-}
-
-int CLuaFile::CharacterGetHealth(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (!lua_isnumber(L, 1))
-        return 0;
-
-    CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
-    if (pChr && pChr->GetType() == CGameWorld::ENTTYPE_CHARACTER)
-    {
-        lua_pushinteger(L, pChr->GetHealth());
-        return 1;
-    }
-    return 0;
-}
-
-int CLuaFile::CharacterGetArmor(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (!lua_isnumber(L, 1))
-        return 0;
-
-    CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
-    if (pChr && pChr->GetType() == CGameWorld::ENTTYPE_CHARACTER)
-    {
-        lua_pushinteger(L, pChr->GetHealth());
-        return 1;
-    }
     return 0;
 }
 

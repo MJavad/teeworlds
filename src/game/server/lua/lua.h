@@ -199,18 +199,19 @@ public:
     //Spawn
     static inline int SetAutoRespawn(lua_State *L);
 
-    static inline int CharacterTakeDamage(lua_State *L);
-    static inline int CharacterGetHealth(lua_State *L);
-    static inline int CharacterGetArmor(lua_State *L);
     static inline int CharacterSpawn(lua_State *L);
     static inline int CharacterIsAlive(lua_State *L);
     static inline int CharacterKill(lua_State *L);
     static inline int CharacterIsGrounded(lua_State *L);
     static inline int CharacterIncreaseHealth(lua_State *L);
     static inline int CharacterIncreaseArmor(lua_State *L);
-    static inline int CharacterIncreaseAmmo(lua_State *L);
+    static inline int CharacterSetHealth(lua_State *L);
+    static inline int CharacterSetArmor(lua_State *L);
+    static inline int CharacterGetHealth(lua_State *L);
+    static inline int CharacterGetArmor(lua_State *L);
     static inline int CharacterSetAmmo(lua_State *L);
     static inline int CharacterGetAmmo(lua_State *L);
+    static inline int CharacterTakeDamage(lua_State *L);
     static inline int SendCharacterInfo(lua_State *L);
     //Input
     static inline int CharacterSetInputDirection(lua_State *L);

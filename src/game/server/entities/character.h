@@ -55,6 +55,8 @@ public:
 	bool IncreaseHealth(int Amount, int Max = 10);
 	bool IncreaseArmor(int Amount, int Max = 10);
 
+	bool SetHealth(int Value) { return m_Health = Value; }
+	bool SetArmor(int Value) { return m_Armor = Value; }
 	int GetHealth() { return m_Health; }
 	int GetArmor() { return m_Armor; }
 

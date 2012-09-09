@@ -234,14 +234,12 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("ProjectileCreate"), this->ProjectileCreate);
     lua_register(m_pLua, ToLower("LaserCreate"), this->LaserCreate);
 
+
     //game
     lua_register(m_pLua, ToLower("CreateExplosion"), this->CreateExplosion);
     lua_register(m_pLua, ToLower("CreateDeath"), this->CreateDeath);
     lua_register(m_pLua, ToLower("CreateDamageIndicator"), this->CreateDamageIndicator);
 
-    lua_register(m_pLua, ToLower("CharacterTakeDamage"), this->CharacterTakeDamage);
-    lua_register(m_pLua, ToLower("CharacterGetHealth"), this->CharacterGetHealth);
-    lua_register(m_pLua, ToLower("CharacterGetArmor"), this->CharacterGetArmor);
     lua_register(m_pLua, ToLower("CharacterSetInputDirection"), this->CharacterSetInputDirection);
     lua_register(m_pLua, ToLower("CharacterSetInputJump"), this->CharacterSetInputJump);
     lua_register(m_pLua, ToLower("CharacterSetInputWeapon"), this->CharacterSetInputWeapon);
@@ -262,6 +260,10 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CharacterSetActiveWeapon"), this->CharacterSetActiveWeapon);
     lua_register(m_pLua, ToLower("CharacterDirectInput"), this->CharacterDirectInput);
     lua_register(m_pLua, ToLower("CharacterPredictedInput"), this->CharacterPredictedInput);
+    lua_register(m_pLua, ToLower("CharacterGetHealth"), this->CharacterGetHealth);
+    lua_register(m_pLua, ToLower("CharacterGetArmor"), this->CharacterGetArmor);
+    lua_register(m_pLua, ToLower("CharacterSetHealth"), this->CharacterSetHealth);
+    lua_register(m_pLua, ToLower("CharacterSetArmor"), this->CharacterSetArmor);
 
     lua_register(m_pLua, ToLower("SendCharacterInfo"), this->SendCharacterInfo);
 

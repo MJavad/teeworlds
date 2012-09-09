@@ -443,6 +443,78 @@ int CLuaFile::CharacterIncreaseArmor(lua_State *L)
     return 0;
 }
 
+int CLuaFile::CharacterSetHealth(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1))
+    {
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() && lua_isnumber(L, 2))
+        {
+            pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->SetHealth(lua_tointeger(L, 2));
+        }
+    }
+    return 0;
+}
+
+int CLuaFile::CharacterSetArmor(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1))
+    {
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter() && lua_isnumber(L, 2))
+        {
+            pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->SetArmor(lua_tointeger(L, 2));
+        }
+    }
+    return 0;
+}
+
+int CLuaFile::CharacterGetHealth(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1))
+    {
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter())
+        {
+            lua_pushinteger(L, pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->GetHealth());
+        }
+    }
+    return 0;
+}
+
+int CLuaFile::CharacterGetArmor(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1))
+    {
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter())
+        {
+            lua_pushinteger(L, pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->GetArmor());
+        }
+    }
+    return 0;
+}
+
 int CLuaFile::CharacterSetAmmo(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
