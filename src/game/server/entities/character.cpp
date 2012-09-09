@@ -522,6 +522,7 @@ void CCharacter::HandleWeapons()
 
 bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 {
+    bool Take = false;
     int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
@@ -536,10 +537,6 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
         else
             m_aWeapons[Weapon].m_Got = true;
         m_aWeapons[Weapon].m_Ammo = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
-            return (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
-        else
-            return true;
     }
     else
     {
@@ -547,10 +544,12 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
         {
             m_aWeapons[Weapon].m_Got = true;
             m_aWeapons[Weapon].m_Ammo = min(g_pData->m_Weapons.m_aId[Weapon].m_Maxammo, Ammo);
-            return true;
+            Take = true;
         }
     }
-	return false;
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+        Take = (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+	return Take;
 }
 
 void CCharacter::GiveNinja(int Sound)
@@ -896,7 +895,6 @@ void CCharacter::Die(int Killer, int Weapon)
     CPlayer *pPlayer = m_pPlayer;
 	// we got to wait 0.5 secs before respawning
     int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
-    dbg_msg("Die", "%i", EventID);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Killer);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
