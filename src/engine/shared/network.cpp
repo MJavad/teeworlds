@@ -403,7 +403,7 @@ void CNetTCP::Close()
         net_tcp_close(m_Socket);
     if (m_Socket.ipv6sock)
         net_tcp_close(m_Socket);
-    m_Status = 0;
+    m_Status = NETTCPCLOSED;
     m_Socket.type = 0;
     m_Socket.ipv4sock = 0;
     m_Socket.ipv6sock = 0;
@@ -411,7 +411,7 @@ void CNetTCP::Close()
 
 int CNetTCP::Connect(NETADDR ConnAddr)
 {
-    if (m_Status == 0)
+    if (m_Status == NETTCPCLOSED)
     {
         Open(m_BindAddr);
     }
@@ -448,80 +448,10 @@ void CNetTCP::ListenAcceptThread(void *pUser)
     dbg_msg("nChat", "Listen: connected");
 }
 
-int CNetTCP::Send(const char *data, int size)
+void CNetTCP::Send(const char *data, int size)
 {
-    m_BytesSend += size;
-    int bytes = net_tcp_send(m_Socket, (const void*)data, size);
-
-	if (m_Status == 6 || m_Status == 7)
-	{
-		int status = net_tcp_send(m_Socket, 0, 0);
-		if (status == -1 && m_Status != 6)
-			m_Status = 0; // closed
-		if (status == 0)
-			m_Status = 7; // connected
-	}
-
-	return bytes;
-}
-
-int CNetTCP::StreamSize()
-{
-    int vread = m_inbuffer_read;
-    if (vread == m_inbuffer_write)
-        return 0;
-    //slow ;)
-    for (int i = 0; ; i++)
-    {
-        vread++;
-        if (vread >= STREAM_SIZE)
-            vread = 0;
-        if (vread == m_inbuffer_write)
-            return i + 1;
-    }
-}
-
-void CNetTCP::StreamClear()
-{
-    m_inbuffer_read = 0;
-    m_inbuffer_write = 0;
-}
-
-int CNetTCP::StreamRead(int len, char *buf, bool move)
-{
-    if (m_inbuffer_read == m_inbuffer_write)
-    {
-        return 0;
-    }
-    //slow ;)
-    int tmp_inbuffer_read = m_inbuffer_read;
-    for (int i = 0; i < len; i++)
-    {
-        if (move)
-        {
-            buf[i] = m_inbuffer[m_inbuffer_read];
-            m_inbuffer_read++;
-            if (m_inbuffer_read >= STREAM_SIZE)
-                m_inbuffer_read = 0;
-            if (m_inbuffer_read == m_inbuffer_write)
-            {
-                return i + 1;
-            }
-        }
-        else
-        {
-            buf[i] = m_inbuffer[tmp_inbuffer_read];
-            tmp_inbuffer_read++;
-            if (tmp_inbuffer_read >= STREAM_SIZE)
-                tmp_inbuffer_read = 0;
-            if (tmp_inbuffer_read == m_inbuffer_write)
-            {
-                return i + 1;
-            }
-        }
-
-    }
-    return len;
+	m_SendBuffer.Add(data, size);
+	return;
 }
 
 int CNetTCP::GetStatus()
@@ -531,38 +461,31 @@ int CNetTCP::GetStatus()
 
 void CNetTCP::Tick()
 {
-	if (m_Status == 6 || m_Status == 7)
+	if (m_Status == NETTCPCONNECTING || m_Status == NETTCPCONNECTED)
 	{
 		int status = net_tcp_send(m_Socket, 0, 0);
-		if (status == -1 && m_Status != 6)
-			m_Status = 0; // closed
+		if (status == -1 && m_Status != NETTCPCONNECTING)
+			m_Status = NETTCPCLOSED; // closed
 		if (status == 0)
-			m_Status = 7; // connected
+			m_Status = NETTCPCONNECTED; // connected
 	}
-
-    if (StreamSize() < PACKET_SIZE)
-    {
-        char buf[PACKET_SIZE + 1]; // allocate 1 byte for the null-terminator
-        int size;
-        size = net_tcp_recv(m_Socket, (void*)buf, PACKET_SIZE);
-        if (size <= 0)
-            buf[0] = 0;
-        else
-        {
-            buf[size] = 0;
-            m_Status = 7; // connected
-            m_BytesRecv += size;
-            //dbg_msg("Recv", "");
-        }
-        if (size > 0)
-        {
-            for (int i = 0; i < size; i++)
-            {
-                    m_inbuffer[m_inbuffer_write] = buf[i];
-                    m_inbuffer_write++;
-                    if (m_inbuffer_write >= STREAM_SIZE)
-                        m_inbuffer_write = 0;
-            }
-        }
-    }
+	if (m_Status == NETTCPCONNECTED)
+	{
+		char aBuffer[PACKETSIZE]; //recv and sendbuffer
+		int Bytes = net_tcp_recv(m_Socket, aBuffer, sizeof(aBuffer));
+		if (Bytes > 0)
+		{
+			m_RecvBuffer.Add(aBuffer, Bytes);
+		}
+		
+		if (m_SendBuffer.GetSize() > 0)
+		{
+			int Size = m_SendBuffer.Get(aBuffer, sizeof(aBuffer));
+			Size = net_tcp_send(m_Socket, aBuffer, Size);
+			if (Size > 0)
+			{
+				m_RecvBuffer.Remove(Size);
+			}
+		}
+	}
 }

@@ -6,7 +6,7 @@
 #include "ringbuffer.h"
 #include "huffman.h"
 #include <engine/shared/protocol.h>
-
+#include "stream.h"
 /*
 
 CURRENT:
@@ -362,7 +362,7 @@ public:
 
 
 
-// client side
+//
 class CNetTCP
 {
 	NETADDR m_BindAddr;
@@ -370,7 +370,6 @@ class CNetTCP
     static void ListenAcceptThread(void *pUser);
 	NETADDR m_LocalAddr;
 	NETADDR m_ListenAddr;
-	//</BlockingThreads>
 public:
 
     CNetTCP();
@@ -379,12 +378,12 @@ public:
 
     int m_Status;
     int m_OldStatus;
-    //0 closed
-    //1 opened - ready
-    //2 listening
-    //3 closing
-    //6 connecting
-    //7 connected
+	#define NETTCPCLOSED 0
+	#define NETTCPREADY 1
+	#define NETTCPLISTENING 2
+	#define NETTCPCLOSING 3
+	#define NETTCPCONNECTING 6
+	#define NETTCPCONNECTED 7
 
     void ListenAccept(NETADDR LocalAddr, NETADDR ListenAddr);
 
@@ -402,24 +401,17 @@ public:
 
 	//Ping & timeout
 	#define TIMEOUT 60
-	#define PINGDELAY 30
-	int64 m_LastPingResponse;
-	int64 m_LastPing;
 	int GetStatus();
 
  	// communication
     //recv
-    #define PACKET_SIZE 8192
+    #define PACKETSIZE 8192
     int m_PacketSize;
-	#define STREAM_SIZE 16384
-	char m_inbuffer[STREAM_SIZE];
-	int m_inbuffer_read;
-	int m_inbuffer_write;
-	int StreamRead(int len, char *buf, bool move = true);
-	int StreamSize();
-	void StreamClear();
 
-	int Send(const char *data, int size);
+	CStream m_RecvBuffer;
+	CStream m_SendBuffer;
+
+	void Send(const char *data, int size);
 
     //tick
     void Tick();
