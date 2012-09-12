@@ -493,7 +493,7 @@ void CNetTCP::Tick()
                 m_RecvBuffer.Add(aBuffer, Bytes);
 		}
 
-		if (m_SendBuffer.GetSize() > 0)
+		while (m_SendBuffer.GetSize() > 0)
 		{
 			int Size = m_SendBuffer.Get(aBuffer, sizeof(aBuffer));
 			Size = net_tcp_send(m_Socket, aBuffer, Size);
@@ -501,6 +501,8 @@ void CNetTCP::Tick()
 			{
 				m_RecvBuffer.Remove(Size);
 			}
+			else
+                break;
 		}
 	}
 }
