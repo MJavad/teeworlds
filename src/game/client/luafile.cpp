@@ -88,6 +88,7 @@ void CLuaFile::Tick()
         return;
 
     ErrorFunc(m_pLua);
+    m_pLuaShared->Tick();
 
     FunctionPrepare("Tick");
     PushInteger((int)(time_get() * 1000 / time_freq())); //time in ms

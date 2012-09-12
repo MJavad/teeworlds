@@ -408,11 +408,10 @@ int CNetTCP::Connect(NETADDR ConnAddr)
     m_Status = NETTCPCONNECTING; //connecting
     m_ConnectStartTime = time_get();
     net_set_non_blocking(m_Socket);
-    int st;
-	st = net_tcp_connect(m_Socket, &ConnAddr);
-	if( st != -1 )
+    int Status = net_tcp_connect(m_Socket, &ConnAddr);
+	if(Status != -1)
 		m_Status = NETTCPCONNECTED; //connected
-	return st;
+	return Status;
 }
 
 void CNetTCP::Listen(NETADDR ListenAddr)
@@ -456,10 +455,16 @@ void CNetTCP::Accept(CNetTCP *pSocket)
     dbg_msg("nChat", "Listen: connected");
 }*/
 
-void CNetTCP::Send(const char *data, int size)
+void CNetTCP::Send(const char *pData, int Size)
 {
-	m_SendBuffer.Add(data, size);
-	return;
+	m_SendBuffer.Add(pData, Size);
+}
+
+int CNetTCP::Recv(char *pData, int Size)
+{
+    Size = m_RecvBuffer.Get(pData, Size);
+    m_RecvBuffer.Remove(Size);
+    return Size;
 }
 
 int CNetTCP::GetStatus()
@@ -471,10 +476,10 @@ void CNetTCP::Tick()
 {
 	if (m_Status == NETTCPCONNECTING || m_Status == NETTCPCONNECTED)
 	{
-		int status = net_tcp_send(m_Socket, 0, 0);
-		if (status == -1 && m_Status != NETTCPCONNECTING)
+		int Status = net_tcp_send(m_Socket, 0, 0);
+		if (Status == -1 && m_Status != NETTCPCONNECTING)
 			m_Status = NETTCPCLOSED; // closed
-		if (status == 0)
+		if (Status == 0)
 			m_Status = NETTCPCONNECTED; // connected
 	}
 	if (m_Status == NETTCPCONNECTED)
@@ -504,6 +509,11 @@ CNetUDP::CNetUDP()
 }
 
 CNetUDP::~CNetUDP()
+{
+
+}
+
+void CNetUDP::Tick()
 {
 
 }

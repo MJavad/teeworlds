@@ -72,6 +72,7 @@ void CLuaFile::Tick()
 
     ErrorFunc(m_pLua);
     MySQLTick(); //garbage collector -> clear old results that aren't fetched by lua
+    m_pLuaShared->Tick();
 
     FunctionPrepare("Tick");
     PushInteger((int)(time_get() * 1000 / time_freq()));

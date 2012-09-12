@@ -407,7 +407,8 @@ public:
 	CStream m_RecvBuffer;
 	CStream m_SendBuffer;
 
-	void Send(const char *data, int size);
+	void Send(const char *pData, int Size);
+	int Recv(char *pData, int Size);
 
     //tick
     void Tick();
@@ -419,6 +420,9 @@ class CNetUDP
 public:
     CNetUDP();
     ~CNetUDP();
+
+
+    void Tick();
 };
 
 // TODO: both, fix these. This feels like a junk class for stuff that doesn't fit anywere

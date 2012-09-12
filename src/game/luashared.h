@@ -32,6 +32,7 @@ public:
 	~CLuaShared();
 	void FreeSocket(CLuaSocket *pSocket);
 	void Clear();
+	void Tick();
 
     T *m_pLua;
 
@@ -58,9 +59,9 @@ CLuaShared<T>::CLuaShared(T *pLua)
 	lua_register(pLua->m_pLua, ToLower("NetCreate"), NetCreate);
 	lua_register(pLua->m_pLua, ToLower("NetConnect"), NetConnect);
 	lua_register(pLua->m_pLua, ToLower("NetClose"), NetClose);
-	//lua_register(L, ToLower("NetSend"), NetSend);
-	//lua_register(L, ToLower("NetRecv"), NetRecv);
-	//lua_register(L, ToLower("NetGetStatus"), NetGetStatus);
+	lua_register(pLua->m_pLua, ToLower("NetSend"), NetSend);
+	lua_register(pLua->m_pLua, ToLower("NetRecv"), NetRecv);
+	lua_register(pLua->m_pLua, ToLower("NetGetStatus"), NetGetStatus);
 }
 
 template <class T>
@@ -92,6 +93,18 @@ void CLuaShared<T>::Clear()
 	m_lpSockets.clear();
 }
 
+template <class T>
+void CLuaShared<T>::Tick()
+{
+	for (array<CLuaSocket *>::range r = m_lpSockets.all(); !r.empty(); r.pop_front())
+	{
+		if (r.front()->m_Type == LUANETTYPETCP && r.front()->m_pNetTCP)
+            r.front()->m_pNetTCP->Tick();
+		if (r.front()->m_Type == LUANETTYPEUDP && r.front()->m_pNetUDP)
+            r.front()->m_pNetUDP->Tick();
+	}
+}
+
 
 template <class T>
 int CLuaShared<T>::NetCreate(lua_State *L)
@@ -99,8 +112,10 @@ int CLuaShared<T>::NetCreate(lua_State *L)
 	LUA_FUNCTION_HEADER
 	if (!lua_isstring(L, 1))
 		return 0;
+    dbg_msg("t", lua_tostring(L, 1));
 	if (str_comp_nocase(lua_tostring(L, 1), "tcp") == 0)
 	{
+        dbg_msg("ttt", lua_tostring(L, 1));
 		CLuaSocket *pNewSocket = new CLuaSocket();
 		pNewSocket->m_pNetTCP = new CNetTCP();
 		pNewSocket->m_pNetUDP = 0;
@@ -111,10 +126,14 @@ int CLuaShared<T>::NetCreate(lua_State *L)
 		mem_zero(&BindAddr, sizeof(BindAddr));
 		if (lua_isstring(L, 2))
             net_addr_from_str(&BindAddr, lua_tostring(L, 2));
+        else
+            BindAddr.type = NETTYPE_IPV4;
 
 		pNewSocket->m_pNetTCP->Open(BindAddr);
 
 		pSelf->m_pLuaShared->m_lpSockets.add(pNewSocket);
+        lua_pushinteger(L, pNewSocket->m_ID);
+        return 1;
 	}
 	if (str_comp_nocase(lua_tostring(L, 1), "udp") == 0)
 	{
@@ -128,10 +147,14 @@ int CLuaShared<T>::NetCreate(lua_State *L)
 		mem_zero(&BindAddr, sizeof(BindAddr));
 		if (lua_isstring(L, 2))
             net_addr_from_str(&BindAddr, lua_tostring(L, 2));
+        else
+            BindAddr.type = NETTYPE_IPV4;
 
 		//pNewSocket->m_pNetUDP->Open(BindAddr);
 
 		pSelf->m_pLuaShared->m_lpSockets.add(pNewSocket);
+        lua_pushinteger(L, pNewSocket->m_ID);
+        return 1;
 	}
 	return 0;
 }
@@ -185,7 +208,7 @@ int CLuaShared<T>::NetClose(lua_State *L)
 	return 0;
 }
 
-/*template <class T>
+template <class T>
 int CLuaShared<T>::NetSend(lua_State *L)
 {
 	LUA_FUNCTION_HEADER
@@ -196,13 +219,79 @@ int CLuaShared<T>::NetSend(lua_State *L)
 	{
 		if (r.front()->m_ID == SocketID)
 		{
-            FreeSocket(r.front());
-            pSelf->m_pLuaShared->m_lpSockets.remove(r.front());
-            lua_pushboolean(L, 1);
-            return 1;
+			if (r.front()->m_Type == LUANETTYPETCP)
+			{
+			    if (!lua_isstring(L, 2))
+                    return 0;
+                size_t Size = 0;
+                const char *pData = lua_tolstring(L, 2, &Size);
+                r.front()->m_pNetTCP->Send(pData, Size);
+                lua_pushboolean(L, 1);
+                return 1;
+			}
+			else
+			{
+                return 0;
+			}
 		}
 	}
-}*/
+	return 0;
+}
+
+template <class T>
+int CLuaShared<T>::NetRecv(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+	if (!lua_isnumber(L, 1))
+		return 0;
+	int SocketID = lua_tonumber(L, 1);
+	for (array<CLuaSocket *>::range r = pSelf->m_pLuaShared->m_lpSockets.all(); !r.empty(); r.pop_front())
+	{
+		if (r.front()->m_ID == SocketID)
+		{
+			if (r.front()->m_Type == LUANETTYPETCP)
+			{
+			    int Size = 8192;
+			    if (lua_isnumber(L, 2) && lua_tointeger(L, 2) > 0)
+                    Size = lua_tointeger(L, 2);
+
+                char *pData = new char[Size];
+                Size = r.front()->m_pNetTCP->Recv(pData, Size);
+                lua_pushinteger(L, Size);
+                lua_pushlstring(L, pData, Size);
+                return 2;
+			}
+			else
+			{
+                return 0;
+			}
+		}
+	}
+	return 0;
+}
+
+template <class T>
+int CLuaShared<T>::NetGetStatus(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+	if (!lua_isnumber(L, 1))
+		return 0;
+	int SocketID = lua_tonumber(L, 1);
+	for (array<CLuaSocket *>::range r = pSelf->m_pLuaShared->m_lpSockets.all(); !r.empty(); r.pop_front())
+	{
+		if (r.front()->m_ID == SocketID)
+		{
+			if (r.front()->m_Type == LUANETTYPETCP)
+			{
+                lua_pushinteger(L, r.front()->m_pNetTCP->GetStatus());
+                return 1;
+			}
+			else
+                break;
+		}
+	}
+    return 0;
+}
 
 #undef LUA_FUNCTION_HEADER
 
