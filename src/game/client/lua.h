@@ -23,6 +23,8 @@ extern "C" { // lua
 #include <engine/external/lua/lauxlib.h> /* luaL_loadfile */
 }
 
+#include <game/luashared.h>
+
 class CLuaBinding
 {
 public:
@@ -143,6 +145,7 @@ public:
     CLuaFile();
     ~CLuaFile();
     class CLua *m_pLuaHandler;
+    CLuaShared<CLuaFile> *m_pLuaShared;
     CGameClient *m_pClient;
     CNetTCP m_NetTCP;
     void UiTick();

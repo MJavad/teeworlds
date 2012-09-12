@@ -291,6 +291,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("MySQLClose"), this->MySQLClose);
     lua_register(m_pLua, ToLower("MySQLFetchResults"), this->MySQLFetchResults);
 
+    m_pLuaShared = new CLuaShared<CLuaFile>(this);
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");

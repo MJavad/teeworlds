@@ -400,6 +400,7 @@ void CLuaFile::Init(const char *pFile)
 	lua_register(m_pLua, ToLower("HostLookup"), this->HostLookup);
 	lua_register(m_pLua, ToLower("HostLookupGetResult"), this->HostLookupGetResult);
 
+    m_pLuaShared = new CLuaShared<CLuaFile>(this);
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");

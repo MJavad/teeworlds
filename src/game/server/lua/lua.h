@@ -25,8 +25,9 @@ extern "C" { // lua
     #include <engine/external/lua/lauxlib.h> /* luaL_loadfile */
 
     #include <mysql.h>
-
 }
+
+#include <game/luashared.h>
 
 class CLuaFile
 {
@@ -34,6 +35,7 @@ public:
     CLuaFile();
     ~CLuaFile();
     class CLua *m_pLuaHandler;
+    CLuaShared<CLuaFile> *m_pLuaShared;
     CGameContext *m_pServer;
     //void UiTick();
     void Tick();
