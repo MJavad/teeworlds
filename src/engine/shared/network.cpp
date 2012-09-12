@@ -485,10 +485,12 @@ void CNetTCP::Tick()
 	if (m_Status == NETTCPCONNECTED)
 	{
 		char aBuffer[PACKETSIZE]; //recv and sendbuffer
-		int Bytes = net_tcp_recv(m_Socket, aBuffer, sizeof(aBuffer));
-		if (Bytes > 0)
+		int Bytes = 1;
+		while (Bytes > 0)
 		{
-			m_RecvBuffer.Add(aBuffer, Bytes);
+		    Bytes = net_tcp_recv(m_Socket, aBuffer, sizeof(aBuffer));
+			if (Bytes > 0)
+                m_RecvBuffer.Add(aBuffer, Bytes);
 		}
 
 		if (m_SendBuffer.GetSize() > 0)
