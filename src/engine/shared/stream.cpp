@@ -24,7 +24,7 @@ CStream::~CStream()
     lock_destroy(m_Lock);
 }
 
-void CStream::Add(char *pData, int Size)
+void CStream::Add(const char *pData, int Size)
 {
     if (Size == 0)
     {

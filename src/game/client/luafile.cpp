@@ -3897,7 +3897,7 @@ int CLuaFile::TCPSend(lua_State *L)
 
 	if(!lua_isstring(L, 1) || !lua_isnumber(L, 2))
 		return 0;
-	lua_pushnumber(L, pSelf->m_NetTCP.Send(lua_tostring(L, 1), lua_tonumber(L, 2)));
+	//lua_pushnumber(L, pSelf->m_NetTCP.Send(lua_tostring(L, 1), lua_tonumber(L, 2)));
 	return 1;
 }
 
@@ -3905,7 +3905,7 @@ int CLuaFile::TCPStreamSize(lua_State *L)
 {
 	LUA_FUNCTION_HEADER
 
-	lua_pushnumber(L, pSelf->m_NetTCP.StreamSize());
+	//lua_pushnumber(L, pSelf->m_NetTCP.StreamSize());
 	return 1;
 }
 
@@ -3913,7 +3913,7 @@ int CLuaFile::TCPStreamClear(lua_State *L)
 {
 	LUA_FUNCTION_HEADER
 
-	pSelf->m_NetTCP.StreamClear();
+	//pSelf->m_NetTCP.StreamClear();
 	return 0;
 }
 
@@ -3921,7 +3921,7 @@ int CLuaFile::TCPStreamRead(lua_State *L)
 {
 	LUA_FUNCTION_HEADER
 
-	if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+	/*if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
 		return 0;
 
 	char Buf[STREAM_SIZE];
@@ -3933,7 +3933,7 @@ int CLuaFile::TCPStreamRead(lua_State *L)
 		Move = false;
 
 	pSelf->m_NetTCP.StreamRead(lua_tonumber(L, 1), (char *)&Buf, Move);
-	lua_pushstring(L, Buf);
+	lua_pushstring(L, Buf);*/
 	return 1;
 }
 

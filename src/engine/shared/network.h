@@ -381,7 +381,8 @@ public:
 	#define NETTCPCONNECTING 6
 	#define NETTCPCONNECTED 7
 
-    void ListenAccept(NETADDR LocalAddr, NETADDR ListenAddr);
+    void Listen(NETADDR ListenAddr);
+    void Accept(CNetTCP *pSocket);
 
     //stats
     int m_BytesRecv;
@@ -411,6 +412,13 @@ public:
     //tick
     void Tick();
 
+};
+
+class CNetUDP
+{
+public:
+    CNetUDP();
+    ~CNetUDP();
 };
 
 // TODO: both, fix these. This feels like a junk class for stuff that doesn't fit anywere

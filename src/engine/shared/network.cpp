@@ -362,18 +362,13 @@ void CNetBase::Init()
 
 CNetTCP::CNetTCP()
 {
-    //reset
-    m_Status = 0;
+    m_Status = NETTCPCLOSED;
     m_OldStatus = 0;
     m_BytesRecv = 0;
     m_BytesSend = 0;
-    m_inbuffer_read = 0;
-    m_inbuffer_write = 0;
     m_Socket.type = 0;
     m_Socket.ipv4sock = 0;
     m_Socket.ipv6sock = 0;
-    m_LastPing = 0;
-    //start
     return;
 }
 
@@ -381,8 +376,6 @@ CNetTCP::~CNetTCP()
 {
     Close();
     Tick();
-    Tick();
-    return;
 }
 
 
@@ -410,7 +403,7 @@ int CNetTCP::Connect(NETADDR ConnAddr)
 {
     if (m_Status == NETTCPCLOSED)
     {
-        Open(m_BindAddr);
+        return 0;
     }
     m_Status = NETTCPCONNECTING; //connecting
     m_ConnectStartTime = time_get();
@@ -447,7 +440,7 @@ void CNetTCP::Accept(CNetTCP *pSocket)
 	}
 }
 
-void CNetTCP::ListenAcceptThread(void *pUser)
+/*void CNetTCP::ListenAcceptThread(void *pUser)
 {
     dbg_msg("nChat", "Listen: start");
     CNetTCP *pSelf = (CNetTCP *)pUser;
@@ -461,7 +454,7 @@ void CNetTCP::ListenAcceptThread(void *pUser)
     net_set_non_blocking(pSelf->m_Socket);
     pSelf->m_Status = NETTCPCONNECTING; //connecting
     dbg_msg("nChat", "Listen: connected");
-}
+}*/
 
 void CNetTCP::Send(const char *data, int size)
 {
@@ -492,7 +485,7 @@ void CNetTCP::Tick()
 		{
 			m_RecvBuffer.Add(aBuffer, Bytes);
 		}
-		
+
 		if (m_SendBuffer.GetSize() > 0)
 		{
 			int Size = m_SendBuffer.Get(aBuffer, sizeof(aBuffer));
@@ -503,4 +496,14 @@ void CNetTCP::Tick()
 			}
 		}
 	}
+}
+
+
+CNetUDP::CNetUDP()
+{
+}
+
+CNetUDP::~CNetUDP()
+{
+
 }
