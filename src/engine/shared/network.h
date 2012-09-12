@@ -373,7 +373,6 @@ public:
 	NETADDR m_RemoteAddr;
 
     int m_Status;
-    int m_OldStatus;
 	#define NETTCPCLOSED 0
 	#define NETTCPREADY 1
 	#define NETTCPLISTENING 2
@@ -409,6 +408,8 @@ public:
 
 	void Send(const char *pData, int Size);
 	int Recv(char *pData, int Size);
+
+	NETADDR GetRemoteAddr() { return m_RemoteAddr; }
 
     //tick
     void Tick();

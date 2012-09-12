@@ -363,7 +363,6 @@ void CNetBase::Init()
 CNetTCP::CNetTCP()
 {
     m_Status = NETTCPCLOSED;
-    m_OldStatus = 0;
     m_BytesRecv = 0;
     m_BytesSend = 0;
     m_Socket.type = 0;
@@ -409,6 +408,7 @@ int CNetTCP::Connect(NETADDR ConnAddr)
     m_ConnectStartTime = time_get();
     net_set_non_blocking(m_Socket);
     int Status = net_tcp_connect(m_Socket, &ConnAddr);
+    m_RemoteAddr = ConnAddr;
 	if(Status != -1)
 		m_Status = NETTCPCONNECTED; //connected
 	return Status;

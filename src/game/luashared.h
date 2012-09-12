@@ -44,6 +44,7 @@ public:
 	static int NetSend(lua_State *L);
 	static int NetRecv(lua_State *L);
 	static int NetGetStatus(lua_State *L);
+	static int NetGetRemoteAddr(lua_State *L);
 };
 
 #define LUA_FUNCTION_HEADER     lua_getglobal(L, "pLUA"); \
@@ -62,6 +63,7 @@ CLuaShared<T>::CLuaShared(T *pLua)
 	lua_register(pLua->m_pLua, ToLower("NetSend"), NetSend);
 	lua_register(pLua->m_pLua, ToLower("NetRecv"), NetRecv);
 	lua_register(pLua->m_pLua, ToLower("NetGetStatus"), NetGetStatus);
+	lua_register(pLua->m_pLua, ToLower("NetGetRemoteAddr"), NetGetRemoteAddr);
 }
 
 template <class T>
@@ -284,6 +286,31 @@ int CLuaShared<T>::NetGetStatus(lua_State *L)
 			if (r.front()->m_Type == LUANETTYPETCP)
 			{
                 lua_pushinteger(L, r.front()->m_pNetTCP->GetStatus());
+                return 1;
+			}
+			else
+                break;
+		}
+	}
+    return 0;
+}
+
+template <class T>
+int CLuaShared<T>::NetGetRemoteAddr(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+	if (!lua_isnumber(L, 1))
+		return 0;
+	int SocketID = lua_tonumber(L, 1);
+	for (array<CLuaSocket *>::range r = pSelf->m_pLuaShared->m_lpSockets.all(); !r.empty(); r.pop_front())
+	{
+		if (r.front()->m_ID == SocketID)
+		{
+			if (r.front()->m_Type == LUANETTYPETCP)
+			{
+			    char aBuf[512];
+			    net_addr_str(&r.front()->m_pNetTCP->GetRemoteAddr(), aBuf, sizeof(aBuf), true);
+                lua_pushstring(L, aBuf);
                 return 1;
 			}
 			else
