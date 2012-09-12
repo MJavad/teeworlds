@@ -388,12 +388,9 @@ CNetTCP::~CNetTCP()
 
 bool CNetTCP::Open(NETADDR BindAddr)
 {
-    m_inbuffer_read = 0;
-    m_inbuffer_write = 0;
-    m_BindAddr = BindAddr;
-    m_Socket = net_tcp_create(m_BindAddr);
+    m_Socket = net_tcp_create(BindAddr);
     net_set_non_blocking(m_Socket);
-    m_Status = 1;
+    m_Status = NETTCPREADY;
     return (m_Socket.ipv4sock != 0 && m_Socket.ipv6sock != 0);
 }
 
@@ -415,21 +412,39 @@ int CNetTCP::Connect(NETADDR ConnAddr)
     {
         Open(m_BindAddr);
     }
-    m_Status = 6; //connecting
+    m_Status = NETTCPCONNECTING; //connecting
     m_ConnectStartTime = time_get();
     net_set_non_blocking(m_Socket);
     int st;
 	st = net_tcp_connect(m_Socket, &ConnAddr);
 	if( st != -1 )
-		m_Status = 7; //connected
+		m_Status = NETTCPCONNECTED; //connected
 	return st;
 }
 
-void CNetTCP::ListenAccept(NETADDR LocalAddr, NETADDR ListenAddr)
+void CNetTCP::Listen(NETADDR ListenAddr)
 {
-    m_LocalAddr = LocalAddr;
-    m_ListenAddr = ListenAddr;
-    thread_create(&ListenAcceptThread, this);
+	if (m_Status != NETTCPREADY)
+		return;
+	net_tcp_listen(m_Socket, 1);
+	m_Status = NETTCPLISTENING;
+}
+
+void CNetTCP::Accept(CNetTCP *pSocket)
+{
+	if (m_Status != NETTCPLISTENING)
+		return;
+	int Ret = 0;
+	if (pSocket == 0)
+	{
+		mem_zero(&m_RemoteAddr, sizeof(m_RemoteAddr));
+		Ret = net_tcp_accept(m_Socket, &m_Socket, &m_RemoteAddr);
+	}
+	else if(pSocket->m_Status == NETTCPREADY)
+	{
+		mem_zero(&m_RemoteAddr, sizeof(m_RemoteAddr));
+		Ret = net_tcp_accept(m_Socket, (NETSOCKET *)&pSocket->m_Socket, &pSocket->m_RemoteAddr);
+	}
 }
 
 void CNetTCP::ListenAcceptThread(void *pUser)
@@ -440,11 +455,11 @@ void CNetTCP::ListenAcceptThread(void *pUser)
     NETSOCKET listensocket = net_tcp_create(pSelf->m_ListenAddr);
     net_tcp_listen(listensocket, 1);
     net_tcp_close(pSelf->m_Socket);
-    pSelf->m_Status = 2; //listening
+    pSelf->m_Status = NETTCPLISTENING; //listening
     net_tcp_accept(listensocket, (NETSOCKET *)(&pSelf->m_Socket), &pSelf->m_LocalAddr);
     net_tcp_close(listensocket);
     net_set_non_blocking(pSelf->m_Socket);
-    pSelf->m_Status = 6; //connecting
+    pSelf->m_Status = NETTCPCONNECTING; //connecting
     dbg_msg("nChat", "Listen: connected");
 }
 

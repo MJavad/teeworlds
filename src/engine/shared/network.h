@@ -365,16 +365,12 @@ public:
 //
 class CNetTCP
 {
-	NETADDR m_BindAddr;
-
-    static void ListenAcceptThread(void *pUser);
-	NETADDR m_LocalAddr;
-	NETADDR m_ListenAddr;
 public:
 
     CNetTCP();
     ~CNetTCP();
     NETSOCKET m_Socket;
+	NETADDR m_RemoteAddr;
 
     int m_Status;
     int m_OldStatus;
@@ -406,7 +402,6 @@ public:
  	// communication
     //recv
     #define PACKETSIZE 8192
-    int m_PacketSize;
 
 	CStream m_RecvBuffer;
 	CStream m_SendBuffer;
