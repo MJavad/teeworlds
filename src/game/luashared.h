@@ -117,7 +117,6 @@ int CLuaShared<T>::NetCreate(lua_State *L)
     dbg_msg("t", lua_tostring(L, 1));
 	if (str_comp_nocase(lua_tostring(L, 1), "tcp") == 0)
 	{
-        dbg_msg("ttt", lua_tostring(L, 1));
 		CLuaSocket *pNewSocket = new CLuaSocket();
 		pNewSocket->m_pNetTCP = new CNetTCP();
 		pNewSocket->m_pNetUDP = 0;
@@ -152,7 +151,7 @@ int CLuaShared<T>::NetCreate(lua_State *L)
         else
             BindAddr.type = NETTYPE_IPV4;
 
-		//pNewSocket->m_pNetUDP->Open(BindAddr);
+		pNewSocket->m_pNetUDP->Open(BindAddr);
 
 		pSelf->m_pLuaShared->m_lpSockets.add(pNewSocket);
         lua_pushinteger(L, pNewSocket->m_ID);
@@ -233,7 +232,20 @@ int CLuaShared<T>::NetSend(lua_State *L)
 			}
 			else
 			{
-                return 0;
+			    if (!lua_isstring(L, 2)) //addr
+                    return 0;
+			    if (!lua_isstring(L, 3)) //data
+                    return 0;
+
+                NETADDR Addr;
+                mem_zero(&Addr, sizeof(NETADDR));
+                Addr.type = NETTYPE_IPV4;
+                net_addr_from_str(&Addr, lua_tostring(L , 2));
+                size_t Size = 0;
+                const char *pData = lua_tolstring(L, 3, &Size);
+                r.front()->m_pNetUDP->Send(Addr, pData, Size);
+                lua_pushboolean(L, 1);
+                return 1;
 			}
 		}
 	}
@@ -265,7 +277,17 @@ int CLuaShared<T>::NetRecv(lua_State *L)
 			}
 			else
 			{
-                return 0;
+			    int Size = 8192;
+			    if (lua_isnumber(L, 2) && lua_tointeger(L, 2) > 0)
+                    Size = lua_tointeger(L, 2);
+
+                NETADDR RemoteAddr;
+                mem_zero(&RemoteAddr, sizeof(NETADDR));
+                char *pData = new char[Size];
+                Size = r.front()->m_pNetUDP->Recv(&RemoteAddr, pData, Size);
+                lua_pushinteger(L, Size);
+                lua_pushlstring(L, pData, Size);
+                return 2;
 			}
 		}
 	}

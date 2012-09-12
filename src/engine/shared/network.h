@@ -7,6 +7,7 @@
 #include "huffman.h"
 #include <engine/shared/protocol.h>
 #include "stream.h"
+#include "array.h"
 /*
 
 CURRENT:
@@ -395,12 +396,10 @@ public:
 	int Connect(NETADDR ConnAddr);
 	int64 m_ConnectStartTime;
 
-	//Ping & timeout
+	//timeout
 	#define TIMEOUT 60
 	int GetStatus();
 
- 	// communication
-    //recv
     #define PACKETSIZE 8192
 
 	CStream m_RecvBuffer;
@@ -418,12 +417,28 @@ public:
 
 class CNetUDP
 {
+    NETSOCKET m_Socket;
 public:
     CNetUDP();
     ~CNetUDP();
 
+    struct CPacket
+    {
+        NETADDR m_Addr;
+        char *m_pData;
+        int m_Size;
+        int m_Offset;
+    };
+    CArray<CPacket *> m_lSendBuffer;
+
+    #define PACKETSIZE 8192
+
+    bool Open(NETADDR BindAddr);
+    void Send(NETADDR Addr, const char *pData, int Size);
+    int Recv(NETADDR *pRemoteAddr, char *pData, int Size);
 
     void Tick();
+    void Close();
 };
 
 // TODO: both, fix these. This feels like a junk class for stuff that doesn't fit anywere

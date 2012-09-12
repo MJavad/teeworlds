@@ -368,7 +368,6 @@ CNetTCP::CNetTCP()
     m_Socket.type = 0;
     m_Socket.ipv4sock = 0;
     m_Socket.ipv6sock = 0;
-    return;
 }
 
 CNetTCP::~CNetTCP()
@@ -376,7 +375,6 @@ CNetTCP::~CNetTCP()
     Close();
     Tick();
 }
-
 
 bool CNetTCP::Open(NETADDR BindAddr)
 {
@@ -499,7 +497,7 @@ void CNetTCP::Tick()
 			Size = net_tcp_send(m_Socket, aBuffer, Size);
 			if (Size > 0)
 			{
-				m_RecvBuffer.Remove(Size);
+				m_SendBuffer.Remove(Size);
 			}
 			else
                 break;
@@ -510,14 +508,60 @@ void CNetTCP::Tick()
 
 CNetUDP::CNetUDP()
 {
+    m_Socket.type = 0;
+    m_Socket.ipv4sock = 0;
+    m_Socket.ipv6sock = 0;
 }
 
 CNetUDP::~CNetUDP()
 {
+    Close();
+    Tick();
+}
 
+void CNetUDP::Close()
+{
+   net_udp_close(m_Socket);
+}
+
+bool CNetUDP::Open(NETADDR BindAddr)
+{
+    m_Socket = net_udp_create(BindAddr);
+    net_set_non_blocking(m_Socket);
+    return (m_Socket.ipv4sock != 0 && m_Socket.ipv6sock != 0);
+}
+
+void CNetUDP::Send(NETADDR Addr, const char *pData, int Size)
+{
+    CPacket *pPacket = new CPacket();
+    pPacket->m_Addr = Addr;
+    pPacket->m_Size = Size;
+    pPacket->m_Offset = 0;
+    pPacket->m_pData = new char[Size];
+    mem_copy(pPacket->m_pData, pData, Size);
+    m_lSendBuffer.Insert(pPacket);
+}
+
+int CNetUDP::Recv(NETADDR *pRemoteAddr, char *pData, int Size)
+{
+    Size = net_udp_recv(m_Socket, pRemoteAddr, pData, Size);
+    return Size;
 }
 
 void CNetUDP::Tick()
 {
-
+    char aBuffer[PACKETSIZE]; //recv and sendbuffer
+    while (m_lSendBuffer.GetSize() > 0)
+    {
+        CPacket *pPacket = m_lSendBuffer[0];
+        int Size = net_udp_send(m_Socket, &pPacket->m_Addr, pPacket->m_pData + pPacket->m_Offset, pPacket->m_Size - pPacket->m_Offset);
+        if (Size == pPacket->m_Size - pPacket->m_Offset)
+        {
+            m_lSendBuffer.DeleteByIndex(0);
+        }
+        else
+        {
+            pPacket->m_Offset += Size;
+        }
+    }
 }
