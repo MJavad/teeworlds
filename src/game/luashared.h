@@ -109,7 +109,8 @@ int CLuaShared<T>::NetCreate(lua_State *L)
 
 		NETADDR BindAddr;
 		mem_zero(&BindAddr, sizeof(BindAddr));
-		net_addr_from_str(&BindAddr, lua_tostring(L, 2));
+		if (lua_isstring(L, 2))
+            net_addr_from_str(&BindAddr, lua_tostring(L, 2));
 
 		pNewSocket->m_pNetTCP->Open(BindAddr);
 
@@ -125,7 +126,8 @@ int CLuaShared<T>::NetCreate(lua_State *L)
 
 		NETADDR BindAddr;
 		mem_zero(&BindAddr, sizeof(BindAddr));
-		net_addr_from_str(&BindAddr, lua_tostring(L, 2));
+		if (lua_isstring(L, 2))
+            net_addr_from_str(&BindAddr, lua_tostring(L, 2));
 
 		//pNewSocket->m_pNetUDP->Open(BindAddr);
 
