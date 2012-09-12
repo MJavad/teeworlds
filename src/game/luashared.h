@@ -53,14 +53,14 @@ public:
     ((void)(pSelf));
 
 template <class T>
-CLuaShared<T>::CLuaShared(lua_State *L)
+CLuaShared<T>::CLuaShared(T *pLua)
 {
-	lua_register(L, ToLower("NetCreate"), NetCreate);
-	lua_register(L, ToLower("NetConnect"), NetConnect);
-	/*lua_register(L, ToLower("NetClose"), NetClose);
-	lua_register(L, ToLower("NetSend"), NetClose);
-	lua_register(L, ToLower("NetRecv"), NetRecv);
-	lua_register(L, ToLower("NetGetStatus"), NetGetStatus);*/
+	lua_register(pLua->m_pLua, ToLower("NetCreate"), NetCreate);
+	lua_register(pLua->m_pLua, ToLower("NetConnect"), NetConnect);
+	lua_register(pLua->m_pLua, ToLower("NetClose"), NetClose);
+	//lua_register(L, ToLower("NetSend"), NetClose);
+	//lua_register(L, ToLower("NetRecv"), NetRecv);
+	//lua_register(L, ToLower("NetGetStatus"), NetGetStatus);
 }
 
 template <class T>
@@ -139,14 +139,14 @@ int CLuaShared<T>::NetCreate(lua_State *L)
 template <class T>
 int CLuaShared<T>::NetConnect(lua_State *L)
 {
-
+	LUA_FUNCTION_HEADER
 	if (!lua_isnumber(L, 1))
 		return 0;
 	int SocketID = lua_tonumber(L, 1);
 
 	for (array<CLuaSocket *>::range r = pSelf->m_lpSockets.all(); !r.empty(); r.pop_front())
 	{
-		if (r.front()->m_ID == SocketID())
+		if (r.front()->m_ID == SocketID)
 		{
 			if (r.front()->m_Type == LUANETTYPETCP)
 			{
@@ -165,7 +165,23 @@ int CLuaShared<T>::NetConnect(lua_State *L)
 	return 0;
 }
 
-
-
+template <class T>
+int CLuaShared<T>::NetClose(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+	if (!lua_isnumber(L, 1))
+		return 0;
+	int SocketID = lua_tonumber(L, 1);
+	for (array<CLuaSocket *>::range r = pSelf->m_lpSockets.all(); !r.empty(); r.pop_front())
+	{
+		if (r.front()->m_ID == SocketID)
+		{
+            FreeSocket(r.front());
+            pSelf->m_lpSockets.remove(r.front());
+            lua_pushboolean(L, 1);
+            return 1;
+		}
+	}
+}
 
 #endif
