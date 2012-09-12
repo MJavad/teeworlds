@@ -3,6 +3,7 @@
 #include <base/system.h>
 
 #include <engine/shared/network.h>
+#include <game/generated/luahash.cpp> //used in version.h
 #include <game/version.h>
 
 #include "versionsrv.h"
