@@ -1,3 +1,9 @@
+/* (c) MAP94 and Patafix. See www.n-lvl.com/ndc/nclient/ for more information. */
+/*DGI:Doc-Gen-Info*/
+/*DGI:Type:Client,Server*/
+/*DGI:Exception:errorfunc*/
+
+
 #ifndef GAME_LUASHARED_H
 #define GAME_LUASHARED_H
 
