@@ -285,9 +285,9 @@ IOHANDLE p_open(const char *filename, int flags)
 int p_close(IOHANDLE io)
 {
 	#if defined(CONF_FAMILY_WINDOWS)
-		(IOHANDLE)_pclose((FILE*)io);
+		_pclose((FILE*)io);
     #else
-		(IOHANDLE)pclose((FILE*)io);
+        pclose((FILE*)io);
     #endif
 	return 0;
 }

@@ -405,7 +405,8 @@ int CLuaShared<T>::NetGetRemoteAddr(lua_State *L)
 			if (r.front()->m_Type == LUANETTYPETCP)
 			{
 			    char aBuf[512];
-			    net_addr_str(&r.front()->m_pNetTCP->GetRemoteAddr(), aBuf, sizeof(aBuf), true);
+			    NETADDR RemoteAddr = r.front()->m_pNetTCP->GetRemoteAddr();
+			    net_addr_str(&RemoteAddr, aBuf, sizeof(aBuf), true);
                 lua_pushstring(L, aBuf);
                 return 1;
 			}

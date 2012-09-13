@@ -3,11 +3,7 @@
 
 int CLuaFile::SendPacket(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if(lua_isnil(L, 1))
         return 0;
@@ -34,11 +30,7 @@ int CLuaFile::SendPacket(lua_State *L)
 
 int CLuaFile::AddModFile(lua_State *L)
 {
-	lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
 	if(lua_isnil(L, 1) || lua_isnil(L, 2) || !lua_isnumber(L, 3))
         return 0;

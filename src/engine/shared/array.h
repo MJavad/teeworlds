@@ -37,7 +37,7 @@ public:
     void DeleteByIndex(long long Index);
     void DeleteBySelection();
 
-    T operator[] (unsigned long long i);
+    T operator[] (long long i);
 
     void ToStream(char *pOut, long long OutSize);
     inline long long GetSize() { return m_Size; }

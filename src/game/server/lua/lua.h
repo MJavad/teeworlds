@@ -391,7 +391,7 @@ static int StrIsFloat(const char *pStr)
 {
 	while(*pStr)
 	{
-		if(!(*pStr >= '0' && *pStr <= '9' || *pStr == '.'))
+		if(!((*pStr >= '0' && *pStr <= '9') || *pStr == '.'))
 			return 0;
 		pStr++;
 	}

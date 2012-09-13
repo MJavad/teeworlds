@@ -5,11 +5,7 @@
 
 int CLuaFile::GetConfigValue(lua_State *L)
 {
-	lua_getglobal(L, "pLUA");
-	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-	lua_Debug Frame;
-	lua_getstack(L, 1, &Frame);
-	lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
 	if (!lua_isstring(L, 1))
 		return 0;
@@ -33,11 +29,7 @@ int CLuaFile::GetConfigValue(lua_State *L)
 
 int CLuaFile::SetConfigValue(lua_State *L)
 {
-	lua_getglobal(L, "pLUA");
-	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-	lua_Debug Frame;
-	lua_getstack(L, 1, &Frame);
-	lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
 	if(lua_isstring(L, 1) && lua_isstring(L, 2))
 	{
@@ -59,11 +51,7 @@ int CLuaFile::SetConfigValue(lua_State *L)
 
 int CLuaFile::SetAutoRespawn(lua_State *L)
 {
-	lua_getglobal(L, "pLUA");
-	CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-	lua_Debug Frame;
-	lua_getstack(L, 1, &Frame);
-	lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
 	if (lua_isboolean(L, 1))
         pSelf->m_pServer->m_AutoRespawn = lua_toboolean(L, 1);

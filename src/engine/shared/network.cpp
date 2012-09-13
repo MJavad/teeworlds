@@ -535,7 +535,6 @@ int CNetUDP::Recv(NETADDR *pRemoteAddr, char *pData, int Size)
 
 void CNetUDP::Tick()
 {
-    char aBuffer[PACKETSIZE]; //recv and sendbuffer
     while (m_lSendBuffer.GetSize() > 0)
     {
         CPacket *pPacket = m_lSendBuffer[0];
