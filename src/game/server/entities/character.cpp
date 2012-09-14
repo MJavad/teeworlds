@@ -484,6 +484,14 @@ void CCharacter::HandleWeapons()
 
 	// ammo regen
 	int AmmoRegenTime = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Ammoregentime;
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_ActiveWeapon);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(AmmoRegenTime);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnAmmoRegenTime");
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+        AmmoRegenTime = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+
 	if(AmmoRegenTime && m_aWeapons[m_ActiveWeapon].m_Ammo >= 0)
 	{
 		// If equipped and not active, regen ammo?

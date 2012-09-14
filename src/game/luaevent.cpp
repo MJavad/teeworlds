@@ -108,6 +108,8 @@ int CEventVariable::GetInteger()
         return str_toint((char *)m_pData);
     if (IsNumeric() == false)
         return 0;
+	if (m_Type == EVENT_TYPE_FLOAT)
+		return GetFloat();
     if (!m_pData)
         return 0;
     return *((int *)m_pData);
