@@ -115,7 +115,8 @@ void CLuaFile::End()
             g_pData->m_aImages[IMAGE_GAME].m_Id = m_pLuaHandler->m_OriginalGameTexture;
         m_pClient->Graphics()->UnloadTexture(r.front());
     }
-    m_lTextures.clear(); //fixes issue 65
+    m_lTextures.clear();
+    m_pLuaShared->Clear();
 
     //clear
     mem_zero(m_aUiElements, sizeof(m_aUiElements));
@@ -390,15 +391,8 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("ListDirectory"), this->ListDirectory);
 
 
-    //thanks to MJavad. Great job
-	lua_register(m_pLua, ToLower("TCPConnect"), this->TCPConnect);
-	lua_register(m_pLua, ToLower("TCPSend"), this->TCPSend);
-	lua_register(m_pLua, ToLower("TCPStreamSize"), this->TCPStreamSize);
-	lua_register(m_pLua, ToLower("TCPStreamClear"), this->TCPStreamClear);
-	lua_register(m_pLua, ToLower("TCPStreamRead"), this->TCPStreamRead);
-	lua_register(m_pLua, ToLower("TCPGetStatus"), this->TCPGetStatus);
-	lua_register(m_pLua, ToLower("TCPClose"), this->TCPClose);
-	lua_register(m_pLua, ToLower("HostLookup"), this->HostLookup);
+    //thanks to MJavad
+    lua_register(m_pLua, ToLower("HostLookup"), this->HostLookup);
 	lua_register(m_pLua, ToLower("HostLookupGetResult"), this->HostLookupGetResult);
 
     m_pLuaShared = new CLuaShared<CLuaFile>(this);
@@ -3867,92 +3861,6 @@ int CLuaFile::GetDate (lua_State *L) //from loslib.c
         luaL_pushresult(&b);
     }
     return 1;
-}
-
-
-int CLuaFile::TCPConnect(lua_State *L)
-{
-	LUA_FUNCTION_HEADER
-
-	if(!lua_isnumber(L, 1) || !lua_isstring(L, 2))
-		return 0;
-
-	NETADDR ConnAddr;
-	net_addr_from_str(&ConnAddr, lua_tostring(L, 2));
-
-	NETADDR BindAddr;
-	mem_zero(&BindAddr, sizeof(BindAddr));
-	BindAddr.type = NETTYPE_IPV4;//don't set it to NETTYPE_ALL
-	BindAddr.port = 0; //random and >1024
-
-	if(pSelf->m_NetTCP.Open(BindAddr))
-	{
-		lua_pushnumber(L, pSelf->m_NetTCP.Connect(ConnAddr));
-		return 1;
-	}
-	return 0;
-}
-
-int CLuaFile::TCPSend(lua_State *L)
-{
-	LUA_FUNCTION_HEADER
-
-	if(!lua_isstring(L, 1) || !lua_isnumber(L, 2))
-		return 0;
-	//lua_pushnumber(L, pSelf->m_NetTCP.Send(lua_tostring(L, 1), lua_tonumber(L, 2)));
-	return 1;
-}
-
-int CLuaFile::TCPStreamSize(lua_State *L)
-{
-	LUA_FUNCTION_HEADER
-
-	//lua_pushnumber(L, pSelf->m_NetTCP.StreamSize());
-	return 1;
-}
-
-int CLuaFile::TCPStreamClear(lua_State *L)
-{
-	LUA_FUNCTION_HEADER
-
-	//pSelf->m_NetTCP.StreamClear();
-	return 0;
-}
-
-int CLuaFile::TCPStreamRead(lua_State *L)
-{
-	LUA_FUNCTION_HEADER
-
-	/*if(!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
-		return 0;
-
-	char Buf[STREAM_SIZE];
-	bool Move;
-
-	if(lua_tonumber(L, 2)!=0)
-		Move = true;
-	else
-		Move = false;
-
-	pSelf->m_NetTCP.StreamRead(lua_tonumber(L, 1), (char *)&Buf, Move);
-	lua_pushstring(L, Buf);*/
-	return 1;
-}
-
-int CLuaFile::TCPGetStatus(lua_State *L)
-{
-	LUA_FUNCTION_HEADER
-
-	lua_pushnumber(L, pSelf->m_NetTCP.GetStatus());
-	return 1;
-}
-
-int CLuaFile::TCPClose(lua_State *L)
-{
-	LUA_FUNCTION_HEADER
-
-	pSelf->m_NetTCP.Close();
-	return 0;
 }
 
 int CLuaFile::HostLookup(lua_State *L)

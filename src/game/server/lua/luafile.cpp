@@ -123,6 +123,7 @@ void CLuaFile::End()
     //try to call the atexit function
     //Maybe the lua file need to save data eg. a ConfigFile
     FunctionExec("atexit");
+    m_pLuaShared->Clear();
 }
 
 int CLuaFile::Panic(lua_State *L)

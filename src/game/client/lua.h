@@ -147,7 +147,6 @@ public:
     class CLua *m_pLuaHandler;
     CLuaShared<CLuaFile> *m_pLuaShared;
     CGameClient *m_pClient;
-    CNetTCP m_NetTCP;
     void UiTick();
     void Tick();
     void End();
@@ -479,13 +478,6 @@ public:
     };
     static inline int ListDirectoryInternal(const char *pName, int IsDir, int DirType, void *pUser);
 
-    static inline int TCPConnect(lua_State *L);
-    static inline int TCPSend(lua_State *L);
-    static inline int TCPStreamSize(lua_State *L);
-    static inline int TCPStreamClear(lua_State *L);
-    static inline int TCPStreamRead(lua_State *L);
-    static inline int TCPGetStatus(lua_State *L);
-    static inline int TCPClose(lua_State *L);
     static inline int HostLookup(lua_State *L);
     static inline int HostLookupGetResult(lua_State *L);
 };

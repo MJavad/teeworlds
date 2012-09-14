@@ -91,6 +91,7 @@ void CLuaShared<T>::FreeSocket(CLuaSocket *pSocket)
 	{
 		delete []pSocket->m_pNetUDP;
 	}
+    delete []pSocket;
 }
 
 template <class T>
@@ -122,7 +123,6 @@ int CLuaShared<T>::NetCreate(lua_State *L)
 	LUA_FUNCTION_HEADER
 	if (!lua_isstring(L, 1))
 		return 0;
-    dbg_msg("t", lua_tostring(L, 1));
 	if (str_comp_nocase(lua_tostring(L, 1), "tcp") == 0)
 	{
 		CLuaSocket *pNewSocket = new CLuaSocket();
@@ -340,28 +340,33 @@ int CLuaShared<T>::NetRecv(lua_State *L)
 			if (r.front()->m_Type == LUANETTYPETCP)
 			{
 			    int Size = 8192;
-			    if (lua_isnumber(L, 2) && lua_tointeger(L, 2) > 0)
+			    if (lua_isnumber(L, 2) && lua_tointeger(L, 2) > 0 && lua_tointeger(L, 2) < 65536)
                     Size = lua_tointeger(L, 2);
 
                 char *pData = new char[Size];
                 Size = r.front()->m_pNetTCP->Recv(pData, Size);
                 lua_pushinteger(L, Size);
                 lua_pushlstring(L, pData, Size);
+                delete []pData;
                 return 2;
 			}
 			else
 			{
 			    int Size = 8192;
-			    if (lua_isnumber(L, 2) && lua_tointeger(L, 2) > 0)
+			    if (lua_isnumber(L, 2) && lua_tointeger(L, 2) > 0 && lua_tointeger(L, 2) < 65536)
                     Size = lua_tointeger(L, 2);
 
                 NETADDR RemoteAddr;
                 mem_zero(&RemoteAddr, sizeof(NETADDR));
                 char *pData = new char[Size];
+                char aRemoteAddr[64];
                 Size = r.front()->m_pNetUDP->Recv(&RemoteAddr, pData, Size);
+			    net_addr_str(&RemoteAddr, aRemoteAddr, sizeof(aRemoteAddr), true);
                 lua_pushinteger(L, Size);
                 lua_pushlstring(L, pData, Size);
-                return 2;
+                lua_pushstring(L, aRemoteAddr);
+                delete []pData;
+                return 3;
 			}
 		}
 	}
@@ -404,7 +409,7 @@ int CLuaShared<T>::NetGetRemoteAddr(lua_State *L)
 		{
 			if (r.front()->m_Type == LUANETTYPETCP)
 			{
-			    char aBuf[512];
+			    char aBuf[64];
 			    NETADDR RemoteAddr = r.front()->m_pNetTCP->GetRemoteAddr();
 			    net_addr_str(&RemoteAddr, aBuf, sizeof(aBuf), true);
                 lua_pushstring(L, aBuf);
