@@ -1,5 +1,6 @@
 /* (c) MAP94 and Patafix. See www.n-lvl.com/ndc/nclient/ for more information. */
 #include "../lua.h"
+#include <game/luaglobal.h>
 
 int CLuaFile::Console(lua_State *L)
 {

@@ -90,10 +90,10 @@ void CPlayers::RenderHook(
 	)
 {
     int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
-    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(i); //clientid
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(pPlayerInfo->m_ClientID); //clientid
     m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderHook");
     if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
-        continue;
+        return;
 
 	CNetObj_Character Prev;
 	CNetObj_Character Player;
@@ -219,10 +219,10 @@ void CPlayers::RenderPlayer(
 	)
 {
     int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
-    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(i); //clientid
+    m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(pPlayerInfo->m_ClientID); //clientid
     m_pClient->m_pLua->m_pEventListener->OnEvent("OnRenderPlayer");
     if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
-        continue;
+        return;
 
 	CNetObj_Character Prev;
 	CNetObj_Character Player;
