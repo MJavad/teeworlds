@@ -381,8 +381,8 @@ public:
 	#define NETTCPCONNECTING 6
 	#define NETTCPCONNECTED 7
 
-    void Listen(NETADDR ListenAddr);
-    void Accept(CNetTCP *pSocket);
+    void Listen();
+    int Accept(CNetTCP *pSocket);
 
     //stats
     int m_BytesRecv;

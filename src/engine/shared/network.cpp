@@ -412,18 +412,18 @@ int CNetTCP::Connect(NETADDR ConnAddr)
 	return Status;
 }
 
-void CNetTCP::Listen(NETADDR ListenAddr)
+void CNetTCP::Listen()
 {
 	if (m_Status != NETTCPREADY)
 		return;
-	net_tcp_listen(m_Socket, 1);
+	net_tcp_listen(m_Socket, 64);
 	m_Status = NETTCPLISTENING;
 }
 
-void CNetTCP::Accept(CNetTCP *pSocket)
+int CNetTCP::Accept(CNetTCP *pSocket)
 {
 	if (m_Status != NETTCPLISTENING)
-		return;
+		return 0;
 	int Ret = 0;
 	if (pSocket == 0)
 	{
@@ -435,23 +435,8 @@ void CNetTCP::Accept(CNetTCP *pSocket)
 		mem_zero(&m_RemoteAddr, sizeof(m_RemoteAddr));
 		Ret = net_tcp_accept(m_Socket, (NETSOCKET *)&pSocket->m_Socket, &pSocket->m_RemoteAddr);
 	}
+	return Ret;
 }
-
-/*void CNetTCP::ListenAcceptThread(void *pUser)
-{
-    dbg_msg("nChat", "Listen: start");
-    CNetTCP *pSelf = (CNetTCP *)pUser;
-    net_set_blocking(pSelf->m_Socket);
-    NETSOCKET listensocket = net_tcp_create(pSelf->m_ListenAddr);
-    net_tcp_listen(listensocket, 1);
-    net_tcp_close(pSelf->m_Socket);
-    pSelf->m_Status = NETTCPLISTENING; //listening
-    net_tcp_accept(listensocket, (NETSOCKET *)(&pSelf->m_Socket), &pSelf->m_LocalAddr);
-    net_tcp_close(listensocket);
-    net_set_non_blocking(pSelf->m_Socket);
-    pSelf->m_Status = NETTCPCONNECTING; //connecting
-    dbg_msg("nChat", "Listen: connected");
-}*/
 
 void CNetTCP::Send(const char *pData, int Size)
 {

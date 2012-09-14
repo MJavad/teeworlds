@@ -65,6 +65,8 @@ CLuaShared<T>::CLuaShared(T *pLua)
 {
 	lua_register(pLua->m_pLua, ToLower("NetCreate"), NetCreate);
 	lua_register(pLua->m_pLua, ToLower("NetConnect"), NetConnect);
+	lua_register(pLua->m_pLua, ToLower("NetListen"), NetListen);
+	lua_register(pLua->m_pLua, ToLower("NetAccept"), NetAccept);
 	lua_register(pLua->m_pLua, ToLower("NetClose"), NetClose);
 	lua_register(pLua->m_pLua, ToLower("NetSend"), NetSend);
 	lua_register(pLua->m_pLua, ToLower("NetRecv"), NetRecv);
@@ -252,6 +254,72 @@ int CLuaShared<T>::NetSend(lua_State *L)
                 r.front()->m_pNetUDP->Send(Addr, pData, Size);
                 lua_pushboolean(L, 1);
                 return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+template <class T>
+int CLuaShared<T>::NetListen(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+	if (!lua_isnumber(L, 1))
+		return 0;
+	int SocketID = lua_tonumber(L, 1);
+	for (array<CLuaSocket *>::range r = pSelf->m_pLuaShared->m_lpSockets.all(); !r.empty(); r.pop_front())
+	{
+		if (r.front()->m_ID == SocketID)
+		{
+			if (r.front()->m_Type == LUANETTYPETCP)
+			{
+                r.front()->m_pNetTCP->Listen();
+                lua_pushboolean(L, 1);
+                return 1;
+			}
+			else
+			{
+                return 0;
+			}
+		}
+	}
+	return 0;
+}
+
+template <class T>
+int CLuaShared<T>::NetAccept(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+	if (!lua_isnumber(L, 1))
+		return 0;
+	int SocketID = lua_tonumber(L, 1);
+	for (array<CLuaSocket *>::range r = pSelf->m_pLuaShared->m_lpSockets.all(); !r.empty(); r.pop_front())
+	{
+		if (r.front()->m_ID == SocketID)
+		{
+			if (r.front()->m_Type == LUANETTYPETCP)
+			{
+			    CNetTCP *pOtherSocket = 0;
+			    if (lua_isnumber(L, 2))
+			    {
+                    for (array<CLuaSocket *>::range r = pSelf->m_pLuaShared->m_lpSockets.all(); !r.empty(); r.pop_front())
+                    {
+                        if (r.front()->m_ID == lua_tointeger(L, 2))
+                        {
+                            if (r.front()->m_Type == LUANETTYPETCP)
+                            {
+                                pOtherSocket = r.front()->m_pNetTCP;
+                                break;
+                            }
+                        }
+                    }
+			    }
+                lua_pushinteger(L, r.front()->m_pNetTCP->Accept(pOtherSocket));
+                return 1;
+			}
+			else
+			{
+                return 0;
 			}
 		}
 	}
