@@ -241,6 +241,12 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CreateExplosion"), this->CreateExplosion);
     lua_register(m_pLua, ToLower("CreateDeath"), this->CreateDeath);
     lua_register(m_pLua, ToLower("CreateDamageIndicator"), this->CreateDamageIndicator);
+    lua_register(m_pLua, ToLower("CreateHammerHit"), this->CreateHammerHit);
+    lua_register(m_pLua, ToLower("CreateSound"), this->CreateSound);
+
+    //tunings
+    lua_register(m_pLua, ToLower("GetTuning"), this->GetTuning);
+    lua_register(m_pLua, ToLower("SetTuning"), this->SetTuning);
 
     lua_register(m_pLua, ToLower("CharacterSetInputDirection"), this->CharacterSetInputDirection);
     lua_register(m_pLua, ToLower("CharacterSetInputJump"), this->CharacterSetInputJump);
@@ -266,6 +272,7 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CharacterGetArmor"), this->CharacterGetArmor);
     lua_register(m_pLua, ToLower("CharacterSetHealth"), this->CharacterSetHealth);
     lua_register(m_pLua, ToLower("CharacterSetArmor"), this->CharacterSetArmor);
+    lua_register(m_pLua, ToLower("CharacterTakeDamage"), this->CharacterTakeDamage);
 
     lua_register(m_pLua, ToLower("SendCharacterInfo"), this->SendCharacterInfo);
 
@@ -283,6 +290,9 @@ void CLuaFile::Init(const char *pFile)
 
     lua_register(m_pLua, ToLower("CreateDirectory"), this->CreateDirectory);
     lua_register(m_pLua, ToLower("GetDate"), this->GetDate);
+
+    lua_register(m_pLua, ToLower("GetTick"), this->GetTick);
+    lua_register(m_pLua, ToLower("GetTickSpeed"), this->GetTickSpeed);
 
     //MySQL - Yeah
     lua_register(m_pLua, ToLower("MySQLConnect"), this->MySQLConnect);
@@ -534,6 +544,22 @@ int CLuaFile::GetVersion(lua_State *L)
     LUA_FUNCTION_HEADER
 
     lua_pushstring(L, GAME_LUA_VERSION);
+    return 1;
+}
+
+int CLuaFile::GetTick(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+
+    lua_pushnumber(L, pSelf->m_pServer->Server()->Tick());
+    return 1;
+}
+
+int CLuaFile::GetTickSpeed(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+
+    lua_pushnumber(L, pSelf->m_pServer->Server()->TickSpeed());
     return 1;
 }
 

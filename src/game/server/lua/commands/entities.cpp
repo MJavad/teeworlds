@@ -19,12 +19,15 @@ int CLuaFile::EntityFind(lua_State *L)
     CEntity **ppEnt = new CEntity*[Max];
 
     int Num = pSelf->m_pServer->m_World.FindEntities(Pos, lua_tonumber(L, 3), ppEnt, Max, lua_tointeger(L, 5));
+    lua_newtable(L);
     for (int i = 0; i < Num; i++)
     {
+        lua_pushinteger(L, i + 1);
         lua_pushinteger(L, ppEnt[i]->GetID());
+        lua_settable(L, -3);
     }
     delete []ppEnt;
-    return Num;
+    return 1;
 }
 
 int CLuaFile::EntityGetCharacterId(lua_State *L)

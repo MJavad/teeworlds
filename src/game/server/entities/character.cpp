@@ -275,7 +275,11 @@ void CCharacter::FireWeapon()
 
         GameServer()->m_pLua->m_pEventListener->OnEvent("OnWeaponFire");
         if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
+        {
+            if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+                m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetInteger();
             return;
+        }
         if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
             FullAuto = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
     }
@@ -318,7 +322,6 @@ void CCharacter::FireWeapon()
 
 				if ((pTarget == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
 					continue;
-
 				// set his velocity to fast upward (for now)
 				if(length(pTarget->m_Pos-ProjStartPos) > 0.0f)
 					GameServer()->CreateHammerHit(pTarget->m_Pos-normalize(pTarget->m_Pos-ProjStartPos)*m_ProximityRadius*0.5f);
@@ -333,6 +336,7 @@ void CCharacter::FireWeapon()
 
 				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
 					m_pPlayer->GetCID(), m_ActiveWeapon);
+
 				Hits++;
 			}
 

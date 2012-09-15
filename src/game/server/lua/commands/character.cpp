@@ -562,6 +562,27 @@ int CLuaFile::CharacterGetAmmo(lua_State *L)
     return 0;
 }
 
+int CLuaFile::CharacterTakeDamage(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isnumber(L, 1) && lua_isnumber(L, 2) && lua_isnumber(L, 3) && lua_isnumber(L, 4))
+    {
+        if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)] && pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter())
+        {
+            vec2 Force = vec2(0, 0);
+            if (lua_isnumber(L, 5) && lua_isnumber(L, 6))
+                Force = vec2(lua_tonumber(L, 5), lua_tonumber(L, 6));
+            pSelf->m_pServer->m_apPlayers[lua_tointeger(L, 1)]->GetCharacter()->TakeDamage(Force, lua_tointeger(L, 2), lua_tointeger(L, 3), lua_tointeger(L, 4));
+        }
+    }
+    return 0;
+}
+
 int CLuaFile::SendCharacterInfo(lua_State *L)
 {
     lua_getglobal(L, "pLUA");

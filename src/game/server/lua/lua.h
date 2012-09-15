@@ -194,6 +194,8 @@ public:
     static inline int CreateExplosion(lua_State *L);
     static inline int CreateDeath(lua_State *L);
     static inline int CreateDamageIndicator(lua_State *L);
+    static inline int CreateHammerHit(lua_State *L);
+    static inline int CreateSound(lua_State *L);
 
     //Client join
 
@@ -237,6 +239,10 @@ public:
 
     static inline int SetGametype(lua_State *L);
 
+
+    static inline int GetTuning(lua_State *L);
+    static inline int SetTuning(lua_State *L);
+
     //Dummy
     static inline int DummyCreate(lua_State *L);
     static inline int IsDummy(lua_State *L);
@@ -249,6 +255,11 @@ public:
     static inline int CreateDirectory(lua_State *L);
 
     static inline int GetDate(lua_State *L);
+
+
+    //tick stuff
+    static inline int GetTick(lua_State *L);
+    static inline int GetTickSpeed(lua_State *L);
 
 
 
