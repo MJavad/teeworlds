@@ -185,6 +185,15 @@ public:
     static inline int ProjectileGetLifespan(lua_State *L);
     static inline int ProjectileGetExplosive(lua_State *L);
     static inline int ProjectileGetSoundImpact(lua_State *L);
+    static inline int ProjectileGetStartTick(lua_State *L);
+    static inline int ProjectileSetWeapon(lua_State *L);
+    static inline int ProjectileSetOwner(lua_State *L);
+    static inline int ProjectileSetDir(lua_State *L);
+    static inline int ProjectileSetStartPos(lua_State *L);
+    static inline int ProjectileSetLifespan(lua_State *L);
+    static inline int ProjectileSetExplosive(lua_State *L);
+    static inline int ProjectileSetSoundImpact(lua_State *L);
+    static inline int ProjectileSetStartTick(lua_State *L);
     static inline int ProjectileCreate(lua_State *L);
 
 	//LaserCreate(Pos.x, Pos.y, Dir.x, Dir.y, StartEnergy, Owner)

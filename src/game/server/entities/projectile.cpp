@@ -32,25 +32,25 @@ vec2 CProjectile::GetPos(float Time)
 {
 	float Curvature = 0;
 	float Speed = 0;
-	
+
 	switch(m_Type)
 	{
 		case WEAPON_GRENADE:
 			Curvature = GameServer()->Tuning()->m_GrenadeCurvature;
 			Speed = GameServer()->Tuning()->m_GrenadeSpeed;
 			break;
-			
+
 		case WEAPON_SHOTGUN:
 			Curvature = GameServer()->Tuning()->m_ShotgunCurvature;
 			Speed = GameServer()->Tuning()->m_ShotgunSpeed;
 			break;
-			
+
 		case WEAPON_GUN:
 			Curvature = GameServer()->Tuning()->m_GunCurvature;
 			Speed = GameServer()->Tuning()->m_GunSpeed;
 			break;
 	}
-	
+
 	return CalcPos(m_Pos, m_Direction, Curvature, Speed, Time);
 }
 
@@ -66,15 +66,35 @@ void CProjectile::Tick()
 	CCharacter *TargetChr = GameServer()->m_World.IntersectCharacter(PrevPos, CurPos, 6.0f, CurPos, OwnerChar);
 
 	m_LifeSpan--;
-	
+
 	if(TargetChr || Collide || m_LifeSpan < 0 || GameLayerClipped(CurPos))
 	{
+        int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_Owner);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_Weapon);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(CurPos.x);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(CurPos.y);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_StartTick);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_Direction.x);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_Direction.y);
+        if (TargetChr)
+            GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(TargetChr->GetPlayer()->GetCID());
+        else
+            GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(-1);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Collide);
+        GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_ID);
+
+        GameServer()->m_pLua->m_pEventListener->OnEvent("OnProjectileDestroy");
+
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
+            return;
+
 		if(m_LifeSpan >= 0 || m_Weapon == WEAPON_GRENADE)
 			GameServer()->CreateSound(CurPos, m_SoundImpact);
 
-		if(m_Explosive)
+		if(m_Explosive && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger() == 0)
 			GameServer()->CreateExplosion(CurPos, m_Owner, m_Weapon, false);
-			
+
 		else if(TargetChr)
 			TargetChr->TakeDamage(m_Direction * max(0.001f, m_Force), m_Damage, m_Owner, m_Weapon);
 
@@ -95,7 +115,7 @@ void CProjectile::FillInfo(CNetObj_Projectile *pProj)
 void CProjectile::Snap(int SnappingClient)
 {
 	float Ct = (Server()->Tick()-m_StartTick)/(float)Server()->TickSpeed();
-	
+
 	if(NetworkClipped(SnappingClient, GetPos(Ct)))
 		return;
 

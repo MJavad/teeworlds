@@ -233,6 +233,15 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("ProjectileGetLifespan"), this->ProjectileGetLifespan);
     lua_register(m_pLua, ToLower("ProjectileGetExplosive"), this->ProjectileGetExplosive);
     lua_register(m_pLua, ToLower("ProjectileGetSoundImpact"), this->ProjectileGetSoundImpact);
+    lua_register(m_pLua, ToLower("ProjectileGetStartTick"), this->ProjectileGetStartTick);
+    lua_register(m_pLua, ToLower("ProjectileSetWeapon"), this->ProjectileSetWeapon);
+    lua_register(m_pLua, ToLower("ProjectileSetOwner"), this->ProjectileSetOwner);
+    lua_register(m_pLua, ToLower("ProjectileSetStartPos"), this->ProjectileSetStartPos);
+    lua_register(m_pLua, ToLower("ProjectileSetDir"), this->ProjectileSetDir);
+    lua_register(m_pLua, ToLower("ProjectileSetLifespan"), this->ProjectileSetLifespan);
+    lua_register(m_pLua, ToLower("ProjectileSetExplosive"), this->ProjectileSetExplosive);
+    lua_register(m_pLua, ToLower("ProjectileSetSoundImpact"), this->ProjectileSetSoundImpact);
+    lua_register(m_pLua, ToLower("ProjectileSetStartTick"), this->ProjectileSetStartTick);
     lua_register(m_pLua, ToLower("ProjectileCreate"), this->ProjectileCreate);
     lua_register(m_pLua, ToLower("LaserCreate"), this->LaserCreate);
 

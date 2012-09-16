@@ -15,9 +15,19 @@ public:
 	bool GetExplosive() { return m_Explosive; }
 	int GetSoundImpact() { return m_SoundImpact; }
 	int GetStartTick() { return m_StartTick; }
-	void FillInfo(CNetObj_Projectile *pProj);
 	int GetWeapon() { return m_Weapon; }
 	int GetOwner() { return m_Owner; }
+
+	void SetDir(vec2 Dir) { m_Direction = Dir; }
+	void SetPos(vec2 Pos) { m_Pos = Pos; }
+	void SetLifespan(int LifeSpan) { m_LifeSpan = LifeSpan; }
+	void SetExplosive(bool Explosive) { m_Explosive = Explosive; }
+	void SetSoundImpact(int SoundImpact) { m_SoundImpact = SoundImpact; }
+	void SetStartTick(int StartTick) { m_StartTick = StartTick; }
+	void SetWeapon(int Weapon) { m_Weapon = Weapon; }
+	void SetOwner(int Owner) { m_Owner = Owner; }
+
+	void FillInfo(CNetObj_Projectile *pProj);
 
 	virtual void Reset();
 	virtual void Tick();
