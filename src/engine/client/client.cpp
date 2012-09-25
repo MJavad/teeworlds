@@ -2288,6 +2288,11 @@ void CClient::Con_Connect(IConsole::IResult *pResult, void *pUserData)
 {
 	CClient *pSelf = (CClient *)pUserData;
 	str_copy(pSelf->m_aCmdConnect, pResult->GetString(0), sizeof(pSelf->m_aCmdConnect));
+	if (str_comp_nocase_num(pSelf->m_aCmdConnect, "tw://", 5) == 0)
+	{
+        str_copy(pSelf->m_aCmdConnect, pResult->GetString(0) + 5, sizeof(pSelf->m_aCmdConnect));
+        pSelf->m_aCmdConnect[str_length(pSelf->m_aCmdConnect) - 1] = 0;
+	}
 }
 
 void CClient::Con_Disconnect(IConsole::IResult *pResult, void *pUserData)
