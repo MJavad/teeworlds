@@ -296,6 +296,7 @@ function build(settings)
 	game_client = Compile(settings, CollectRecursive("src/game/client/*.cpp"), client_content_source)
 	game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), server_content_source)
 	game_editor = Compile(settings, Collect("src/game/editor/*.cpp"))
+	twproto_reg = Compile(settings, Collect("src/twproto/*.cpp"))
 
 	-- build tools (TODO: fix this so we don't get double _d_d stuff)
 	tools_src = Collect("src/tools/*.cpp", "src/tools/*.c")
@@ -332,6 +333,8 @@ function build(settings)
 	masterserver_exe = Link(server_settings, "mastersrv", masterserver,
 		engine, zlib)
 
+    twproto_exe = Link(settings, "twproto_reg", twproto_reg, engine, zlib)
+
 	-- make targets
 	c = PseudoTarget("client".."_"..settings.config_name, client_exe, client_depends)
 	s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch)
@@ -341,7 +344,7 @@ function build(settings)
 	m = PseudoTarget("masterserver".."_"..settings.config_name, masterserver_exe)
 	t = PseudoTarget("tools".."_"..settings.config_name, tools)
 
-	all = PseudoTarget(settings.config_name, c, s, v, m, t)
+	all = PseudoTarget(settings.config_name, c, s, v, m, t, twproto_exe)
 	return all
 end
 

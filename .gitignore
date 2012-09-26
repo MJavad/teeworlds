@@ -26,6 +26,7 @@ lua_compiler*
 tileset_borderadd*
 tileset_borderrem*
 tileset_borderset*
+twproto_reg*
 
 /src/game/pathfinder.cpp
 /src/game/pathfinder.h
