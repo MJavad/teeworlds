@@ -59,7 +59,6 @@ int main(int argc, const char **argv) // ignore_convention
         dbg_msg("", "Errorcode: %i");
     dbg_msg("", "Cleaning up");
     fs_remove("tw.reg");
-    system("pause");
 
     return 0;
 }
