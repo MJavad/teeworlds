@@ -4,8 +4,8 @@
 int main(int argc, const char **argv) // ignore_convention
 {
     dbg_logger_stdout();
-    char aPath[256];
-    char aPathEscaped[512];
+    char aPath[256] = {0};
+    char aPathEscaped[512] = {0};
     str_copy(aPath, argv[0], sizeof(aPath));
     char *pBackSlash = (char *)str_find_rev(aPath, "\\");
     if (pBackSlash)
@@ -18,6 +18,10 @@ int main(int argc, const char **argv) // ignore_convention
         if (aPath[i] == '\\')
             aPathEscaped[x++] = aPath[i];
     }
+
+    dbg_msg("argv0", argv[0]);
+    dbg_msg("aPath", aPath);
+    dbg_msg("ePath", aPathEscaped);
 
 
     dbg_msg("", "Generating registry information");
