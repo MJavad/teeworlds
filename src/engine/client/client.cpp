@@ -2291,7 +2291,8 @@ void CClient::Con_Connect(IConsole::IResult *pResult, void *pUserData)
 	if (str_comp_nocase_num(pSelf->m_aCmdConnect, "tw://", 5) == 0)
 	{
         str_copy(pSelf->m_aCmdConnect, pResult->GetString(0) + 5, sizeof(pSelf->m_aCmdConnect));
-        pSelf->m_aCmdConnect[str_length(pSelf->m_aCmdConnect) - 1] = 0;
+        if (pSelf->m_aCmdConnect[str_length(pSelf->m_aCmdConnect) - 1] == '/')
+            pSelf->m_aCmdConnect[str_length(pSelf->m_aCmdConnect) - 1] = 0;
 	}
 }
 
