@@ -7,7 +7,6 @@
 #include <engine/external/libtheora/theora/codec.h>
 #include <engine/external/libtheora/theora/theoraenc.h>
 #include <engine/external/libvorbis/vorbis/vorbisenc.h>
-#include <time.h>
 class CDemoVideoRecorder : public IDemoVideoRecorder
 {
     /*lib theora*/
