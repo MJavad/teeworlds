@@ -7,7 +7,7 @@
 #include <engine/external/libtheora/theora/codec.h>
 #include <engine/external/libtheora/theora/theoraenc.h>
 #include <engine/external/libvorbis/vorbis/vorbisenc.h>
-
+#include <time.h>
 class CDemoVideoRecorder : public IDemoVideoRecorder
 {
     /*lib theora*/
@@ -62,7 +62,7 @@ static void rgb_to_yuv(const unsigned char *pPng, th_ycbcr_buffer ycbcr, unsigne
       It also isn't terribly fast (though a decent compiler will
       strength-reduce the division to a multiplication).*/
 
-    if (Format == TH_PF_420)
+   /* if (Format == TH_PF_420)
     {
         for(y = 0; y < h; y += 2)
         {
@@ -93,24 +93,27 @@ static void rgb_to_yuv(const unsigned char *pPng, th_ycbcr_buffer ycbcr, unsigne
             }
         }
     }
-    else if (Format == TH_PF_444)
+    else*/ if (Format == TH_PF_444)
     {
-        for(y = 0; y < h; y++)
-        {
-            for(x = 0; x < w; x++)
-            {
-                int i = ((h - y) * w + x) * 3;
-                unsigned char r = pPng[i + 0];
-                unsigned char g = pPng[i + 1];
-                unsigned char b = pPng[i + 2];
-
-                yuv_y[x + y * yuv_w] = clamp((65481*r+128553*g+24966*b+4207500)/255000, 0, 255);
-                yuv_u[x + y * yuv_w] = clamp((-33488*r-65744*g+99232*b+29032005)/225930, 0, 255);
-                yuv_v[x + y * yuv_w] = clamp((157024*r-131488*g-25536*b+45940035)/357510, 0, 255);
-            }
-        }
+		for(x=0, y= 0;;++x)
+		{
+			if(x==w)
+			{
+				if(y==h-1)
+					break;
+				x = 0;
+				++y;
+			}				
+			int i = ((h - y) * w + x) * 3;
+			unsigned char r = pPng[i + 0];
+			unsigned char g = pPng[i + 1];
+			unsigned char b = pPng[i + 2];				
+			yuv_y[x + y * yuv_w] = clamp((65481*r+128553*g+24966*b+4207500)/255000, 0, 255);
+			yuv_u[x + y * yuv_w] = clamp((-33488*r-65744*g+99232*b+29032005)/225930, 0, 255);
+			yuv_v[x + y * yuv_w] = clamp((157024*r-131488*g-25536*b+45940035)/357510, 0, 255);
+		}		
     }
-    else      /* TH_PF_422 */
+   /* else      //TH_PF_422
     {
         for(y = 0; y < h; y += 1)
         {
@@ -131,7 +134,7 @@ static void rgb_to_yuv(const unsigned char *pPng, th_ycbcr_buffer ycbcr, unsigne
                 yuv_v[(x >> 1) + y * ycbcr[2].stride] = clamp(((157024*r0-131488*g0-25536*b0+45940035)/2 + (157024*r1-131488*g1-25536*b1+45940035)/2)/357510, 0, 255);
             }
         }
-    }
+    }*/
 
 }
 
