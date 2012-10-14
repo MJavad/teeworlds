@@ -969,7 +969,6 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Force.x);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Force.y);
     GameServer()->m_pLua->m_pEventListener->OnEvent("OnTakeDamage");
-    dbg_break();
     if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
     {
         return false;
