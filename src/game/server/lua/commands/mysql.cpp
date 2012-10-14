@@ -8,16 +8,16 @@ void CLuaFile::MySQLTick()
 {
     for (int i = 0; i < m_lpResults.GetSize(); i++)
     {
+        int EventID = m_pLuaHandler->m_pEventListener->CreateEventStack();
+        m_pLuaHandler->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_lpResults[i]->m_QueryId);
+        m_pLuaHandler->m_pEventListener->OnEvent("OnMySQLResults");
+        if (m_lpResults.GetSize() == 0)
+            break;
         if (m_lpResults[i]->m_Timestamp + time_freq() < time_get())
         {
+            dbg_msg("mysql", "deleted unfetched query");
             MySQLFreeResult(i, m_lpResults[i]->m_QueryId);
             i--;
-        }
-        else
-        {
-            int EventID = m_pLuaHandler->m_pEventListener->CreateEventStack();
-            m_pLuaHandler->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_lpResults[i]->m_QueryId);
-            m_pLuaHandler->m_pEventListener->OnEvent("OnMySQLResults");
         }
     }
 }
@@ -192,11 +192,16 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                             pRow->m_lpFields.Insert(pField);
                         }
                         pResult->m_lpRows.Insert(pRow);
-                        pResult->m_Timestamp = time_get();
                     }
                     mysql_free_result(pMySQLResult);
+                    pResult->m_Timestamp = time_get();
+                    pResult->m_Error = false;
                 }
-                pResult->m_Error = false;
+                else
+                {
+                    dbg_msg("mysql", mysql_error(&pData->m_pLua->m_MySQL));
+                    pResult->m_Error = true;
+                }
             }
             else
             {

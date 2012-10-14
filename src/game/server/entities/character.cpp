@@ -961,7 +961,6 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
     CPlayer *pPlayer = m_pPlayer;
     int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
-    dbg_msg("eid", "%i", EventID);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
