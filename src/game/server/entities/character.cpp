@@ -961,6 +961,7 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 {
     CPlayer *pPlayer = m_pPlayer;
     int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    dbg_msg("eid", "%i", EventID);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(From);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
@@ -968,19 +969,25 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Force.x);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Force.y);
     GameServer()->m_pLua->m_pEventListener->OnEvent("OnTakeDamage");
+    dbg_break();
     if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric() && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
     {
         return false;
     }
-    else
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+        Weapon = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+        Force.x = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
+        Force.y = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetFloat();
+    bool UseNewDmg = false;
+    int NewDmg = 0;
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
     {
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
-            Weapon = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
-            Force.x = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
-            Force.y = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetFloat();
+        NewDmg = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+        UseNewDmg = true;
     }
+
     if (pPlayer->GetCharacter()) //player may be forced to spec
         m_Core.m_Vel += Force;
 
@@ -991,8 +998,8 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
     if(From == pPlayer->GetCID())
         Dmg = max(1, Dmg/2);
 
-    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
-        Dmg = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+    if (UseNewDmg)
+        Dmg = NewDmg;
 
     if (pPlayer->GetCharacter()) //player may be forced to spec
     {

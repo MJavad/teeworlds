@@ -93,7 +93,6 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
 
             CResults *pResult = new CResults();
             pResult->m_QueryId = pQuery->m_QueryId;
-            dbg_msg("Query", pQuery->m_pQuery);
             if (mysql_real_query(&pData->m_pLua->m_MySQL, pQuery->m_pQuery, pQuery->m_Length) == 0)
             {
                 MYSQL_RES *pMySQLResult = mysql_store_result(&pData->m_pLua->m_MySQL);
