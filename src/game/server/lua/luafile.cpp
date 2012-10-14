@@ -74,6 +74,9 @@ void CLuaFile::Tick()
     MySQLTick(); //garbage collector -> clear old results that aren't fetched by lua
     m_pLuaShared->Tick();
 
+    if (!FunctionExist("Tick"))
+        return;
+
     FunctionPrepare("Tick");
     PushInteger((int)(time_get() * 1000 / time_freq()));
     PushInteger(m_pServer->Server()->Tick());
@@ -93,6 +96,9 @@ void CLuaFile::TickDefered()
 
     ErrorFunc(m_pLua);
 
+    if (!FunctionExist("TickDefered"))
+        return;
+
     FunctionPrepare("TickDefered");
     PushInteger((int)(time_get() * 1000 / time_freq()));
     PushInteger(m_pServer->Server()->Tick());
@@ -106,6 +112,9 @@ void CLuaFile::PostTick()
         return;
 
     ErrorFunc(m_pLua);
+
+    if (!FunctionExist("PostTick"))
+        return;
 
     FunctionPrepare("PostTick");
     PushInteger((int)(time_get() * 1000 / time_freq()));
