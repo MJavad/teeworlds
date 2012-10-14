@@ -976,8 +976,6 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
     {
         if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
             Weapon = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
-            Dmg = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
         if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
             Force.x = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
         if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
@@ -992,6 +990,9 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
     // m_pPlayer only inflicts half damage on self
     if(From == pPlayer->GetCID())
         Dmg = max(1, Dmg/2);
+
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+        Dmg = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
 
     if (pPlayer->GetCharacter()) //player may be forced to spec
     {
