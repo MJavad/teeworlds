@@ -1165,7 +1165,7 @@ int CLuaFile::SetControlValue(lua_State *L)
 {
     LUA_FUNCTION_HEADER
 
-    if (!lua_isstring(L, 1) && !lua_isnumber(L, 2))
+    if (!lua_isstring(L, 1) || !lua_isnumber(L, 2))
         return 0;
     if (str_comp_nocase(lua_tostring(L, 1), "Direction") == 0)
     {

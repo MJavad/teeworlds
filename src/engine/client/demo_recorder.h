@@ -60,6 +60,7 @@ static void rgb_to_yuv(const unsigned char *pPng, th_ycbcr_buffer ycbcr, unsigne
     /*This ignores gamma and RGB primary/whitepoint differences.
       It also isn't terribly fast (though a decent compiler will
       strength-reduce the division to a multiplication).*/
+    //now it's faster but not fast enough ;)
 
     //
     if (Format == TH_PF_444)
