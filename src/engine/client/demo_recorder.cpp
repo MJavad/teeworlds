@@ -176,7 +176,6 @@ void CDemoVideoRecorder::OnFrame(unsigned char *pPixelData)
             }
         }
 
-        unsigned char *pTempRow = pPixelData + m_ScreenWidth * m_ScreenHeight * 3;
         static th_ycbcr_buffer ycbcr = {0};
         if (!ycbcr[0].data)
         {
@@ -184,9 +183,9 @@ void CDemoVideoRecorder::OnFrame(unsigned char *pPixelData)
             ycbcr[0].width = ((m_ScreenWidth + 15) & ~15);
             ycbcr[0].height = ((m_ScreenHeight + 15) & ~15);
             ycbcr[0].stride = ((m_ScreenWidth + 15) & ~15);
-            ycbcr[1].width = (chroma_format == TH_PF_444) ? ((m_ScreenWidth + 15) & ~15) : (((m_ScreenWidth + 15) & ~15) >> 1);
+            ycbcr[1].width = ((m_ScreenWidth + 15) & ~15);
             ycbcr[1].stride = ycbcr[1].width;
-            ycbcr[1].height = (chroma_format == TH_PF_420) ? (((m_ScreenHeight + 15) & ~15) >> 1) : ((m_ScreenHeight + 15) & ~15);
+            ycbcr[1].height = ((m_ScreenHeight + 15) & ~15);
             ycbcr[2].width = ycbcr[1].width;
             ycbcr[2].stride = ycbcr[1].stride;
             ycbcr[2].height = ycbcr[1].height;
