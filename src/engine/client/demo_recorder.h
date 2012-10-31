@@ -7,7 +7,6 @@
 #include <engine/external/libtheora/theora/codec.h>
 #include <engine/external/libtheora/theora/theoraenc.h>
 #include <engine/external/libvorbis/vorbis/vorbisenc.h>
-#include <time.h>
 class CDemoVideoRecorder : public IDemoVideoRecorder
 {
     /*lib theora*/
@@ -38,47 +37,56 @@ public:
 
 static void rgb_to_yuv(const unsigned char *pPng, th_ycbcr_buffer ycbcr, unsigned int w, unsigned int h, th_pixel_fmt Format)
 {
-	int64 time = time_get();
-    unsigned int x;   
+    unsigned int x;
+    unsigned int y;
 
-    unsigned char *yuv_y = ycbcr[0].data;
-    unsigned char *yuv_u = ycbcr[1].data;
-    unsigned char *yuv_v = ycbcr[2].data;
+    unsigned int x1;
+    unsigned int y1;
+
+    unsigned long yuv_w;
+    unsigned long yuv_h;
+
+    unsigned char *yuv_y;
+    unsigned char *yuv_u;
+    unsigned char *yuv_v;
+
+    yuv_w = ycbcr[0].width;
+    yuv_h = ycbcr[0].height;
+
+    yuv_y = ycbcr[0].data;
+    yuv_u = ycbcr[1].data;
+    yuv_v = ycbcr[2].data;
 
     /*This ignores gamma and RGB primary/whitepoint differences.
       It also isn't terribly fast (though a decent compiler will
       strength-reduce the division to a multiplication).*/
+    //now it's faster but not fast enough ;)
 
-    //Not Fast Enough...
+    //
     if (Format == TH_PF_444)
     {
-		//for(int times = 0; times < 60; times++)
-		{
-		int i = h * w * 3;
-		unsigned char r = 0;
-		unsigned char g = 0;
-		unsigned char b = 0;
-		yuv_y = ycbcr[0].data;
-		yuv_u = ycbcr[1].data;
-		yuv_v = ycbcr[2].data;		
-		for(x = 0;;++x)
-		{
-			if(x == w)
-			{
-				if(i==w*3)
-					break;
-				i -= w*6;
-				x = 0;						
-			}					
-			r = pPng[i++];
-			g = pPng[i++];
-			b = pPng[i++];
-			*yuv_y++ = (65481*r+128553*g+24966*b+4207500)/255000;
-			*yuv_u++ = (-33488*r-65744*g+99232*b+29032005)/225930;
-			*yuv_v++ = (157024*r-131488*g-25536*b+45940035)/357510;
-		}		}			
+        int i = h * w * 3;
+        unsigned char r = 0;
+        unsigned char g = 0;
+        unsigned char b = 0;
+        for(x = 0, y = 0;;++x)
+        {
+            if(x == w)
+            {
+                i = (h - y) * w * 3;
+                x = 0;
+                ++y;
+                if(y == h)
+                    break;
+            }
+            r = pPng[i++];
+            g = pPng[i++];
+            b = pPng[i++];
+            *yuv_y++ = (65481*r+128553*g+24966*b+4207500)/255000;
+            *yuv_u++ = (-33488*r-65744*g+99232*b+29032005)/225930;
+            *yuv_v++ = (157024*r-131488*g-25536*b+45940035)/357510;
+        }
     }
-		//dbg_msg("duration", "%f",(float)(60.0f/(float)( (float)(time_get()-time) / (float)time_freq())));
 }
 
 

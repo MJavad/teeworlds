@@ -179,6 +179,7 @@ public:
 	virtual const char *GameType();
 	virtual const char *Version();
 	virtual const char *NetVersion();
+	virtual const char *NetVersionLua();
 
 	//Lua n-client
 

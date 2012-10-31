@@ -1693,6 +1693,7 @@ bool CGameContext::IsClientPlayer(int ClientID)
 
 const char *CGameContext::GameType() { return m_pController && m_pController->m_pGameType ? m_pController->m_pGameType : ""; }
 const char *CGameContext::Version() { return GAME_VERSION; }
-const char *CGameContext::NetVersion() { return GAME_NETVERSION_LUA; }
+const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
+const char *CGameContext::NetVersionLua() { return GAME_NETVERSION_LUA; }
 
 IGameServer *CreateGameServer() { return new CGameContext; }
