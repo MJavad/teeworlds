@@ -41,8 +41,9 @@ void CDemoVideoRecorder::Init(int Width, int Height, int FPS, int Format, const 
 
 
         th_info_init(&m_TheoraEncodingInfo);
-        m_TheoraEncodingInfo.frame_width = m_ScreenWidth+15&~0xF;
-        m_TheoraEncodingInfo.frame_height = m_ScreenHeight+15&~0xF;
+        //this should not work, as far as i know. but idk how to kill the green bar at the bottom
+        m_TheoraEncodingInfo.frame_width = m_ScreenWidth;//+15&~0xF;
+        m_TheoraEncodingInfo.frame_height = m_ScreenHeight;//+15&~0xF;
         m_TheoraEncodingInfo.pic_width = m_ScreenWidth;
         m_TheoraEncodingInfo.pic_height = m_ScreenHeight;
         m_TheoraEncodingInfo.pic_x = m_TheoraEncodingInfo.frame_width - m_ScreenWidth>>1&~1;
