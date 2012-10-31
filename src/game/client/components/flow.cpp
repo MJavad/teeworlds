@@ -80,6 +80,7 @@ void CFlow::Init()
 
 void CFlow::Update()
 {
+	return;
     if (Client()->GameTick() && m_Init == false)
         Init();
 	if(!m_pCells)

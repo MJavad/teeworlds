@@ -1008,8 +1008,7 @@ void CGraphics_SDL::Swap()
 {
 	if(m_DoScreenshot)
 	{
-		ScreenshotDirect(m_aScreenshotName);
-		m_DoScreenshot = false;
+		
 	}
 
     if (m_fpCallback)
@@ -1084,4 +1083,16 @@ int CGraphics_SDL::GetVideoModes(CVideoMode *pModes, int MaxModes)
 	return NumModes;
 }
 
+void CGraphics_SDL::Resize(int newWidth, int newHeight)
+{
+		g_Config.m_GfxScreenWidth=newWidth;
+		g_Config.m_GfxScreenHeight=newHeight;
+		//for(int i = MAX_TEXTURES-1; i > 0; i++)
+		//	UnloadTexture(i);		
+		SDL_Quit();
+		//int temp = g_Config.m_GfxFullscreen;
+		//g_Config.m_GfxFullscreen = 0;
+		if(Init())
+		exit(0);			
+}
 extern IEngineGraphics *CreateEngineGraphics() { return new CGraphics_SDL(); }
