@@ -1806,16 +1806,30 @@ void CClient::Update()
 		m_DemoPlayer.Update();
 		if (m_DemoPlayer.m_Recording)
 		{
-		    dbg_msg("%%%", "%f[!]", (float)(m_DemoPlayer.Info()->m_Info.m_CurrentTick - m_DemoPlayer.Info()->m_Info.m_FirstTick) / (float)(m_DemoPlayer.Info()->m_Info.m_LastTick - m_DemoPlayer.Info()->m_Info.m_FirstTick));
+			float Done = (float)(m_DemoPlayer.Info()->m_Info.m_CurrentTick - m_DemoPlayer.Info()->m_Info.m_FirstTick) / (float)(m_DemoPlayer.Info()->m_Info.m_LastTick - m_DemoPlayer.Info()->m_Info.m_FirstTick);
+			if((int)(Done*100.0f)>m_RecordLastUpdate)
+			{
+				
+				int64 Time = time_get();
+				int64 ElapsedTime = (Time-m_RecordStartTime);
+				int64 EstimatedTime = ((1.0f-Done)/(Done/((float)ElapsedTime)));
+				dbg_msg("Video-Progress", "%f %, elapsed time: %d, estimated time: %d",  Done*100.0f, ElapsedTime, EstimatedTime);
+				m_RecordLastUpdate = (int)(Done*100.0f);
+			}
+		   // dbg_msg("%%%", "%f[!]", (float)(m_DemoPlayer.Info()->m_Info.m_CurrentTick - m_DemoPlayer.Info()->m_Info.m_FirstTick) / (float)(m_DemoPlayer.Info()->m_Info.m_LastTick - m_DemoPlayer.Info()->m_Info.m_FirstTick));
+		//	if((int)((float)(m_DemoPlayer.Info()->m_Info.m_CurrentTick - m_DemoPlayer.Info()->m_Info.m_FirstTick) / (float)(m_DemoPlayer.Info()->m_Info.m_LastTick - m_DemoPlayer.Info()->m_Info.m_FirstTick)*100)%100==0)
+		//	dbg_msg("Progress:", "%f", (float)(m_DemoPlayer.Info()->m_Info.m_CurrentTick - m_DemoPlayer.Info()->m_Info.m_FirstTick) / (float)(m_DemoPlayer.Info()->m_Info.m_LastTick - m_DemoPlayer.Info()->m_Info.m_FirstTick));
 		}
 		if (!m_DemoPlayer.IsPlaying() && m_DemoPlayer.m_Recording)
         {
+			dbg_msg("Video-Progress","Done in %d", time_get()-m_RecordStartTime);
             m_DemoPlayer.m_Recording = false;
             m_DemoVideoRecorder.Stop();
             m_pGraphics->SetCallback(0, 0);
             dbg_msg("!!!recording done!!!", ""); // i am done \o/
-            thread_sleep(1000); //wait for message to be recived :) and quit hard, dont save config
-            exit(0);
+			Disconnect();
+			// thread_sleep(1000); //wait for message to be recived :) and quit hard, dont save config
+			//  exit(0);
             return;
         }
 		if(m_DemoPlayer.IsPlaying())
@@ -2345,10 +2359,42 @@ void CClient::AutoScreenshot_Cleanup()
 		m_AutoScreenshotRecycle = false;
 	}
 }
+void Callback(unsigned char *pData, void *pUserData)
+{
+CClient *pSelf = (CClient *)pUserData;
+	pSelf->Callback2();
+}
+void CClient::Callback2()
+{
+	/*delete m_pGameClient;	
+	Kernel()->ReregisterInterface<IGameClient>(CreateGameClient());
+	m_pGameClient = Kernel()->RequestInterface<IGameClient>();
+	m_pGameClient->OnInit();*/
+//Kernel()->RequestInterface<IEngineTextRender>()->Init();
+
+	// init the input
+	//Input()->Init();
+
+	// start refreshing addresses while we load
+	//MasterServer()->RefreshAddresses(m_NetClient.NetType());// init the editor
+	
+	// init sound, allowed to fail
+	//m_SoundInitFailed = Sound()->Init() != 0;
+
+	// load data
+	//if(!LoadData())
+	//return;
+
+	//GameClient()->OnInit();
+	
+	
+
+}
 
 void CClient::Con_Screenshot(IConsole::IResult *pResult, void *pUserData)
 {
 	CClient *pSelf = (CClient *)pUserData;
+	pSelf->Graphics()->SetCallback(Callback, pSelf);
 	pSelf->Graphics()->TakeScreenshot(0);
 }
 
@@ -2501,13 +2547,8 @@ void CClient::Con_Record(IConsole::IResult *pResult, void *pUserData)
 }
 
 void CClient::Con_Rec(IConsole::IResult *pResult, void *pUserData)
-{
-	CClient *pSelf = (CClient *)pUserData;
-	str_copy(pSelf->m_aRecordDemoName, pResult->GetString(0), sizeof(pSelf->m_aRecordDemoName));
-	pSelf->m_RecordDemoFPS = pResult->GetInteger(2);
-	pSelf->m_RecordDemoFormat = pResult->GetInteger(3);
-	pSelf->m_RecordDemoStorageType = pResult->GetInteger(1);
-	pSelf->m_RecordStart = 1;
+{	
+	((CClient *)pUserData)->RenderDemo("", pResult->GetString(0),pResult->GetInteger(1),pResult->GetInteger(2),pResult->GetInteger(3));
 }
 
 void CClient::Con_StopRecord(IConsole::IResult *pResult, void *pUserData)
@@ -2691,4 +2732,18 @@ int main(int argc, const char **argv) // ignore_convention
 	pConfig->Save();
 
 	return 0;
+}
+void CClient::RenderDemo(const char *aDemoFolder,const char *aDemoName, int StorageType,int Fps,int Format)
+{
+	m_pGraphics->Resize(g_Config.m_RecGfxScreenWidth, g_Config.m_RecGfxScreenHeight);
+	//m_aRecordDemoName= aDemoName;	
+	m_pGameClient->OnInit();
+	str_format(m_aRecordDemoName, sizeof(m_aRecordDemoName), "%s/%s", aDemoFolder, aDemoName);
+	//str_copy(m_aRecordDemoName, aDemoName, sizeof(m_aRecordDemoName));
+	m_RecordDemoStorageType = StorageType;
+	m_RecordDemoFPS = Fps;
+	m_RecordDemoFormat = Format;
+	m_RecordStart = 1;
+	m_RecordStartTime = time_get();
+	m_RecordLastUpdate = 0;
 }

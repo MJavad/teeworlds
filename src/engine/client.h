@@ -76,7 +76,7 @@ public:
 	virtual void Disconnect() = 0;
 	virtual void Quit() = 0;
 	virtual const char *DemoPlayer_Record(const char *pFilename, int StorageType, int FPS, int Format) = 0;
-	enum
+	enum DEMO_RECORD_FORMAT
 	{
 	    DEMO_RECORD_FORMAT_OGV = 1,
 	    DEMO_RECORD_FORMAT_WEBM = 2,
@@ -152,6 +152,8 @@ public:
 
     virtual int64 DemoTimeGet() = 0;
     virtual bool IsRecording() = 0;
+	
+	virtual void RenderDemo(const char *aDemoFolder, const char *aDemoName, int StorageType,int Fps, int Format) = 0;
 };
 
 class IGameClient : public IInterface

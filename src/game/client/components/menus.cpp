@@ -1427,8 +1427,8 @@ int CMenus::Render()
 				// convert demo
 				if(m_DemolistSelectedIndex >= 0 && !m_DemolistSelectedIsDir)
 				{
-				    char aBuf[2048];
-				    m_Recording = true;
+				    /*char aBuf[2048];
+				    m_Recording = true;					
 				    IOHANDLE TmpSettings = io_open("rec.cfg", IOFLAG_WRITE);
 				    io_write(TmpSettings, "gfx_screen_width 1920\n", sizeof("gfx_screen_width 1920\n") - 1);
 				    io_write(TmpSettings, "gfx_screen_height 1080\n", sizeof("gfx_screen_height 1080\n") - 1);
@@ -1441,7 +1441,8 @@ int CMenus::Render()
 				    str_format(aBuf, sizeof(aBuf), "\"\"%s\"\" -f rec.cfg", m_pClient->Storage()->GetExecFilename());
 				    //str_format(aBuf, sizeof(aBuf), "\"\"%s\"\"", m_pClient->Storage()->GetExecFilename());
 				    dbg_msg("", aBuf);
-				    m_RecordingProcess = p_open(aBuf, IOFLAG_READ);
+				    m_RecordingProcess = p_open(aBuf, IOFLAG_READ);*/
+					Client()->RenderDemo(m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, s_Format);
                     /*char aBuf[512];
                     str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
                     const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, s_Format);

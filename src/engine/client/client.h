@@ -205,6 +205,8 @@ class CClient : public IClient, public CDemoPlayer::IListner
     int m_RecordDemoFPS;
     int m_RecordDemoFormat;
     int m_RecordDemoStorageType;
+	int64 m_RecordStartTime;
+	int m_RecordLastUpdate;
 public:
 	IEngine *Engine() { return m_pEngine; }
 	IEngineGraphics *Graphics() { return m_pGraphics; }
@@ -338,5 +340,7 @@ public:
 
 	virtual int64 DemoTimeGet() { return m_DemoPlayer.Info()->m_CurrentTime; }
 	virtual bool IsRecording() { return m_DemoPlayer.m_Recording; }
+	void Callback2();
+	void RenderDemo(const char *aDemoFolder,const char *aDemoName, int StorageType,int Fps,int Format);
 };
 #endif

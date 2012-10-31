@@ -167,6 +167,7 @@ public:
 	void (*m_fpCallback)(unsigned char *pData, void *pUser);
 	void *m_pCallbackUser;
 	virtual void SetCallback(void (*fpCallback)(unsigned char *pData, void *pUser), void *pUser);
+	virtual void Resize(int newWidth, int newHeight);
 
 };
 
