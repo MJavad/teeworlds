@@ -229,6 +229,15 @@ function build(settings)
     settings.cc.includes:Add("src/engine/external/sqlite")
     sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
 
+    settings.cc.defines:Add("SYS_WINDOWS")
+    if (config.compiler.driver == "cl") then
+        settings.cc.includes:Add("src/engine/external/msinttypes")
+	end
+	settings.cc.includes:Add("other/x264/include")
+	settings.cc.includes:Add("other/x264/include/common")
+	settings.cc.includes:Add("other/x264/include/encoder")
+
+
 	settings.cc.includes:Add("src/engine/external/libogg")
 	ogg = Compile(settings, Collect("src/engine/external/libogg/*.c"))
 
@@ -277,6 +286,8 @@ function build(settings)
 		client_settings.link.libs:Add("opengl32")
 		client_settings.link.libs:Add("glu32")
 		client_settings.link.libs:Add("winmm")
+        client_settings.link.libpath:Add("other/x264/vc2005libs")
+        client_settings.link.libs:Add("libx264")
         server_settings.link.libpath:Add("other/mysql/vc2005libs")
         server_settings.link.libs:Add("libmysql")
 	end
@@ -316,7 +327,7 @@ function build(settings)
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "n-client", game_shared, game_client,
-		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis, json, vpx,
+		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis, json, vpx, h264,
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "teeworlds_srv", engine, server, json, mysql, ssl, regex, taocrypt,
