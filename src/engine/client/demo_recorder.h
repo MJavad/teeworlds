@@ -7,8 +7,16 @@
 #include <engine/external/libtheora/theora/codec.h>
 #include <engine/external/libtheora/theora/theoraenc.h>
 #include <engine/external/libvorbis/vorbis/vorbisenc.h>
+#include <stdint.h>
+#include <inttypes.h>
+extern "C"
+{
+    #include <x264.h>
+}
 class CDemoVideoRecorder : public IDemoVideoRecorder
 {
+    /*libx264*/
+    x264_param_t m_X264Param;
     /*lib theora*/
     th_info m_TheoraEncodingInfo;
     vorbis_info m_VorbisEncodingInfo;

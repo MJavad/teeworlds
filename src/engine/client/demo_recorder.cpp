@@ -97,7 +97,7 @@ void CDemoVideoRecorder::Init(int Width, int Height, int FPS, int Format, const 
     }
     if (m_Format == IClient::DEMO_RECORD_FORMAT_WEBM)
     {
-
+        x264_param_default(&m_X264Param);
     }
 }
 
