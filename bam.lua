@@ -143,9 +143,45 @@ if family == "windows" then
 	if platform == "win32" then
 		table.insert(client_depends, CopyToDirectory(".", "other\\freetype\\lib32\\freetype.dll"))
 		table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\lib32\\SDL.dll"))
+
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avcodec-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avdevice-53.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avfilter-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avformat-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avresample-1.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avutil-52.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libmp3lame-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libogg-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\librtmp.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvo-aacenc-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvorbis-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvorbisenc-2.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvorbisfile-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libx264-118.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libx264-125.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\mingwm10.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\swscale-2.dll"))
 	else
 		table.insert(client_depends, CopyToDirectory(".", "other\\freetype\\lib64\\freetype.dll"))
 		table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\lib64\\SDL.dll"))
+
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avcodec-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avdevice-53.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avfilter-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avformat-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avresample-1.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avutil-52.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libmp3lame-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libogg-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\librtmp.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvo-aacenc-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvorbis-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvorbisenc-2.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvorbisfile-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libx264-118.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libx264-125.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\mingwm10.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\swscale-2.dll"))
 	end
 	table.insert(server_sql_depends, CopyToDirectory(".", "other\\mysql\\vc2005libs\\libmysql.dll"))
 
@@ -233,9 +269,7 @@ function build(settings)
     if (config.compiler.driver == "cl") then
         settings.cc.includes:Add("src/engine/external/msinttypes")
 	end
-	settings.cc.includes:Add("other/x264/include")
-	settings.cc.includes:Add("other/x264/include/common")
-	settings.cc.includes:Add("other/x264/include/encoder")
+	settings.cc.includes:Add("other/avcodec/include")
 
 
 	settings.cc.includes:Add("src/engine/external/libogg")
@@ -286,8 +320,19 @@ function build(settings)
 		client_settings.link.libs:Add("opengl32")
 		client_settings.link.libs:Add("glu32")
 		client_settings.link.libs:Add("winmm")
-        client_settings.link.libpath:Add("other/x264/vc2005libs")
-        client_settings.link.libs:Add("libx264")
+		if platform == "win32" then
+            client_settings.link.libpath:Add("other/avcodec/lib32")
+        else
+            client_settings.link.libpath:Add("other/avcodec/lib64")
+        end
+
+        client_settings.link.libs:Add("avcodec")
+        client_settings.link.libs:Add("avdevice")
+        client_settings.link.libs:Add("avfilter")
+        client_settings.link.libs:Add("avformat")
+        client_settings.link.libs:Add("avresample")
+        client_settings.link.libs:Add("avutil")
+        client_settings.link.libs:Add("swscale")
         server_settings.link.libpath:Add("other/mysql/vc2005libs")
         server_settings.link.libs:Add("libmysql")
 	end

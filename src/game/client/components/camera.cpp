@@ -13,15 +13,16 @@
 CCamera::CCamera()
 {
 	m_CamType = CAMTYPE_UNDEFINED;
+	m_Zoom = 1.0f;
+	m_UseForceCenter = false;
 }
 
 void CCamera::OnRender()
 {
 	//vec2 center;
-	m_Zoom = 1.0f;
 
-	// update camera center		
-	if(m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
+	// update camera center
+	if(m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition || m_ForceFreeView)
 	{
 		if(m_CamType != CAMTYPE_SPEC)
 		{
@@ -50,12 +51,15 @@ void CCamera::OnRender()
 
 			CameraOffset = normalize(m_pClient->m_pControls->m_MousePos)*OffsetAmount;
 		}
-		
+
 		if(m_pClient->m_Snap.m_SpecInfo.m_Active)
 			m_Center = m_pClient->m_Snap.m_SpecInfo.m_Position + CameraOffset;
 		else
 			m_Center = m_pClient->m_LocalCharacterPos + CameraOffset;
 	}
+
+	if (m_UseForceCenter)
+        m_Center = m_ForceCenter;
 
 	m_PrevCenter = m_Center;
 }

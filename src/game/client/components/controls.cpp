@@ -10,6 +10,7 @@
 #include <game/client/components/chat.h>
 #include <game/client/components/menus.h>
 #include <game/client/components/scoreboard.h>
+#include <game/client/components/camera.h>
 
 #include "controls.h"
 
@@ -298,7 +299,7 @@ bool CControls::OnMouseMove(float x, float y)
 
 void CControls::ClampMousePos()
 {
-	if(m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition)
+	if(m_pClient->m_Snap.m_SpecInfo.m_Active && !m_pClient->m_Snap.m_SpecInfo.m_UsePosition || m_pClient->m_pCamera->m_ForceFreeView)
 	{
 		m_MousePos.x = clamp(m_MousePos.x, 200.0f, Collision()->GetWidth()*32-200.0f);
 		m_MousePos.y = clamp(m_MousePos.y, 200.0f, Collision()->GetHeight()*32-200.0f);

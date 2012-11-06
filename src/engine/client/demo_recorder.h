@@ -7,16 +7,40 @@
 #include <engine/external/libtheora/theora/codec.h>
 #include <engine/external/libtheora/theora/theoraenc.h>
 #include <engine/external/libvorbis/vorbis/vorbisenc.h>
+#include <engine/shared/stream.h>
 #include <stdint.h>
 #include <inttypes.h>
 extern "C"
 {
-    #include <x264.h>
+    #define UINT64_C(val) val##ULL
+    #include <libavcodec/avcodec.h>
+    #include <libavformat/avformat.h>
+    #include <libavformat/avio.h>
+    #include "libavutil/audioconvert.h"
+    #include "libavutil/common.h"
+    #include "libavutil/imgutils.h"
+    #include "libavutil/mathematics.h"
+    #include "libavutil/samplefmt.h"
 }
 class CDemoVideoRecorder : public IDemoVideoRecorder
 {
-    /*libx264*/
-    x264_param_t m_X264Param;
+    /*libavcodec*/
+    AVOutputFormat *m_pOutputFormat;
+    AVFormatContext *m_pFormatContext;
+
+    AVStream *m_pVideoStream;
+    AVStream *m_pAudioStream;
+
+    AVCodecContext *m_pAudioEncoder;
+    AVCodecContext *m_pVideoEncoder;
+
+    AVFrame *m_pAudioFrame;
+    AVFrame *m_pVideoFrame;
+
+    CStream m_AudioBuffer;
+
+    static int WritePacket(void *opaque, uint8_t *buf, int buf_size);
+
     /*lib theora*/
     th_info m_TheoraEncodingInfo;
     vorbis_info m_VorbisEncodingInfo;
@@ -27,7 +51,9 @@ class CDemoVideoRecorder : public IDemoVideoRecorder
     vorbis_block m_VorbisBlock;
     ogg_stream_state m_TheoraOggStreamState;
     ogg_stream_state m_VorbisOggStreamState;
-    IOHANDLE m_OggFile;
+
+    /* Out File*/
+    IOHANDLE m_OutFile;
 public:
     void Init(int Width, int Height, int FPS, int Format, const char *pName);
     void Stop();
@@ -38,6 +64,10 @@ public:
     int m_ScreenHeight;
     int m_FPS;
     int m_Format;
+
+
+    int m_Frame;
+    int m_Counter;
 
     ISound *m_pSound;
 };
@@ -97,5 +127,49 @@ static void rgb_to_yuv(const unsigned char *pPng, th_ycbcr_buffer ycbcr, unsigne
     }
 }
 
+static void rgb_to_yuv(const unsigned char *pPng, AVFrame *pPicture, unsigned int w, unsigned int h)
+{
+    unsigned int x;
+    unsigned int y;
+
+    unsigned int x1;
+    unsigned int y1;
+
+    unsigned long yuv_w;
+    unsigned long yuv_h;
+
+    unsigned char *yuv_y;
+    unsigned char *yuv_u;
+    unsigned char *yuv_v;
+
+    yuv_y = pPicture->data[0];
+    yuv_u = pPicture->data[1];
+    yuv_v = pPicture->data[2];
+
+    //now it's faster but not fast enough ;)
+
+    //
+    int i = h * w * 3;
+    unsigned char r = 0;
+    unsigned char g = 0;
+    unsigned char b = 0;
+    for(x = 0, y = 0;;++x)
+    {
+        if(x == w)
+        {
+            i = (h - y) * w * 3;
+            x = 0;
+            ++y;
+            if(y == h)
+                break;
+        }
+        r = pPng[i++];
+        g = pPng[i++];
+        b = pPng[i++];
+        *yuv_y++ = (65481*r+128553*g+24966*b+4207500)/255000;
+        *yuv_u++ = (-33488*r-65744*g+99232*b+29032005)/225930;
+        *yuv_v++ = (157024*r-131488*g-25536*b+45940035)/357510;
+    }
+}
 
 #endif
