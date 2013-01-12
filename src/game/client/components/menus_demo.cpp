@@ -10,6 +10,7 @@
 #include <engine/storage.h>
 
 #include <game/client/render.h>
+#include <game/client/components/camera.h>
 #include <game/client/gameclient.h>
 #include <game/localization.h>
 
@@ -42,6 +43,115 @@ int CMenus::DoButton_Sprite(const void *pID, int ImageID, int SpriteID, int Chec
 	return UI()->DoButtonLogic(pID, "", Checked, pRect);
 }
 
+void CMenus::RenderKeyFrameWindow(CUIRect MainView)
+{
+    const IDemoPlayer::CInfo *pInfo = DemoPlayer()->BaseInfo();
+
+
+    MainView.HSplitBottom(200.0f, 0, &MainView);
+    MainView.Margin(10.0f, &MainView);
+	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_ALL, 10.0f);
+
+    CUIRect Tools;
+    MainView.HSplitBottom(26.0f, &MainView, &Tools);
+    CUIRect ToolsRight = Tools;
+	RenderTools()->DrawUIRect(&Tools, ms_ColorTabbarActive, CUI::CORNER_ALL, 10.0f);
+    Tools.Margin(3.0f, &Tools);
+
+	CUIRect Button;
+	Tools.VSplitLeft(75.0f, &Button, &Tools);
+    static int s_AddButton = 0;
+    if(DoButton_DemoPlayer(&s_AddButton, Localize("Add"), 0, &Button))
+    {
+        CKeyFrame KeyFrame;
+        KeyFrame.m_Pos = m_pClient->m_pCamera->m_Center;
+        KeyFrame.m_Tick = pInfo->m_CurrentTick;
+        KeyFrame.m_Time = m_pClient->Client()->DemoTimeGet();
+        int Index = 0;
+        for (Index = 0; Index < m_lKeyFrames.GetSize(); Index++)
+        {
+            if (m_lKeyFrames[Index].m_Time < m_pClient->Client()->DemoTimeGet())
+                continue;
+        }
+        m_lKeyFrames.Insert(KeyFrame, Index);
+    }
+	Tools.VSplitLeft(5.0f, 0, &Tools);
+	Tools.VSplitLeft(75.0f, &Button, &Tools);
+	if (m_SelectedKeyFrame != -1)
+	{
+        static int s_RemoveButton = 0;
+        if(DoButton_DemoPlayer(&s_RemoveButton, Localize("Remove"), 0, &Button))
+        {
+            m_lKeyFrames.DeleteByIndex(m_SelectedKeyFrame);
+            m_SelectedKeyFrame = -1;
+        }
+    }
+
+	Tools.VSplitLeft(5.0f, 0, &Tools);
+	Tools.VSplitLeft(75.0f, &Button, &Tools);
+    static int s_FreeViewButton = 0;
+    if(DoButton_DemoPlayer(&s_FreeViewButton, Localize("Freeview"), m_pClient->m_pCamera->m_ForceFreeView, &Button))
+    {
+        m_pClient->m_pCamera->m_ForceFreeView ^= 1;
+    }
+
+
+    //right
+	ToolsRight.VSplitRight(5.0f, &ToolsRight, 0);
+	ToolsRight.VSplitRight(150.0f, &ToolsRight, &Button);
+    static int s_UseKeyFramesButton = 0;
+    if(DoButton_DemoPlayer(&s_UseKeyFramesButton, Localize("Use keyframes"), m_UseKeyFrames, &Button))
+    {
+        m_UseKeyFrames ^= 1;
+    }
+
+	ToolsRight.VSplitRight(5.0f, &ToolsRight, 0);
+	ToolsRight.VSplitRight(20.0f, &ToolsRight, &Button);
+    static int s_ZoomInButton = 0;
+    if(DoButton_DemoPlayer(&s_ZoomInButton, Localize("+"), 0, &Button))
+    {
+        m_Zoom = min(m_Zoom * 2, 64.0f);
+    }
+
+	ToolsRight.VSplitRight(5.0f, &ToolsRight, 0);
+	ToolsRight.VSplitRight(20.0f, &ToolsRight, &Button);
+    static int s_ZoomOutButton = 0;
+    if(DoButton_DemoPlayer(&s_ZoomOutButton, Localize("-"), 0, &Button))
+    {
+        m_Zoom = max(m_Zoom / 2, 0.125f);
+    }
+
+
+    MainView.Margin(10.0f, &MainView);
+    RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, 0, 0.0f);
+
+	Graphics()->LinesBegin();
+    Graphics()->SetColor(1.00f, 1.00f, 1.00f, 1.00f);
+	IGraphics::CLineItem LineItem(MainView.x, MainView.y, MainView.x, MainView.y + MainView.h);
+	Graphics()->LinesDraw(&LineItem, 1);
+	Graphics()->LinesEnd();
+
+	for (int i = 0; i < m_lKeyFrames.GetSize(); i++)
+	{
+        int Tick = m_lKeyFrames[i].m_Tick - pInfo->m_CurrentTick;
+        CUIRect KeyFrameRect = MainView;
+        KeyFrameRect.x += Tick * m_Zoom;
+        KeyFrameRect.h = 10;
+        KeyFrameRect.w = 10;
+        KeyFrameRect.y += 10;
+        vec4 Color = ms_ColorTabbarActive;
+        if (i == m_SelectedKeyFrame)
+            Color = vec4(1.0f, 1.0f, 1.0f, 0.5f);
+
+        if (KeyFrameRect.x <= UI()->MouseX() && KeyFrameRect.x + KeyFrameRect.w >= UI()->MouseX() && KeyFrameRect.y <= UI()->MouseY() && KeyFrameRect.y + KeyFrameRect.h >= UI()->MouseY())
+            Color = vec4(1.0f, 1.0f, 1.0f, 0.85f);
+        if (KeyFrameRect.x <= UI()->MouseX() && KeyFrameRect.x + KeyFrameRect.w >= UI()->MouseX() && KeyFrameRect.y <= UI()->MouseY() && KeyFrameRect.y + KeyFrameRect.h >= UI()->MouseY() && UI()->MouseButtonClicked(0))
+            m_SelectedKeyFrame = i;
+        RenderTools()->DrawUIRect(&KeyFrameRect, Color, CUI::CORNER_ALL, 5.0f);
+	}
+}
+
+
 void CMenus::RenderDemoPlayer(CUIRect MainView)
 {
     if (m_pClient->Client()->IsRecording())
@@ -59,9 +169,43 @@ void CMenus::RenderDemoPlayer(CUIRect MainView)
 	else
 		TotalHeight = SeekBarHeight+Margins*2;
 
-	MainView.HSplitBottom(TotalHeight, 0, &MainView);
+    CUIRect KeyFrames;
+
+	MainView.HSplitBottom(TotalHeight, &KeyFrames, &MainView);
 	MainView.VSplitLeft(50.0f, 0, &MainView);
 	MainView.VSplitRight(450.0f, &MainView, 0);
+
+    if (m_MenuActive)
+    {
+        m_pClient->m_pCamera->m_ForceCenter = m_pClient->m_pCamera->m_Center;
+        RenderKeyFrameWindow(KeyFrames);
+    }
+    else
+    {
+        m_pClient->m_pCamera->m_UseForceCenter = false;
+    }
+
+    int Start = -1;
+    for (int i = 0; i < m_lKeyFrames.GetSize() - 1; i++)
+    {
+        if (m_lKeyFrames[i].m_Time > m_pClient->Client()->DemoTimeGet())
+            break;
+        Start = i;
+    }
+    if (Start >= 0 && !pInfo->m_Paused)
+    {
+        float a = (float)(m_pClient->Client()->DemoTimeGet() - m_lKeyFrames[Start].m_Time) / (float)(m_lKeyFrames[Start + 1].m_Time - m_lKeyFrames[Start].m_Time);
+        dbg_msg("a", "%f", a);
+        m_pClient->m_pCamera->m_ForceCenter = mix(m_lKeyFrames[Start].m_Pos, m_lKeyFrames[Start + 1].m_Pos, clamp(a, 0.0f, 1.0f));
+        if (m_UseKeyFrames)
+            m_pClient->m_pCamera->m_UseForceCenter = true;
+        else
+            m_pClient->m_pCamera->m_UseForceCenter = false;
+    }
+    else
+    {
+        m_pClient->m_pCamera->m_UseForceCenter = false;
+    }
 
 	RenderTools()->DrawUIRect(&MainView, ms_ColorTabbarActive, CUI::CORNER_T, 10.0f);
 

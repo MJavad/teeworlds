@@ -12,17 +12,19 @@
 #include <engine/engine.h>
 #include <engine/shared/network.h>
 
-#define GAME_LUA_VERSION "1.3"
+//#define GAME_LUA_VERSION "1.3"
 
-//#define NON_HASED_VERSION
-//#include <game/version.h>
-//#undef NON_HASED_VERSION
+#define NON_HASED_VERSION
+#include <game/version.h>
+#undef NON_HASED_VERSION
 extern "C" { // lua
 #define LUA_CORE /* make sure that we don't try to import these functions */
 #include <engine/external/lua/lua.h>
 #include <engine/external/lua/lualib.h> /* luaL_openlibs */
 #include <engine/external/lua/lauxlib.h> /* luaL_loadfile */
 }
+
+#include <game/luashared.h>
 
 class CLuaBinding
 {
@@ -144,8 +146,8 @@ public:
     CLuaFile();
     ~CLuaFile();
     class CLua *m_pLuaHandler;
+    CLuaShared<CLuaFile> *m_pLuaShared;
     CGameClient *m_pClient;
-    CNetTCP m_NetTCP;
     void UiTick();
     void Tick();
     void End();
@@ -268,11 +270,13 @@ public:
     static inline int SetCharacterVel(lua_State *L);
     static inline int GetCharacterActiveWeapon(lua_State *L);
 
-    //TODO:
+
     static inline int CharacterHasFlag(lua_State *L);
     static inline int GetCharacterHookPos(lua_State *L);
     static inline int GetCharacterHookDir(lua_State *L);
     static inline int GetCharacterHookState(lua_State *L);
+    static inline int GetCharacterHookedPlayer(lua_State *L);
+    static inline int GetCharacterHookTick(lua_State *L);
 
 
     //collision
@@ -479,13 +483,6 @@ public:
     };
     static inline int ListDirectoryInternal(const char *pName, int IsDir, int DirType, void *pUser);
 
-	static inline int TCPConnect(lua_State *L);
-	static inline int TCPSend(lua_State *L);
-	static inline int TCPStreamSize(lua_State *L);
-	static inline int TCPStreamClear(lua_State *L);
-	static inline int TCPStreamRead(lua_State *L);
-	static inline int TCPGetStatus(lua_State *L);
-	static inline int TCPClose(lua_State *L);
 	static inline int HostLookup(lua_State *L);
 	static inline int HostLookupGetResult(lua_State *L);
 

@@ -823,7 +823,6 @@ int CMenus::LuaFetchCallback(const char *pName, int IsDir, int StorageType, void
 		return 0;
     for (int i = 0; i < MAX_LUA_FILES; i++)
     {
-        char aBuf[256];
         const char *pPart = str_find_rev(pSelf->m_pClient->m_pLuaCore->GetFileDir(i), "/");
         if (pPart)
         {

@@ -24,7 +24,7 @@
     lua_Debug Frame; \
     lua_getstack(L, 1, &Frame); \
     lua_getinfo(L, "nlSf", &Frame); \
-    (void *)pSelf;
+    ((void)(pSelf));
 
 #if !defined(LUA_USE_POSIX)
 #define LUA_STRFTIMEOPTIONS	{ "aAbBcdHIjmMpSUwWxXyYz%", "" }

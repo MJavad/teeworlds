@@ -24,9 +24,10 @@ extern "C" { // lua
     #include <engine/external/lua/lualib.h> /* luaL_openlibs */
     #include <engine/external/lua/lauxlib.h> /* luaL_loadfile */
 
-    #include "mysql.h"
-
+    #include <mysql.h>
 }
+
+#include <game/luashared.h>
 
 class CLuaFile
 {
@@ -34,6 +35,7 @@ public:
     CLuaFile();
     ~CLuaFile();
     class CLua *m_pLuaHandler;
+    CLuaShared<CLuaFile> *m_pLuaShared;
     CGameContext *m_pServer;
     //void UiTick();
     void Tick();
@@ -183,6 +185,15 @@ public:
     static inline int ProjectileGetLifespan(lua_State *L);
     static inline int ProjectileGetExplosive(lua_State *L);
     static inline int ProjectileGetSoundImpact(lua_State *L);
+    static inline int ProjectileGetStartTick(lua_State *L);
+    static inline int ProjectileSetWeapon(lua_State *L);
+    static inline int ProjectileSetOwner(lua_State *L);
+    static inline int ProjectileSetDir(lua_State *L);
+    static inline int ProjectileSetStartPos(lua_State *L);
+    static inline int ProjectileSetLifespan(lua_State *L);
+    static inline int ProjectileSetExplosive(lua_State *L);
+    static inline int ProjectileSetSoundImpact(lua_State *L);
+    static inline int ProjectileSetStartTick(lua_State *L);
     static inline int ProjectileCreate(lua_State *L);
 
 	//LaserCreate(Pos.x, Pos.y, Dir.x, Dir.y, StartEnergy, Owner)
@@ -192,6 +203,8 @@ public:
     static inline int CreateExplosion(lua_State *L);
     static inline int CreateDeath(lua_State *L);
     static inline int CreateDamageIndicator(lua_State *L);
+    static inline int CreateHammerHit(lua_State *L);
+    static inline int CreateSound(lua_State *L);
 
     //Client join
 
@@ -199,18 +212,19 @@ public:
     //Spawn
     static inline int SetAutoRespawn(lua_State *L);
 
-    static inline int CharacterTakeDamage(lua_State *L);
-    static inline int CharacterGetHealth(lua_State *L);
-    static inline int CharacterGetArmor(lua_State *L);
     static inline int CharacterSpawn(lua_State *L);
     static inline int CharacterIsAlive(lua_State *L);
     static inline int CharacterKill(lua_State *L);
     static inline int CharacterIsGrounded(lua_State *L);
     static inline int CharacterIncreaseHealth(lua_State *L);
     static inline int CharacterIncreaseArmor(lua_State *L);
-    static inline int CharacterIncreaseAmmo(lua_State *L);
+    static inline int CharacterSetHealth(lua_State *L);
+    static inline int CharacterSetArmor(lua_State *L);
+    static inline int CharacterGetHealth(lua_State *L);
+    static inline int CharacterGetArmor(lua_State *L);
     static inline int CharacterSetAmmo(lua_State *L);
     static inline int CharacterGetAmmo(lua_State *L);
+    static inline int CharacterTakeDamage(lua_State *L);
     static inline int SendCharacterInfo(lua_State *L);
     //Input
     static inline int CharacterSetInputDirection(lua_State *L);
@@ -234,6 +248,10 @@ public:
 
     static inline int SetGametype(lua_State *L);
 
+
+    static inline int GetTuning(lua_State *L);
+    static inline int SetTuning(lua_State *L);
+
     //Dummy
     static inline int DummyCreate(lua_State *L);
     static inline int IsDummy(lua_State *L);
@@ -246,6 +264,11 @@ public:
     static inline int CreateDirectory(lua_State *L);
 
     static inline int GetDate(lua_State *L);
+
+
+    //tick stuff
+    static inline int GetTick(lua_State *L);
+    static inline int GetTickSpeed(lua_State *L);
 
 
 
@@ -357,6 +380,8 @@ public:
 
     bool m_ConsoleInit;
 
+    array<char *>m_lpEvalBuffer;
+    void Eval(const char *pCode);
     CLuaFile m_aLuaFiles[MAX_LUA_FILES];
     class CLuaEventListener<CLuaFile> *m_pEventListener;
 
@@ -386,7 +411,7 @@ static int StrIsFloat(const char *pStr)
 {
 	while(*pStr)
 	{
-		if(!(*pStr >= '0' && *pStr <= '9' || *pStr == '.'))
+		if(!((*pStr >= '0' && *pStr <= '9') || *pStr == '.'))
 			return 0;
 		pStr++;
 	}

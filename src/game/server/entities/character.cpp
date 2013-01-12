@@ -265,6 +265,7 @@ void CCharacter::FireWeapon()
 		WillFire = true;
 
     int EventID = -1;
+    bool NoProjectiles = false;
     if (WillFire || (m_LatestInput.m_Fire&1))
     {
         EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
@@ -275,9 +276,15 @@ void CCharacter::FireWeapon()
 
         GameServer()->m_pLua->m_pEventListener->OnEvent("OnWeaponFire");
         if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 1)
+        {
+            if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+                m_ReloadTimer = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetInteger();
             return;
+        }
         if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
             FullAuto = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
+            NoProjectiles = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetInteger();
     }
 
 	if(FullAuto && (m_LatestInput.m_Fire&1) && m_aWeapons[m_ActiveWeapon].m_Ammo)
@@ -318,7 +325,6 @@ void CCharacter::FireWeapon()
 
 				if ((pTarget == this) || GameServer()->Collision()->IntersectLine(ProjStartPos, pTarget->m_Pos, NULL, NULL))
 					continue;
-
 				// set his velocity to fast upward (for now)
 				if(length(pTarget->m_Pos-ProjStartPos) > 0.0f)
 					GameServer()->CreateHammerHit(pTarget->m_Pos-normalize(pTarget->m_Pos-ProjStartPos)*m_ProximityRadius*0.5f);
@@ -333,6 +339,7 @@ void CCharacter::FireWeapon()
 
 				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
 					m_pPlayer->GetCID(), m_ActiveWeapon);
+
 				Hits++;
 			}
 
@@ -344,23 +351,26 @@ void CCharacter::FireWeapon()
 
 		case WEAPON_GUN:
 		{
-			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GUN,
-				m_pPlayer->GetCID(),
-				ProjStartPos,
-				Direction,
-				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GunLifetime),
-				1, 0, 0, -1, WEAPON_GUN);
+		    if (!NoProjectiles)
+            {
+                CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GUN,
+                    m_pPlayer->GetCID(),
+                    ProjStartPos,
+                    Direction,
+                    (int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GunLifetime),
+                    1, 0, 0, -1, WEAPON_GUN);
 
-			// pack the Projectile and send it to the client Directly
-			CNetObj_Projectile p;
-			pProj->FillInfo(&p);
+                // pack the Projectile and send it to the client Directly
+                CNetObj_Projectile p;
+                pProj->FillInfo(&p);
 
-			CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
-			Msg.AddInt(1);
-			for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
-				Msg.AddInt(((int *)&p)[i]);
+                CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
+                Msg.AddInt(1);
+                for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
+                    Msg.AddInt(((int *)&p)[i]);
 
-			Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
+                Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
+            }
 
             if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_GUN_FIRE);
@@ -370,64 +380,70 @@ void CCharacter::FireWeapon()
 		{
 			int ShotSpread = 2;
 
-			CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
-			Msg.AddInt(ShotSpread*2+1);
+		    if (!NoProjectiles)
+            {
+                CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
+                Msg.AddInt(ShotSpread*2+1);
 
-			for(int i = -ShotSpread; i <= ShotSpread; ++i)
-			{
-				float Spreading[] = {-0.185f, -0.070f, 0, 0.070f, 0.185f};
-				float a = GetAngle(Direction);
-				a += Spreading[i+2];
-				float v = 1-(absolute(i)/(float)ShotSpread);
-				float Speed = mix((float)GameServer()->Tuning()->m_ShotgunSpeeddiff, 1.0f, v);
-				CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_SHOTGUN,
-					m_pPlayer->GetCID(),
-					ProjStartPos,
-					vec2(cosf(a), sinf(a))*Speed,
-					(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_ShotgunLifetime),
-					1, 0, 0, -1, WEAPON_SHOTGUN);
+                for(int i = -ShotSpread; i <= ShotSpread; ++i)
+                {
+                    float Spreading[] = {-0.185f, -0.070f, 0, 0.070f, 0.185f};
+                    float a = GetAngle(Direction);
+                    a += Spreading[i+2];
+                    float v = 1-(absolute(i)/(float)ShotSpread);
+                    float Speed = mix((float)GameServer()->Tuning()->m_ShotgunSpeeddiff, 1.0f, v);
+                    CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_SHOTGUN,
+                        m_pPlayer->GetCID(),
+                        ProjStartPos,
+                        vec2(cosf(a), sinf(a))*Speed,
+                        (int)(Server()->TickSpeed()*GameServer()->Tuning()->m_ShotgunLifetime),
+                        1, 0, 0, -1, WEAPON_SHOTGUN);
 
-				// pack the Projectile and send it to the client Directly
-				CNetObj_Projectile p;
-				pProj->FillInfo(&p);
+                    // pack the Projectile and send it to the client Directly
+                    CNetObj_Projectile p;
+                    pProj->FillInfo(&p);
 
-				for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
-					Msg.AddInt(((int *)&p)[i]);
-			}
+                    for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
+                        Msg.AddInt(((int *)&p)[i]);
+                }
 
-			Server()->SendMsg(&Msg, 0,m_pPlayer->GetCID());
-
+                Server()->SendMsg(&Msg, 0,m_pPlayer->GetCID());
+            }
             if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_SHOTGUN_FIRE);
 		} break;
 
 		case WEAPON_GRENADE:
 		{
-			CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GRENADE,
-				m_pPlayer->GetCID(),
-				ProjStartPos,
-				Direction,
-				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeLifetime),
-				1, true, 0, SOUND_GRENADE_EXPLODE, WEAPON_GRENADE);
+		    if (!NoProjectiles)
+            {
+                CProjectile *pProj = new CProjectile(GameWorld(), WEAPON_GRENADE,
+                    m_pPlayer->GetCID(),
+                    ProjStartPos,
+                    Direction,
+                    (int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeLifetime),
+                    1, true, 0, SOUND_GRENADE_EXPLODE, WEAPON_GRENADE);
 
-			// pack the Projectile and send it to the client Directly
-			CNetObj_Projectile p;
-			pProj->FillInfo(&p);
+                // pack the Projectile and send it to the client Directly
+                CNetObj_Projectile p;
+                pProj->FillInfo(&p);
 
-			CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
-			Msg.AddInt(1);
-			for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
-				Msg.AddInt(((int *)&p)[i]);
-			Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
-
+                CMsgPacker Msg(NETMSGTYPE_SV_EXTRAPROJECTILE);
+                Msg.AddInt(1);
+                for(unsigned i = 0; i < sizeof(CNetObj_Projectile)/sizeof(int); i++)
+                    Msg.AddInt(((int *)&p)[i]);
+                Server()->SendMsg(&Msg, 0, m_pPlayer->GetCID());
+            }
             if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_GRENADE_FIRE);
 		} break;
 
 		case WEAPON_RIFLE:
 		{
-			new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
-
+		    if (!NoProjectiles)
+            {
+                new CLaser(GameWorld(), m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, m_pPlayer->GetCID());
+            }
             if (EventID > -1 && GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger() == 0)
                 GameServer()->CreateSound(m_Pos, SOUND_RIFLE_FIRE);
 		} break;
@@ -484,6 +500,14 @@ void CCharacter::HandleWeapons()
 
 	// ammo regen
 	int AmmoRegenTime = g_pData->m_Weapons.m_aId[m_ActiveWeapon].m_Ammoregentime;
+    int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_ActiveWeapon);
+    GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(AmmoRegenTime);
+    GameServer()->m_pLua->m_pEventListener->OnEvent("OnAmmoRegenTime");
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].IsNumeric())
+        AmmoRegenTime = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
+
 	if(AmmoRegenTime && m_aWeapons[m_ActiveWeapon].m_Ammo >= 0)
 	{
 		// If equipped and not active, regen ammo?
@@ -522,6 +546,7 @@ void CCharacter::HandleWeapons()
 
 bool CCharacter::GiveWeapon(int Weapon, int Ammo)
 {
+    bool Take = false;
     int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
@@ -536,10 +561,6 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
         else
             m_aWeapons[Weapon].m_Got = true;
         m_aWeapons[Weapon].m_Ammo = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
-            return (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
-        else
-            return true;
     }
     else
     {
@@ -547,10 +568,12 @@ bool CCharacter::GiveWeapon(int Weapon, int Ammo)
         {
             m_aWeapons[Weapon].m_Got = true;
             m_aWeapons[Weapon].m_Ammo = min(g_pData->m_Weapons.m_aId[Weapon].m_Maxammo, Ammo);
-            return true;
+            Take = true;
         }
     }
-	return false;
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
+        Take = (bool)GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+	return Take;
 }
 
 void CCharacter::GiveNinja(int Sound)
@@ -896,7 +919,6 @@ void CCharacter::Die(int Killer, int Weapon)
     CPlayer *pPlayer = m_pPlayer;
 	// we got to wait 0.5 secs before respawning
     int EventID = GameServer()->m_pLua->m_pEventListener->CreateEventStack();
-    dbg_msg("Die", "%i", EventID);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Killer);
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_pPlayer->GetCID());
     GameServer()->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(Weapon);
@@ -950,17 +972,20 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
     {
         return false;
     }
-    else
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
+        Weapon = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
+        Force.x = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
+        Force.y = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetFloat();
+    bool UseNewDmg = false;
+    int NewDmg = 0;
+    if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
     {
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric())
-            Weapon = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].IsNumeric())
-            Dmg = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].IsNumeric())
-            Force.x = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[3].GetFloat();
-        if (GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].IsNumeric())
-            Force.y = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[4].GetFloat();
+        NewDmg = GameServer()->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[2].GetInteger();
+        UseNewDmg = true;
     }
+
     if (pPlayer->GetCharacter()) //player may be forced to spec
         m_Core.m_Vel += Force;
 
@@ -970,6 +995,9 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
     // m_pPlayer only inflicts half damage on self
     if(From == pPlayer->GetCID())
         Dmg = max(1, Dmg/2);
+
+    if (UseNewDmg)
+        Dmg = NewDmg;
 
     if (pPlayer->GetCharacter()) //player may be forced to spec
     {

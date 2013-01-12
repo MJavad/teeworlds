@@ -8,16 +8,16 @@ void CLuaFile::MySQLTick()
 {
     for (int i = 0; i < m_lpResults.GetSize(); i++)
     {
+        int EventID = m_pLuaHandler->m_pEventListener->CreateEventStack();
+        m_pLuaHandler->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_lpResults[i]->m_QueryId);
+        m_pLuaHandler->m_pEventListener->OnEvent("OnMySQLResults");
+        if (m_lpResults.GetSize() == 0)
+            break;
         if (m_lpResults[i]->m_Timestamp + time_freq() < time_get())
         {
+            dbg_msg("mysql", "deleted unfetched query");
             MySQLFreeResult(i, m_lpResults[i]->m_QueryId);
             i--;
-        }
-        else
-        {
-            int EventID = m_pLuaHandler->m_pEventListener->CreateEventStack();
-            m_pLuaHandler->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_lpResults[i]->m_QueryId);
-            m_pLuaHandler->m_pEventListener->OnEvent("OnMySQLResults");
         }
     }
 }
@@ -84,7 +84,7 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
     {
         if (pData->m_pLua->m_lpQueries.GetSize() == 0)
         {
-            thread_sleep(100);
+            thread_sleep(10);
         }
         if (pData->m_pLua->m_lpQueries.GetSize() > 0)
         {
@@ -137,7 +137,8 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                         MAX_NO_FIELD_TYPES
 };
 */
-                            pField->m_Length = pMySQLField->length;
+                            //pField->m_Length = pMySQLField->length;
+                            pField->m_Length = pLength[i]; //this is better?
                             if (pMySQLField->type == MYSQL_TYPE_TINY)
                             {
                                 pField->m_Number = atol(Row[i]);
@@ -172,24 +173,35 @@ void CLuaFile::MySQLWorkerThread(void *pUser)
                             }
                             if (pMySQLField->type == MYSQL_TYPE_TIMESTAMP || pMySQLField->type == MYSQL_TYPE_DATE || pMySQLField->type == MYSQL_TYPE_TIME || pMySQLField->type == MYSQL_TYPE_DATETIME)
                             {
-                                pField->m_pData = new char[pMySQLField->length];
-                                mem_copy(pField->m_pData, Row[i], pMySQLField->length);
-                                pField->m_Type = CField::TYPE_DATA;
+                            	if (pField->m_Length > 0)
+                            	{
+									pField->m_pData = new char[pField->m_Length];
+									mem_copy(pField->m_pData, Row[i], pField->m_Length);
+									pField->m_Type = CField::TYPE_DATA;
+                            	}
                             }
                             if (pMySQLField->type == MYSQL_TYPE_STRING || pMySQLField->type == MYSQL_TYPE_VAR_STRING ||  pMySQLField->type == MYSQL_TYPE_BLOB)
                             {
-                                pField->m_pData = new char[pMySQLField->length];
-                                mem_copy(pField->m_pData, Row[i], pMySQLField->length);
-                                pField->m_Type = CField::TYPE_DATA;
+                            	if (pField->m_Length > 0)
+                            	{
+									pField->m_pData = new char[pField->m_Length];
+									mem_copy(pField->m_pData, Row[i], pField->m_Length);
+									pField->m_Type = CField::TYPE_DATA;
+                            	}
                             }
                             pRow->m_lpFields.Insert(pField);
                         }
                         pResult->m_lpRows.Insert(pRow);
-                        pResult->m_Timestamp = time_get();
                     }
                     mysql_free_result(pMySQLResult);
+                    pResult->m_Timestamp = time_get();
+                    pResult->m_Error = false;
                 }
-                pResult->m_Error = false;
+                else
+                {
+                    dbg_msg("mysql", mysql_error(&pData->m_pLua->m_MySQL));
+                    pResult->m_Error = true;
+                }
             }
             else
             {
@@ -356,6 +368,7 @@ int CLuaFile::MySQLEscapeString(lua_State *L)
     {
         pStr = lua_tolstring(L, 1, &StrLength);
         pEscapedStr = new char[StrLength * 2]; //should be enough
+        mem_zero(pEscapedStr, StrLength * 2);
 
         unsigned long EscapedLength = mysql_real_escape_string(&pSelf->m_MySQL, pEscapedStr, pStr, StrLength);
         lua_pushlstring(L, pEscapedStr, EscapedLength);

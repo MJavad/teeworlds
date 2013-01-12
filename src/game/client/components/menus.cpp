@@ -74,6 +74,12 @@ CMenus::CMenus()
 	m_ActivLuaFile = -1;
 
 	m_Recording = false;
+
+	m_SelectedKeyFrame = -1;
+	m_UseKeyFrames = true;
+	m_Zoom = 1.0f;
+	while (m_lKeyFrames.GetSize())
+        m_lKeyFrames.DeleteByIndex(0);
 }
 
 vec4 CMenus::ButtonColorMul(const void *pID)
@@ -732,7 +738,7 @@ void CMenus::RenderLoading()
         Graphics()->UnloadTexture(sTextureLogo);
 }
 
-void CMenus::RenderLoadingEx(char *pText)
+void CMenus::RenderLoadingEx(const char *pText)
 {
     CUIRect Screen = *UI()->Screen();
 	Graphics()->MapScreen(Screen.x, Screen.y, Screen.w, Screen.h);
@@ -935,7 +941,7 @@ int CMenus::Render()
 		else if(g_Config.m_UiPage == PAGE_SETTINGS)
 			RenderSettings(MainView);
 
-        if (((Client()->State() == IClient::STATE_OFFLINE && g_Config.m_UiPage != PAGE_SETTINGS) || (Client()->State() != IClient::STATE_OFFLINE && m_GamePage != PAGE_SETTINGS)) && m_ActivLuaFile != -1)
+        if ((Client()->State() == IClient::STATE_OFFLINE && g_Config.m_UiPage != PAGE_SETTINGS) && m_ActivLuaFile != -1)
         {
             m_pClient->m_pLua->m_aLuaFiles[m_ActivLuaFile].ConfigClose();
             m_ActivLuaFile = -1;
@@ -1390,14 +1396,11 @@ int CMenus::Render()
 			Cancel.VMargin(20.0f, &Cancel);
 
 			static float s_FPSOffset = 0.0f;
-			static int s_Fps = 30;
 			char aFPS[16] = {0};
-			str_format(aFPS, sizeof(aFPS), "%i", s_Fps);
 			FPS.VSplitLeft(100.0f, &Label, &FPS);
 			Label.VSplitRight(10.0f, &Label, 0);
 			RenderTools()->UI()->DoLabel(&Label, Localize("Framerate:"), 14.0f, 1);
 			DoEditBox(&s_FPSOffset, &FPS, aFPS, sizeof(aFPS), 14.0f, &s_FPSOffset, false, CUI::CORNER_ALL);
-			s_Fps = clamp(atoi(aFPS), 18, 600);
 
 			static int s_OGV = 0;
 			static int s_WEBM = 0;
@@ -1412,7 +1415,7 @@ int CMenus::Render()
                 s_Format = IClient::DEMO_RECORD_FORMAT_OGV;
             Format.VSplitLeft(100.0f, &FormatButton, &Format);
 			if(DoButton_CheckBox(&s_WEBM, "WebM", s_Format == IClient::DEMO_RECORD_FORMAT_WEBM, &FormatButton))
-                s_Format = IClient::DEMO_RECORD_FORMAT_OGV; //not supported
+                s_Format = IClient::DEMO_RECORD_FORMAT_WEBM; //not supported
 
 
 
@@ -1427,7 +1430,7 @@ int CMenus::Render()
 				// convert demo
 				if(m_DemolistSelectedIndex >= 0 && !m_DemolistSelectedIsDir)
 				{
-				    char aBuf[2048];
+				    /*char aBuf[2048];
 				    m_Recording = true;
 				    IOHANDLE TmpSettings = io_open("rec.cfg", IOFLAG_WRITE);
 				    io_write(TmpSettings, "gfx_screen_width 1920\n", sizeof("gfx_screen_width 1920\n") - 1);
@@ -1441,7 +1444,8 @@ int CMenus::Render()
 				    str_format(aBuf, sizeof(aBuf), "\"\"%s\"\" -f rec.cfg", m_pClient->Storage()->GetExecFilename());
 				    //str_format(aBuf, sizeof(aBuf), "\"\"%s\"\"", m_pClient->Storage()->GetExecFilename());
 				    dbg_msg("", aBuf);
-				    m_RecordingProcess = p_open(aBuf, IOFLAG_READ);
+				    m_RecordingProcess = p_open(aBuf, IOFLAG_READ);*/
+					Client()->RenderDemo(m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename, m_lDemos[m_DemolistSelectedIndex].m_StorageType, clamp(atoi(aFPS), 18, 600), s_Format);
                     /*char aBuf[512];
                     str_format(aBuf, sizeof(aBuf), "%s/%s", m_aCurrentDemoFolder, m_lDemos[m_DemolistSelectedIndex].m_aFilename);
                     const char *pError = Client()->DemoPlayer_Record(aBuf, m_lDemos[m_DemolistSelectedIndex].m_StorageType, s_Fps, s_Format);
@@ -1819,6 +1823,11 @@ void CMenus::OnRender()
             Graphics()->QuadsEnd();
         }
 
+        if (m_ActivLuaFile != -1)
+        {
+            m_pClient->m_pLua->m_aLuaFiles[m_ActivLuaFile].ConfigClose();
+            m_ActivLuaFile = -1;
+        }
 		return;
 	}
 

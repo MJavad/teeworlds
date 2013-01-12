@@ -23,7 +23,7 @@ public:
     CStream();
     ~CStream();
 
-    void Add(char *pData, int Size);
+    void Add(const char *pData, int Size);
     int Get(char *pData, int Size) const;
     int Get(char *pData, int Size);
     void Remove(int Size);

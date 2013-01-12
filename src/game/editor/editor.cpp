@@ -1784,6 +1784,38 @@ void CEditor::DoMapEditor(CUIRect View, CUIRect ToolBar)
 
 			RenderGrid(g);
 
+            if ((Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL)))
+            {
+                Graphics()->TextureSet(-1);
+                Graphics()->LinesBegin();
+
+                float x = UI()->MouseWorldX();
+                float y = UI()->MouseWorldY();
+
+
+                Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+                IGraphics::CLineItem Line = IGraphics::CLineItem(x, y, x, y - 175.0f);
+                Graphics()->LinesDraw(&Line, 1);
+
+                Graphics()->SetColor(1.0f, 0.0f, 0.0f, 1.0f);
+                Line = IGraphics::CLineItem(x, y - 175.0f, x, y - 150.0f - 175.0f);
+                Graphics()->LinesDraw(&Line, 1);
+
+                for (float a = 0; a < pi * 2; a = a + 0.1f)
+                {
+                    Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+                    float x1 = x + cosf(a) * 380.f;
+                    float y1 = y + sinf(a) * 380.f;
+                    float x2 = x + cosf(a + 0.1f) * 380.f;
+                    float y2 = y + sinf(a + 0.1f) * 380.f;
+                    Line = IGraphics::CLineItem(x1, y1, x2, y2);
+                    Graphics()->LinesDraw(&Line, 1);
+                }
+                Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
+                Graphics()->LinesEnd();
+
+            }
+
 			for(int i = 0; i < NumEditLayers; i++)
 			{
 				if(pEditLayers[i]->m_Type != LAYERTYPE_TILES)
@@ -4417,7 +4449,6 @@ void CEditor::UpdateAndRender()
 	if(Input()->KeyDown(KEY_F10))
 		m_ShowMousePointer = false;
 
-    dbg_msg("c", "%i", m_Map.m_UndoModified);
     if ((m_LastUndoUpdateTime + time_freq() * 60 < time_get() && m_Map.m_UndoModified) || m_Map.m_UndoModified >= 10)
     {
         m_Map.m_UndoModified = 0;

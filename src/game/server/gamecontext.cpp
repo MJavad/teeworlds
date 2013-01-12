@@ -1028,8 +1028,16 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 		// set infos
 		char aOldName[MAX_NAME_LENGTH];
 		str_copy(aOldName, Server()->ClientName(ClientID), sizeof(aOldName));
+
+        int EventID = m_pLua->m_pEventListener->CreateEventStack();
+        m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(ClientID);
+        m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(pMsg->m_pName);
+        m_pLua->m_pEventListener->OnEvent("OnChangeName");
+        if (m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetType() == CEventVariable::EVENT_TYPE_STRING)
+            pMsg->m_pName = m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetString();
+
 		Server()->SetClientName(ClientID, pMsg->m_pName);
-		if(str_comp(aOldName, Server()->ClientName(ClientID)) != 0)
+		if(str_comp(aOldName, Server()->ClientName(ClientID)) != 0 && (!m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].IsNumeric() || m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[1].GetInteger() == 0))
 		{
 			char aChatText[256];
 			str_format(aChatText, sizeof(aChatText), "'%s' changed name to '%s'", aOldName, Server()->ClientName(ClientID));
@@ -1486,6 +1494,15 @@ void CGameContext::ConLua(IConsole::IResult *pResult, void *pUserData)
     }
 }
 
+void CGameContext::ConLSet(IConsole::IResult *pResult, void *pUserData)
+{
+	CGameContext *pSelf = (CGameContext *)pUserData;
+    for (int i = 0; i < MAX_LUA_FILES; i++)
+    {
+        pSelf->m_pLua->Eval(pResult->GetString(0));
+    }
+}
+
 void CGameContext::ConchainSpecialMotdupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
 	pfnCallback(pResult, pCallbackUserData);
@@ -1527,6 +1544,7 @@ void CGameContext::OnConsoleInit()
 
 	//lua
 	Console()->Register("lua", "s?ssssssss", CFGFLAG_SERVER, ConLua, this, "Exec a lua function");
+	Console()->Register("lset", "r", CFGFLAG_SERVER, ConLSet, this, "Eval");
 
 	Console()->Chain("sv_motd", ConchainSpecialMotdupdate, this);
 }
@@ -1675,6 +1693,7 @@ bool CGameContext::IsClientPlayer(int ClientID)
 
 const char *CGameContext::GameType() { return m_pController && m_pController->m_pGameType ? m_pController->m_pGameType : ""; }
 const char *CGameContext::Version() { return GAME_VERSION; }
-const char *CGameContext::NetVersion() { return GAME_NETVERSION_LUA; }
+const char *CGameContext::NetVersion() { return GAME_NETVERSION; }
+const char *CGameContext::NetVersionLua() { return GAME_NETVERSION_LUA; }
 
 IGameServer *CreateGameServer() { return new CGameContext; }

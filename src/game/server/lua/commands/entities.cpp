@@ -19,12 +19,15 @@ int CLuaFile::EntityFind(lua_State *L)
     CEntity **ppEnt = new CEntity*[Max];
 
     int Num = pSelf->m_pServer->m_World.FindEntities(Pos, lua_tonumber(L, 3), ppEnt, Max, lua_tointeger(L, 5));
+    lua_newtable(L);
     for (int i = 0; i < Num; i++)
     {
+        lua_pushinteger(L, i + 1);
         lua_pushinteger(L, ppEnt[i]->GetID());
+        lua_settable(L, -3);
     }
     delete []ppEnt;
-    return Num;
+    return 1;
 }
 
 int CLuaFile::EntityGetCharacterId(lua_State *L)
@@ -34,6 +37,9 @@ int CLuaFile::EntityGetCharacterId(lua_State *L)
     lua_Debug Frame;
     lua_getstack(L, 1, &Frame);
     lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
 
     CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
     if (pChr)
@@ -190,7 +196,10 @@ int CLuaFile::ProjectileGetPos(lua_State *L)
     CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
     if (pPrj)
     {
-        vec2 Pos = pPrj->GetPos((pSelf->m_pServer->Server()->Tick()-pPrj->GetStartTick())/(float)pSelf->m_pServer->Server()->TickSpeed());
+        int Tick = pSelf->m_pServer->Server()->Tick()-pPrj->GetStartTick();
+        if (lua_isnumber(L, 2))
+            Tick += lua_tointeger(L, 2);
+        vec2 Pos = pPrj->GetPos((float)Tick/(float)pSelf->m_pServer->Server()->TickSpeed());
         lua_pushnumber(L, Pos.x);
         lua_pushnumber(L, Pos.y);
         return 2;
@@ -280,6 +289,195 @@ int CLuaFile::ProjectileGetSoundImpact(lua_State *L)
     return 0;
 }
 
+int CLuaFile::ProjectileGetStartTick(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        lua_pushinteger(L, pPrj->GetStartTick());
+        return 1;
+    }
+    return 0;
+}
+
+
+int CLuaFile::ProjectileSetWeapon(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) ||! lua_isnumber(L, 2))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetWeapon(lua_tointeger(L, 2));
+        lua_pushboolean(L, true);
+        return 0;
+    }
+    return 0;
+}
+
+int CLuaFile::ProjectileSetOwner(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetOwner(lua_tointeger(L, 2));
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    return 0;
+}
+
+int CLuaFile::ProjectileSetDir(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetDir(vec2(lua_tonumber(L, 2), lua_tonumber(L, 3)));
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    return 0;
+}
+
+int CLuaFile::ProjectileSetStartPos(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2) || !lua_isnumber(L, 3))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetPos(vec2(lua_tonumber(L, 2), lua_tonumber(L, 3)));
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    return 0;
+}
+
+int CLuaFile::ProjectileSetLifespan(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetLifespan(lua_tointeger(L, 2));
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    return 0;
+}
+
+int CLuaFile::ProjectileSetExplosive(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetExplosive(lua_toboolean(L, 2));
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    return 0;
+}
+
+int CLuaFile::ProjectileSetSoundImpact(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetSoundImpact(lua_tointeger(L, 2));
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    return 0;
+}
+
+int CLuaFile::ProjectileSetStartTick(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (!lua_isnumber(L, 1) || !lua_isnumber(L, 2))
+        return 0;
+
+    CProjectile *pPrj = (CProjectile *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
+    if (pPrj)
+    {
+        pPrj->SetStartTick(lua_tointeger(L, 2));
+        lua_pushboolean(L, true);
+        return 1;
+    }
+    return 0;
+}
+
 int CLuaFile::ProjectileCreate(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -331,74 +529,6 @@ int CLuaFile::ProjectileCreate(lua_State *L)
 
     CNetObj_Projectile p;
     pProj->FillInfo(&p);
-    return 0;
-}
-
-int CLuaFile::CharacterTakeDamage(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (!lua_isnumber(L, 1))
-        return 0;
-
-    CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
-    if (pChr && pChr->GetType() == CGameWorld::ENTTYPE_CHARACTER)
-    {
-        int Dmg = 1;
-        int From = -1;
-        int Weapon = -1;
-        if (lua_isnumber(L, 2))
-            Dmg = lua_tonumber(L, 2);
-        if (lua_isnumber(L, 3))
-            From = lua_tonumber(L, 3);
-        if (lua_isnumber(L, 4))
-            Weapon = lua_tonumber(L, 4);
-        pChr->TakeDamage(vec2(0, 0), Dmg, From, Weapon);
-    }
-    return 0;
-}
-
-int CLuaFile::CharacterGetHealth(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (!lua_isnumber(L, 1))
-        return 0;
-
-    CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
-    if (pChr && pChr->GetType() == CGameWorld::ENTTYPE_CHARACTER)
-    {
-        lua_pushinteger(L, pChr->GetHealth());
-        return 1;
-    }
-    return 0;
-}
-
-int CLuaFile::CharacterGetArmor(lua_State *L)
-{
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-
-    if (!lua_isnumber(L, 1))
-        return 0;
-
-    CCharacter *pChr = (CCharacter *)pSelf->m_pServer->m_World.GetEntityByID(lua_tointeger(L, 1));
-    if (pChr && pChr->GetType() == CGameWorld::ENTTYPE_CHARACTER)
-    {
-        lua_pushinteger(L, pChr->GetHealth());
-        return 1;
-    }
     return 0;
 }
 

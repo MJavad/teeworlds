@@ -223,6 +223,28 @@ class CMenus : public CComponent
 	void RenderNews(CUIRect MainView);
 
 	// found in menus_demo.cpp
+	enum
+	{
+	    KEYFRAME_NONE = 0,
+	    KEYFRAME_POS = 1,
+	    KEYFRAME_SPEED = 2,
+	    KEYFRAME_ZOOM = 4
+	};
+	struct CKeyFrame
+	{
+	    int m_Type;
+	    vec2 m_Pos;
+	    float m_Speed;
+	    float m_Zoom;
+	    int m_Tick;
+	    int64 m_Time;
+	};
+    CArray<CKeyFrame> m_lKeyFrames;
+	int m_SelectedKeyFrame;
+	bool m_UseKeyFrames;
+	float m_Zoom;
+
+	void RenderKeyFrameWindow(CUIRect MainView);
 	void RenderDemoPlayer(CUIRect MainView);
 	void RenderDemoList(CUIRect MainView);
 
@@ -330,7 +352,7 @@ public:
 	CMenus();
 
 	void RenderLoading();
-	void RenderLoadingEx(char *pText);
+	void RenderLoadingEx(const char *pText);
 
 	bool IsActive() const { return m_MenuActive; }
 

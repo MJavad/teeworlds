@@ -12,13 +12,13 @@ CEventVariable::CEventVariable()
 CEventVariable::~CEventVariable()
 {
     if (m_pData)
-        delete []m_pData;
+        delete [](char *)m_pData;
 }
 
 void CEventVariable::Allocate(int Size)
 {
     if (m_pData)
-        delete []m_pData;
+        delete [](char *)m_pData;
     m_Size = Size;
     m_pData = 0;
     if (Size > 0)
@@ -108,6 +108,8 @@ int CEventVariable::GetInteger()
         return str_toint((char *)m_pData);
     if (IsNumeric() == false)
         return 0;
+	if (m_Type == EVENT_TYPE_FLOAT)
+		return GetFloat();
     if (!m_pData)
         return 0;
     return *((int *)m_pData);

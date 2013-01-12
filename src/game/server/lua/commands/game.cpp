@@ -102,6 +102,37 @@ int CLuaFile::CreateDamageIndicator(lua_State *L)
     return 0;
 }
 
+int CLuaFile::CreateHammerHit(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    if (lua_isnumber(L, 1) && lua_isnumber(L, 2))
+    {
+        pSelf->m_pServer->CreateHammerHit(vec2(lua_tonumber(L, 1), lua_tonumber(L, 2)));
+    }
+    return 0;
+}
+
+int CLuaFile::CreateSound(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+    if (lua_isnumber(L, 1) && lua_isnumber(L, 2) &&  lua_isnumber(L, 3))
+    {
+        if (!lua_isnumber(L, 4))
+            pSelf->m_pServer->CreateSound(vec2(lua_tonumber(L, 1), lua_tonumber(L, 2)), lua_tointeger(L, 3));
+        else
+            pSelf->m_pServer->CreateSound(vec2(lua_tonumber(L, 1), lua_tonumber(L, 2)), lua_tointeger(L, 3), lua_tonumber(L, 4));
+    }
+    return 0;
+}
+
 int CLuaFile::SetGametype(lua_State *L)
 {
     lua_getglobal(L, "pLUA");
@@ -113,6 +144,44 @@ int CLuaFile::SetGametype(lua_State *L)
     if (lua_isstring(L, 1))
     {
         str_copy(pSelf->m_pServer->m_pController->m_aGameType, lua_tostring(L, 1), sizeof(pSelf->m_pServer->m_pController->m_aGameType));
+    }
+    return 0;
+}
+
+int CLuaFile::GetTuning(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isstring(L, 1))
+    {
+        float Value = 0.0f;
+        if (pSelf->m_pServer->Tuning()->Get(lua_tostring(L, 1), &Value))
+        {
+            lua_pushnumber(L, Value);
+            return 1;
+        }
+        else
+            return 0;
+    }
+    return 0;
+}
+
+int CLuaFile::SetTuning(lua_State *L)
+{
+    lua_getglobal(L, "pLUA");
+    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
+    lua_Debug Frame;
+    lua_getstack(L, 1, &Frame);
+    lua_getinfo(L, "nlSf", &Frame);
+
+    if (lua_isstring(L, 1) && lua_tonumber(L, 2))
+    {
+        float Value = 0.0f;
+        pSelf->m_pServer->Tuning()->Set(lua_tostring(L, 1), lua_tonumber(L, 2));
     }
     return 0;
 }

@@ -232,7 +232,7 @@ public:
 	virtual const char *NetVersionLua();
 
 
-    virtual void RenderLoading(char *pText);
+    virtual void RenderLoading(const char *pText);
 
 	// actions
 	// TODO: move these

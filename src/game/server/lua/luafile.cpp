@@ -72,11 +72,18 @@ void CLuaFile::Tick()
 
     ErrorFunc(m_pLua);
     MySQLTick(); //garbage collector -> clear old results that aren't fetched by lua
+    m_pLuaShared->Tick();
+
+    if (!FunctionExist("Tick"))
+        return;
 
     FunctionPrepare("Tick");
     PushInteger((int)(time_get() * 1000 / time_freq()));
     PushInteger(m_pServer->Server()->Tick());
     FunctionExec();
+
+	if (m_pServer->Server()->Tick() % (m_pServer->Server()->TickSpeed() * 60) == 0)
+		dbg_msg("lua", "%i kiB", lua_gc(m_pLua, LUA_GCCOUNT, 0));
 
     lua_gc(m_pLua, LUA_GCCOLLECT, 1000);
 
@@ -88,6 +95,9 @@ void CLuaFile::TickDefered()
         return;
 
     ErrorFunc(m_pLua);
+
+    if (!FunctionExist("TickDefered"))
+        return;
 
     FunctionPrepare("TickDefered");
     PushInteger((int)(time_get() * 1000 / time_freq()));
@@ -102,6 +112,9 @@ void CLuaFile::PostTick()
         return;
 
     ErrorFunc(m_pLua);
+
+    if (!FunctionExist("PostTick"))
+        return;
 
     FunctionPrepare("PostTick");
     PushInteger((int)(time_get() * 1000 / time_freq()));
@@ -119,6 +132,7 @@ void CLuaFile::End()
     //try to call the atexit function
     //Maybe the lua file need to save data eg. a ConfigFile
     FunctionExec("atexit");
+    m_pLuaShared->Clear();
 }
 
 int CLuaFile::Panic(lua_State *L)
@@ -134,7 +148,9 @@ void CLuaFile::Init(const char *pFile)
     str_copy(m_aFilename, pFile, sizeof(m_aFilename));
 
     m_pLua = luaL_newstate();
+	dbg_msg("lua", "%i kiB (loaded state)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
     luaL_openlibs(m_pLua);
+	dbg_msg("lua", "%i kiB (loaded libs)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
 
     lua_atpanic(m_pLua, &Panic);
 
@@ -226,17 +242,30 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("ProjectileGetLifespan"), this->ProjectileGetLifespan);
     lua_register(m_pLua, ToLower("ProjectileGetExplosive"), this->ProjectileGetExplosive);
     lua_register(m_pLua, ToLower("ProjectileGetSoundImpact"), this->ProjectileGetSoundImpact);
+    lua_register(m_pLua, ToLower("ProjectileGetStartTick"), this->ProjectileGetStartTick);
+    lua_register(m_pLua, ToLower("ProjectileSetWeapon"), this->ProjectileSetWeapon);
+    lua_register(m_pLua, ToLower("ProjectileSetOwner"), this->ProjectileSetOwner);
+    lua_register(m_pLua, ToLower("ProjectileSetStartPos"), this->ProjectileSetStartPos);
+    lua_register(m_pLua, ToLower("ProjectileSetDir"), this->ProjectileSetDir);
+    lua_register(m_pLua, ToLower("ProjectileSetLifespan"), this->ProjectileSetLifespan);
+    lua_register(m_pLua, ToLower("ProjectileSetExplosive"), this->ProjectileSetExplosive);
+    lua_register(m_pLua, ToLower("ProjectileSetSoundImpact"), this->ProjectileSetSoundImpact);
+    lua_register(m_pLua, ToLower("ProjectileSetStartTick"), this->ProjectileSetStartTick);
     lua_register(m_pLua, ToLower("ProjectileCreate"), this->ProjectileCreate);
     lua_register(m_pLua, ToLower("LaserCreate"), this->LaserCreate);
+
 
     //game
     lua_register(m_pLua, ToLower("CreateExplosion"), this->CreateExplosion);
     lua_register(m_pLua, ToLower("CreateDeath"), this->CreateDeath);
     lua_register(m_pLua, ToLower("CreateDamageIndicator"), this->CreateDamageIndicator);
+    lua_register(m_pLua, ToLower("CreateHammerHit"), this->CreateHammerHit);
+    lua_register(m_pLua, ToLower("CreateSound"), this->CreateSound);
 
-    lua_register(m_pLua, ToLower("CharacterTakeDamage"), this->CharacterTakeDamage);
-    lua_register(m_pLua, ToLower("CharacterGetHealth"), this->CharacterGetHealth);
-    lua_register(m_pLua, ToLower("CharacterGetArmor"), this->CharacterGetArmor);
+    //tunings
+    lua_register(m_pLua, ToLower("GetTuning"), this->GetTuning);
+    lua_register(m_pLua, ToLower("SetTuning"), this->SetTuning);
+
     lua_register(m_pLua, ToLower("CharacterSetInputDirection"), this->CharacterSetInputDirection);
     lua_register(m_pLua, ToLower("CharacterSetInputJump"), this->CharacterSetInputJump);
     lua_register(m_pLua, ToLower("CharacterSetInputWeapon"), this->CharacterSetInputWeapon);
@@ -257,6 +286,11 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CharacterSetActiveWeapon"), this->CharacterSetActiveWeapon);
     lua_register(m_pLua, ToLower("CharacterDirectInput"), this->CharacterDirectInput);
     lua_register(m_pLua, ToLower("CharacterPredictedInput"), this->CharacterPredictedInput);
+    lua_register(m_pLua, ToLower("CharacterGetHealth"), this->CharacterGetHealth);
+    lua_register(m_pLua, ToLower("CharacterGetArmor"), this->CharacterGetArmor);
+    lua_register(m_pLua, ToLower("CharacterSetHealth"), this->CharacterSetHealth);
+    lua_register(m_pLua, ToLower("CharacterSetArmor"), this->CharacterSetArmor);
+    lua_register(m_pLua, ToLower("CharacterTakeDamage"), this->CharacterTakeDamage);
 
     lua_register(m_pLua, ToLower("SendCharacterInfo"), this->SendCharacterInfo);
 
@@ -275,6 +309,9 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("CreateDirectory"), this->CreateDirectory);
     lua_register(m_pLua, ToLower("GetDate"), this->GetDate);
 
+    lua_register(m_pLua, ToLower("GetTick"), this->GetTick);
+    lua_register(m_pLua, ToLower("GetTickSpeed"), this->GetTickSpeed);
+
     //MySQL - Yeah
     lua_register(m_pLua, ToLower("MySQLConnect"), this->MySQLConnect);
     lua_register(m_pLua, ToLower("MySQLEscapeString"), this->MySQLEscapeString);
@@ -284,17 +321,19 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("MySQLClose"), this->MySQLClose);
     lua_register(m_pLua, ToLower("MySQLFetchResults"), this->MySQLFetchResults);
 
+    m_pLuaShared = new CLuaShared<CLuaFile>(this);
 
     lua_pushlightuserdata(m_pLua, this);
     lua_setglobal(m_pLua, "pLUA");
 
     lua_register(m_pLua, ToLower("errorfunc"), this->ErrorFunc);
 
-
+	dbg_msg("lua", "%i kiB (loaded fx)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
     if (luaL_loadfile(m_pLua, m_aFilename) == 0)
     {
         lua_pcall(m_pLua, 0, LUA_MULTRET, 0);
         ErrorFunc(m_pLua);
+		dbg_msg("lua", "%i kiB (loaded file)", lua_gc(m_pLua, LUA_GCCOUNT, 0));
     }
     else
     {
@@ -465,11 +504,7 @@ void CLuaFile::FunctionExec(const char *pFunctionName)
 
 int CLuaFile::Include(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (!lua_isstring(L, 1))
         return 0;
@@ -483,11 +518,7 @@ int CLuaFile::Include(lua_State *L)
 
 int CLuaFile::SetScriptUseSettingPage(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (!lua_isnumber(L, 1))
         return 0;
@@ -497,11 +528,7 @@ int CLuaFile::SetScriptUseSettingPage(lua_State *L)
 
 int CLuaFile::SetScriptTitle(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (!lua_isstring(L, 1))
         return 0;
@@ -511,11 +538,7 @@ int CLuaFile::SetScriptTitle(lua_State *L)
 
 int CLuaFile::SetScriptInfo(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (!lua_isstring(L, 1))
         return 0;
@@ -525,11 +548,7 @@ int CLuaFile::SetScriptInfo(lua_State *L)
 
 int CLuaFile::CheckVersion(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     if (lua_isstring(L, 1))
         lua_pushboolean(L, str_comp(GAME_LUA_VERSION, lua_tostring(L, 1)) == 0);
@@ -540,13 +559,25 @@ int CLuaFile::CheckVersion(lua_State *L)
 
 int CLuaFile::GetVersion(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
+    LUA_FUNCTION_HEADER
 
     lua_pushstring(L, GAME_LUA_VERSION);
+    return 1;
+}
+
+int CLuaFile::GetTick(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+
+    lua_pushnumber(L, pSelf->m_pServer->Server()->Tick());
+    return 1;
+}
+
+int CLuaFile::GetTickSpeed(lua_State *L)
+{
+    LUA_FUNCTION_HEADER
+
+    lua_pushnumber(L, pSelf->m_pServer->Server()->TickSpeed());
     return 1;
 }
 

@@ -445,7 +445,7 @@ int CEditorMap::Load(class IStorage *pStorage, const char *pFileName, int Storag
 		editor_load_old(df, this);
 		*/
 	}
-	else if(pItem->m_Version == 1)
+	else if(pItem->m_Version == 1 || pItem->m_Version == 666) //xxlddrace - fuck this shit
 	{
 		//editor.reset(false);
 

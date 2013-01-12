@@ -143,9 +143,45 @@ if family == "windows" then
 	if platform == "win32" then
 		table.insert(client_depends, CopyToDirectory(".", "other\\freetype\\lib32\\freetype.dll"))
 		table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\lib32\\SDL.dll"))
+
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avcodec-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avdevice-53.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avfilter-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avformat-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avresample-1.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\avutil-52.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libmp3lame-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libogg-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\librtmp.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvo-aacenc-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvorbis-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvorbisenc-2.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libvorbisfile-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libx264-118.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\libx264-125.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\mingwm10.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib32\\swscale-2.dll"))
 	else
 		table.insert(client_depends, CopyToDirectory(".", "other\\freetype\\lib64\\freetype.dll"))
 		table.insert(client_depends, CopyToDirectory(".", "other\\sdl\\lib64\\SDL.dll"))
+
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avcodec-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avdevice-53.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avfilter-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avformat-54.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avresample-1.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\avutil-52.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libmp3lame-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libogg-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\librtmp.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvo-aacenc-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvorbis-0.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvorbisenc-2.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libvorbisfile-3.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libx264-118.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\libx264-125.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\mingwm10.dll"))
+        table.insert(client_depends, CopyToDirectory(".", "other\\avcodec\\lib64\\swscale-2.dll"))
 	end
 	table.insert(server_sql_depends, CopyToDirectory(".", "other\\mysql\\vc2005libs\\libmysql.dll"))
 
@@ -229,6 +265,13 @@ function build(settings)
     settings.cc.includes:Add("src/engine/external/sqlite")
     sqlite = Compile(settings, Collect("src/engine/external/sqlite/*.c"))
 
+    settings.cc.defines:Add("SYS_WINDOWS")
+    if (config.compiler.driver == "cl") then
+        settings.cc.includes:Add("src/engine/external/msinttypes")
+	end
+	settings.cc.includes:Add("other/avcodec/include")
+
+
 	settings.cc.includes:Add("src/engine/external/libogg")
 	ogg = Compile(settings, Collect("src/engine/external/libogg/*.c"))
 
@@ -260,7 +303,7 @@ function build(settings)
             client_settings.link.frameworks:Add("Cocoa")
             launcher_settings.link.frameworks:Add("Cocoa")
             client_settings.link.flags:Add("-dylib_file /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib")
-            server_settings.link.libpath:Add("other/mysql/mac/lib32")
+            server_settings.link.libpath:Add("other/mysql/macosx/10.4/lib_ppc_32")
 		else
 			client_settings.link.libs:Add("X11")
 			client_settings.link.libs:Add("GL")
@@ -277,6 +320,19 @@ function build(settings)
 		client_settings.link.libs:Add("opengl32")
 		client_settings.link.libs:Add("glu32")
 		client_settings.link.libs:Add("winmm")
+		if platform == "win32" then
+            client_settings.link.libpath:Add("other/avcodec/lib32")
+        else
+            client_settings.link.libpath:Add("other/avcodec/lib64")
+        end
+
+        client_settings.link.libs:Add("avcodec")
+        client_settings.link.libs:Add("avdevice")
+        client_settings.link.libs:Add("avfilter")
+        client_settings.link.libs:Add("avformat")
+        client_settings.link.libs:Add("avresample")
+        client_settings.link.libs:Add("avutil")
+        client_settings.link.libs:Add("swscale")
         server_settings.link.libpath:Add("other/mysql/vc2005libs")
         server_settings.link.libs:Add("libmysql")
 	end
@@ -296,6 +352,7 @@ function build(settings)
 	game_client = Compile(settings, CollectRecursive("src/game/client/*.cpp"), client_content_source)
 	game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), server_content_source)
 	game_editor = Compile(settings, Collect("src/game/editor/*.cpp"))
+	twproto_reg = Compile(settings, Collect("src/twproto/*.cpp"))
 
 	-- build tools (TODO: fix this so we don't get double _d_d stuff)
 	tools_src = Collect("src/tools/*.cpp", "src/tools/*.c")
@@ -315,7 +372,7 @@ function build(settings)
 
 	-- build client, server, version server and master server
 	client_exe = Link(client_settings, "n-client", game_shared, game_client,
-		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis, json, vpx,
+		engine, client, game_editor, zlib, pnglite, wavpack, lua, sqlite, theora, ogg, vorbis, json, vpx, h264,
 		client_link_other, client_osxlaunch)
 
 	server_exe = Link(server_settings, "teeworlds_srv", engine, server, json, mysql, ssl, regex, taocrypt,
@@ -332,6 +389,8 @@ function build(settings)
 	masterserver_exe = Link(server_settings, "mastersrv", masterserver,
 		engine, zlib)
 
+    twproto_exe = Link(settings, "twproto_reg", twproto_reg, engine, zlib)
+
 	-- make targets
 	c = PseudoTarget("client".."_"..settings.config_name, client_exe, client_depends)
 	s = PseudoTarget("server".."_"..settings.config_name, server_exe, serverlaunch)
@@ -341,7 +400,7 @@ function build(settings)
 	m = PseudoTarget("masterserver".."_"..settings.config_name, masterserver_exe)
 	t = PseudoTarget("tools".."_"..settings.config_name, tools)
 
-	all = PseudoTarget(settings.config_name, c, s, v, m, t)
+	all = PseudoTarget(settings.config_name, c, s, v, m, t, twproto_exe)
 	return all
 end
 

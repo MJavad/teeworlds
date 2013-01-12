@@ -355,7 +355,7 @@ void CMenus::RenderServerbrowserServerList(CUIRect View)
                     {
                         if (g_Config.m_BrFilterString[iFilter] == 32 || g_Config.m_BrFilterString[iFilter] == 0)
                         {
-                            if (sizeof(aBrFilterStringPart) > iFilter - BrFilterStringLastIndex)
+                            if ((int)sizeof(aBrFilterStringPart) > iFilter - BrFilterStringLastIndex)
                                 str_copy(aBrFilterStringPart, g_Config.m_BrFilterString + BrFilterStringLastIndex, iFilter - BrFilterStringLastIndex + 1);
                             else
                                 str_copy(aBrFilterStringPart, g_Config.m_BrFilterString + BrFilterStringLastIndex, sizeof(aBrFilterStringPart));

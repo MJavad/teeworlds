@@ -362,38 +362,25 @@ void CNetBase::Init()
 
 CNetTCP::CNetTCP()
 {
-    //reset
-    m_Status = 0;
-    m_OldStatus = 0;
+    m_Status = NETTCPCLOSED;
     m_BytesRecv = 0;
     m_BytesSend = 0;
-    m_inbuffer_read = 0;
-    m_inbuffer_write = 0;
     m_Socket.type = 0;
     m_Socket.ipv4sock = 0;
     m_Socket.ipv6sock = 0;
-    m_LastPing = 0;
-    //start
-    return;
 }
 
 CNetTCP::~CNetTCP()
 {
     Close();
     Tick();
-    Tick();
-    return;
 }
-
 
 bool CNetTCP::Open(NETADDR BindAddr)
 {
-    m_inbuffer_read = 0;
-    m_inbuffer_write = 0;
-    m_BindAddr = BindAddr;
-    m_Socket = net_tcp_create(m_BindAddr);
+    m_Socket = net_tcp_create(BindAddr);
     net_set_non_blocking(m_Socket);
-    m_Status = 1;
+    m_Status = NETTCPREADY;
     return (m_Socket.ipv4sock != 0 && m_Socket.ipv6sock != 0);
 }
 
@@ -403,7 +390,7 @@ void CNetTCP::Close()
         net_tcp_close(m_Socket);
     if (m_Socket.ipv6sock)
         net_tcp_close(m_Socket);
-    m_Status = 0;
+    m_Status = NETTCPCLOSED;
     m_Socket.type = 0;
     m_Socket.ipv4sock = 0;
     m_Socket.ipv6sock = 0;
@@ -411,117 +398,56 @@ void CNetTCP::Close()
 
 int CNetTCP::Connect(NETADDR ConnAddr)
 {
-    if (m_Status == 0)
+    if (m_Status == NETTCPCLOSED)
     {
-        Open(m_BindAddr);
+        return 0;
     }
-    m_Status = 6; //connecting
+    m_Status = NETTCPCONNECTING; //connecting
     m_ConnectStartTime = time_get();
     net_set_non_blocking(m_Socket);
-    int st;
-	st = net_tcp_connect(m_Socket, &ConnAddr);
-	if( st != -1 )
-		m_Status = 7; //connected
-	return st;
+    int Status = net_tcp_connect(m_Socket, &ConnAddr);
+    m_RemoteAddr = ConnAddr;
+	if(Status != -1)
+		m_Status = NETTCPCONNECTED; //connected
+	return Status;
 }
 
-void CNetTCP::ListenAccept(NETADDR LocalAddr, NETADDR ListenAddr)
+void CNetTCP::Listen()
 {
-    m_LocalAddr = LocalAddr;
-    m_ListenAddr = ListenAddr;
-    thread_create(&ListenAcceptThread, this);
+	if (m_Status != NETTCPREADY)
+		return;
+	net_tcp_listen(m_Socket, 64);
+	m_Status = NETTCPLISTENING;
 }
 
-void CNetTCP::ListenAcceptThread(void *pUser)
+int CNetTCP::Accept(CNetTCP *pSocket)
 {
-    dbg_msg("nChat", "Listen: start");
-    CNetTCP *pSelf = (CNetTCP *)pUser;
-    net_set_blocking(pSelf->m_Socket);
-    NETSOCKET listensocket = net_tcp_create(pSelf->m_ListenAddr);
-    net_tcp_listen(listensocket, 1);
-    net_tcp_close(pSelf->m_Socket);
-    pSelf->m_Status = 2; //listening
-    net_tcp_accept(listensocket, (NETSOCKET *)(&pSelf->m_Socket), &pSelf->m_LocalAddr);
-    net_tcp_close(listensocket);
-    net_set_non_blocking(pSelf->m_Socket);
-    pSelf->m_Status = 6; //connecting
-    dbg_msg("nChat", "Listen: connected");
-}
-
-int CNetTCP::Send(const char *data, int size)
-{
-    m_BytesSend += size;
-    int bytes = net_tcp_send(m_Socket, (const void*)data, size);
-
-	if (m_Status == 6 || m_Status == 7)
+	if (m_Status != NETTCPLISTENING)
+		return 0;
+	int Ret = 0;
+	if (pSocket == 0)
 	{
-		int status = net_tcp_send(m_Socket, 0, 0);
-		if (status == -1 && m_Status != 6)
-			m_Status = 0; // closed
-		if (status == 0)
-			m_Status = 7; // connected
+		mem_zero(&m_RemoteAddr, sizeof(m_RemoteAddr));
+		Ret = net_tcp_accept(m_Socket, &m_Socket, &m_RemoteAddr);
 	}
-
-	return bytes;
+	else if(pSocket->m_Status == NETTCPREADY)
+	{
+		mem_zero(&m_RemoteAddr, sizeof(m_RemoteAddr));
+		Ret = net_tcp_accept(m_Socket, (NETSOCKET *)&pSocket->m_Socket, &pSocket->m_RemoteAddr);
+	}
+	return Ret;
 }
 
-int CNetTCP::StreamSize()
+void CNetTCP::Send(const char *pData, int Size)
 {
-    int vread = m_inbuffer_read;
-    if (vread == m_inbuffer_write)
-        return 0;
-    //slow ;)
-    for (int i = 0; ; i++)
-    {
-        vread++;
-        if (vread >= STREAM_SIZE)
-            vread = 0;
-        if (vread == m_inbuffer_write)
-            return i + 1;
-    }
+	m_SendBuffer.Add(pData, Size);
 }
 
-void CNetTCP::StreamClear()
+int CNetTCP::Recv(char *pData, int Size)
 {
-    m_inbuffer_read = 0;
-    m_inbuffer_write = 0;
-}
-
-int CNetTCP::StreamRead(int len, char *buf, bool move)
-{
-    if (m_inbuffer_read == m_inbuffer_write)
-    {
-        return 0;
-    }
-    //slow ;)
-    int tmp_inbuffer_read = m_inbuffer_read;
-    for (int i = 0; i < len; i++)
-    {
-        if (move)
-        {
-            buf[i] = m_inbuffer[m_inbuffer_read];
-            m_inbuffer_read++;
-            if (m_inbuffer_read >= STREAM_SIZE)
-                m_inbuffer_read = 0;
-            if (m_inbuffer_read == m_inbuffer_write)
-            {
-                return i + 1;
-            }
-        }
-        else
-        {
-            buf[i] = m_inbuffer[tmp_inbuffer_read];
-            tmp_inbuffer_read++;
-            if (tmp_inbuffer_read >= STREAM_SIZE)
-                tmp_inbuffer_read = 0;
-            if (tmp_inbuffer_read == m_inbuffer_write)
-            {
-                return i + 1;
-            }
-        }
-
-    }
-    return len;
+    Size = m_RecvBuffer.Get(pData, Size);
+    m_RecvBuffer.Remove(Size);
+    return Size;
 }
 
 int CNetTCP::GetStatus()
@@ -531,38 +457,95 @@ int CNetTCP::GetStatus()
 
 void CNetTCP::Tick()
 {
-	if (m_Status == 6 || m_Status == 7)
+	if (m_Status == NETTCPCONNECTING || m_Status == NETTCPCONNECTED)
 	{
-		int status = net_tcp_send(m_Socket, 0, 0);
-		if (status == -1 && m_Status != 6)
-			m_Status = 0; // closed
-		if (status == 0)
-			m_Status = 7; // connected
+		int Status = net_tcp_send(m_Socket, 0, 0);
+		if (Status == -1 && m_Status != NETTCPCONNECTING)
+			m_Status = NETTCPCLOSED; // closed
+		if (Status == 0)
+			m_Status = NETTCPCONNECTED; // connected
 	}
+	if (m_Status == NETTCPCONNECTED)
+	{
+		char aBuffer[PACKETSIZE]; //recv and sendbuffer
+		int Bytes = 1;
+		while (Bytes > 0)
+		{
+		    Bytes = net_tcp_recv(m_Socket, aBuffer, sizeof(aBuffer));
+			if (Bytes > 0)
+                m_RecvBuffer.Add(aBuffer, Bytes);
+		}
 
-    if (StreamSize() < PACKET_SIZE)
+		while (m_SendBuffer.GetSize() > 0)
+		{
+			int Size = m_SendBuffer.Get(aBuffer, sizeof(aBuffer));
+			Size = net_tcp_send(m_Socket, aBuffer, Size);
+			if (Size > 0)
+			{
+				m_SendBuffer.Remove(Size);
+			}
+			else
+                break;
+		}
+	}
+}
+
+
+CNetUDP::CNetUDP()
+{
+    m_Socket.type = 0;
+    m_Socket.ipv4sock = 0;
+    m_Socket.ipv6sock = 0;
+}
+
+CNetUDP::~CNetUDP()
+{
+    Close();
+    Tick();
+}
+
+void CNetUDP::Close()
+{
+   net_udp_close(m_Socket);
+}
+
+bool CNetUDP::Open(NETADDR BindAddr)
+{
+    m_Socket = net_udp_create(BindAddr);
+    net_set_non_blocking(m_Socket);
+    return (m_Socket.ipv4sock != 0 && m_Socket.ipv6sock != 0);
+}
+
+void CNetUDP::Send(NETADDR Addr, const char *pData, int Size)
+{
+    CPacket *pPacket = new CPacket();
+    pPacket->m_Addr = Addr;
+    pPacket->m_Size = Size;
+    pPacket->m_Offset = 0;
+    pPacket->m_pData = new char[Size];
+    mem_copy(pPacket->m_pData, pData, Size);
+    m_lSendBuffer.Insert(pPacket);
+}
+
+int CNetUDP::Recv(NETADDR *pRemoteAddr, char *pData, int Size)
+{
+    Size = net_udp_recv(m_Socket, pRemoteAddr, pData, Size);
+    return Size;
+}
+
+void CNetUDP::Tick()
+{
+    while (m_lSendBuffer.GetSize() > 0)
     {
-        char buf[PACKET_SIZE + 1]; // allocate 1 byte for the null-terminator
-        int size;
-        size = net_tcp_recv(m_Socket, (void*)buf, PACKET_SIZE);
-        if (size <= 0)
-            buf[0] = 0;
+        CPacket *pPacket = m_lSendBuffer[0];
+        int Size = net_udp_send(m_Socket, &pPacket->m_Addr, pPacket->m_pData + pPacket->m_Offset, pPacket->m_Size - pPacket->m_Offset);
+        if (Size == pPacket->m_Size - pPacket->m_Offset)
+        {
+            m_lSendBuffer.DeleteByIndex(0);
+        }
         else
         {
-            buf[size] = 0;
-            m_Status = 7; // connected
-            m_BytesRecv += size;
-            //dbg_msg("Recv", "");
-        }
-        if (size > 0)
-        {
-            for (int i = 0; i < size; i++)
-            {
-                    m_inbuffer[m_inbuffer_write] = buf[i];
-                    m_inbuffer_write++;
-                    if (m_inbuffer_write >= STREAM_SIZE)
-                        m_inbuffer_write = 0;
-            }
+            pPacket->m_Offset += Size;
         }
     }
 }

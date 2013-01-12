@@ -766,6 +766,8 @@ void CGameConsole::OnStateChange(int NewState, int OldState)
 	if(NewState == IClient::STATE_OFFLINE)
 		m_RemoteConsole.ClearHistory();
 
+    if (!m_pClient->m_pLua)
+        return;
     int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
 	m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(NewState);
 	m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(OldState);

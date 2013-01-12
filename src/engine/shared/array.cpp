@@ -166,7 +166,7 @@ void CArray<T>::InsertInternal(const T &Value, CArrayItem *pItem, bool After)
 }
 
 template <class T>
-T CArray<T>::operator[] (unsigned long long i)
+T CArray<T>::operator[] (long long i)
 {
     lock_wait(m_Lock);
     if (m_pSelectedItem == 0)

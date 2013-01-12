@@ -845,7 +845,7 @@ void CServer::UpdateClientRconCommands()
 void CServer::ProcessClientPacket(CNetChunk *pPacket)
 {
 	int ClientID = pPacket->m_ClientID;
-	NETADDR Addr;
+	//NETADDR Addr; //unused
 	CUnpacker Unpacker;
 	Unpacker.Reset(pPacket->m_pData, pPacket->m_DataSize);
 
@@ -867,7 +867,7 @@ void CServer::ProcessClientPacket(CNetChunk *pPacket)
 				const char *pVersion = Unpacker.GetString(CUnpacker::SANITIZE_CC);
 				const char *pPassword = Unpacker.GetString(CUnpacker::SANITIZE_CC);
 				const char *pNClient = Unpacker.GetString(CUnpacker::SANITIZE_CC);
-				if(str_comp(pVersion, GameServer()->NetVersion()) != 0 && str_comp(pNClient, GameServer()->NetVersion()) != 0)
+				if(str_comp(pVersion, GameServer()->NetVersion()) != 0 && str_comp(pNClient, GameServer()->NetVersionLua()) != 0)
 				{
 					// wrong version
 					m_NetServer.Drop(ClientID, "You need the N-Client to join this Server.\nnclient.n-lvl.com\nTake your client to the Next Level!");
@@ -1436,7 +1436,9 @@ int CServer::Run()
 	//lua Init lua after gameserver
 	m_Lua.Init();
 
-	str_format(aBuf, sizeof(aBuf), "version %s", GameServer()->NetVersion());
+	str_format(aBuf, sizeof(aBuf), "version %s", GameServer()->NetVersionLua());
+	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
+	str_format(aBuf, sizeof(aBuf), "lua version %s", GameServer()->NetVersionLua());
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "server", aBuf);
 
 	// process pending commands
