@@ -1,10 +1,12 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/keys.h>
+#include <engine/shared/config.h>
 #include "lineinput.h"
 
 CLineInput::CLineInput()
 {
+	m_DisableFullRTL = false;
 	Clear();
 }
 
@@ -13,6 +15,9 @@ void CLineInput::Clear()
 	mem_zero(m_Str, sizeof(m_Str));
 	m_Len = 0;
 	m_CursorPos = 0;
+	mem_zero(m_FixedStr, sizeof(m_FixedStr));
+	m_FixedLen = 0;
+	m_FixedCursorPos = 0;
 }
 
 void CLineInput::Set(const char *pString)
@@ -20,6 +25,8 @@ void CLineInput::Set(const char *pString)
 	str_copy(m_Str, pString, sizeof(m_Str));
 	m_Len = str_length(m_Str);
 	m_CursorPos = m_Len;
+	m_FixedCursorPos = m_CursorPos;
+	m_pRTLFix->FixString(m_FixedStr, m_Str, sizeof(m_FixedStr), !m_DisableFullRTL&g_Config.m_FullRTL, &m_FixedCursorPos, &m_FixedLen);
 }
 
 bool CLineInput::Manipulate(IInput::CEvent e, char *pStr, int StrMaxSize, int *pStrLenPtr, int *pCursorPosPtr, bool MultiLine)
@@ -114,6 +121,8 @@ void CLineInput::ProcessCharInput(char Code) // This is needed for copy paste fe
 			m_CursorPos += CharSize;
 			m_Len += CharSize;
 			// Changes = true;
+			m_FixedCursorPos = m_CursorPos;
+			m_pRTLFix->FixString(m_FixedStr, m_Str, sizeof(m_FixedStr), !m_DisableFullRTL&g_Config.m_FullRTL, &m_FixedCursorPos, &m_FixedLen);
 		}
 	}
 }
@@ -121,4 +130,6 @@ void CLineInput::ProcessCharInput(char Code) // This is needed for copy paste fe
 void CLineInput::ProcessInput(IInput::CEvent e)
 {
 	Manipulate(e, m_Str, sizeof(m_Str), &m_Len, &m_CursorPos);
+	m_FixedCursorPos = m_CursorPos;
+	m_pRTLFix->FixString(m_FixedStr, m_Str, sizeof(m_FixedStr), !m_DisableFullRTL&g_Config.m_FullRTL, &m_FixedCursorPos, &m_FixedLen);
 }

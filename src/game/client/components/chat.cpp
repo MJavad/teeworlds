@@ -150,8 +150,8 @@ bool CChat::OnInput(IInput::CEvent Event)
             {
                 OpenClipboard(NULL);
                 EmptyClipboard();
-                HGLOBAL h = GlobalAlloc(GHND | GMEM_SHARE, strlen(m_Input.GetString()) + 1);
-                strcpy((LPSTR)GlobalLock(h), m_Input.GetString());
+                HGLOBAL h = GlobalAlloc(GHND | GMEM_SHARE, strlen(m_Input.GetOrgString()) + 1);
+                strcpy((LPSTR)GlobalLock(h), m_Input.GetOrgString());
                 GlobalUnlock(h);
 
                 SetClipboardData(CF_TEXT, h);
@@ -179,13 +179,14 @@ bool CChat::OnInput(IInput::CEvent Event)
 			int EventID = m_pClient->m_pLua->m_pEventListener->CreateEventStack();
 			m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set(m_Mode);
 			m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set((char *)m_Input.GetString());
+			m_pClient->m_pLua->m_pEventListener->GetParameters(EventID)->FindFree()->Set((char *)m_Input.GetOrgString());
 			m_pClient->m_pLua->m_pEventListener->OnEvent("OnChatSend");
 
 			if (m_pClient->m_pLua->m_pEventListener->GetReturns(EventID)->m_aVars[0].GetInteger() == 0 && (m_Mode == MODE_ALL || m_Mode == MODE_TEAM))
 				Say(m_Mode == MODE_ALL ? 0 : 1, m_Input.GetString());
 			
-			char *pEntry = m_History.Allocate(m_Input.GetLength()+1);
-			mem_copy(pEntry, m_Input.GetString(), m_Input.GetLength()+1);
+			char *pEntry = m_History.Allocate(m_Input.GetOrgLength()+1);
+			mem_copy(pEntry, m_Input.GetOrgString(), m_Input.GetOrgLength()+1);
 		}
 		m_pHistoryEntry = 0x0;
 		m_Mode = MODE_NONE;
@@ -196,14 +197,14 @@ bool CChat::OnInput(IInput::CEvent Event)
 		// fill the completion buffer
 		if(m_CompletionChosen < 0)
 		{
-			const char *pCursor = m_Input.GetString()+m_Input.GetCursorOffset();
-			for(int Count = 0; Count < m_Input.GetCursorOffset() && *(pCursor-1) != ' '; --pCursor, ++Count);
-			m_PlaceholderOffset = pCursor-m_Input.GetString();
+			const char *pCursor = m_Input.GetOrgString()+m_Input.GetOrgCursorOffset();
+			for(int Count = 0; Count < m_Input.GetOrgCursorOffset() && *(pCursor-1) != ' '; --pCursor, ++Count);
+			m_PlaceholderOffset = pCursor-m_Input.GetOrgString();
 
 			for(m_PlaceholderLength = 0; *pCursor && *pCursor != ' '; ++pCursor)
 				++m_PlaceholderLength;
 
-			str_copy(m_aCompletionBuffer, m_Input.GetString()+m_PlaceholderOffset, min(static_cast<int>(sizeof(m_aCompletionBuffer)), m_PlaceholderLength+1));
+			str_copy(m_aCompletionBuffer, m_Input.GetOrgString()+m_PlaceholderOffset, min(static_cast<int>(sizeof(m_aCompletionBuffer)), m_PlaceholderLength+1));
 		}
 
 		// find next possible name
@@ -239,14 +240,14 @@ bool CChat::OnInput(IInput::CEvent Event)
 		{
 			char aBuf[256];
 			// add part before the name
-			str_copy(aBuf, m_Input.GetString(), min(static_cast<int>(sizeof(aBuf)), m_PlaceholderOffset+1));
+			str_copy(aBuf, m_Input.GetOrgString(), min(static_cast<int>(sizeof(aBuf)), m_PlaceholderOffset+1));
 
 			// add the name
 			str_append(aBuf, pCompletionString, sizeof(aBuf));
 
 			// add seperator
 			const char *pSeparator = "";
-			if(*(m_Input.GetString()+m_PlaceholderOffset+m_PlaceholderLength) != ' ')
+			if(*(m_Input.GetOrgString()+m_PlaceholderOffset+m_PlaceholderLength) != ' ')
 				pSeparator = m_PlaceholderOffset == 0 ? ": " : " ";
 			else if(m_PlaceholderOffset == 0)
 				pSeparator = ":";
@@ -254,7 +255,7 @@ bool CChat::OnInput(IInput::CEvent Event)
 				str_append(aBuf, pSeparator, sizeof(aBuf));
 
 			// add part after the name
-			str_append(aBuf, m_Input.GetString()+m_PlaceholderOffset+m_PlaceholderLength, sizeof(aBuf));
+			str_append(aBuf, m_Input.GetOrgString()+m_PlaceholderOffset+m_PlaceholderLength, sizeof(aBuf));
 
 			m_PlaceholderLength = str_length(pSeparator)+str_length(pCompletionString);
 			m_OldChatStringLength = m_Input.GetLength();
