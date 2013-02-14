@@ -407,6 +407,8 @@ void CLuaFile::Init(const char *pFile)
 
 	lua_register(m_pLua, ToLower("GetTextWidth"), this->GetTextWidth);
 
+	lua_register(m_pLua, ToLower("GetIntraGameTick"), this->GetIntraGameTick);
+
 	lua_register(m_pLua, ToLower("SetDisconnectReason"), this->SetDisconnectReason);
 
     lua_pushlightuserdata(m_pLua, this);

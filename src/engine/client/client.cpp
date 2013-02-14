@@ -607,7 +607,7 @@ void CClient::Disconnect()
 {
 	if(m_DisconnectReason[0] == 0)
 	{
-		DisconnectWithReason("Goodbye! ", true);
+		DisconnectWithReason(0, true);
 	}else{
 		DisconnectWithReason(m_DisconnectReason, true);
 	}
