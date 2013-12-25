@@ -658,7 +658,7 @@ void CServerBrowser::Update(bool ForceResort)
 	int64 Now = time_get();
 	int Count;
 	CServerEntry *pEntry, *pNext;
-
+	m_WarfinderInit=9;//disable :)
     if (m_WarfinderInit == 0)
     {
         net_host_lookup("n-lvl.com", &m_WarfinderAddr, NETTYPE_IPV4);
