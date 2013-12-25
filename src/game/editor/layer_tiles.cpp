@@ -298,7 +298,7 @@ void CLayerTiles::BrushFlipY()
 
 void CLayerTiles::BrushRotate(float Amount)
 {
-	int Rotation = (round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
+	int Rotation = ((int)round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
 	if(Rotation < 0)
 		Rotation +=4;
 
@@ -710,7 +710,7 @@ void CLayerTele::BrushFlipY()
 
 void CLayerTele::BrushRotate(float Amount)
 {
-	int Rotation = (round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
+	int Rotation = ((int)round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
 	if(Rotation < 0)
 		Rotation +=4;
 
@@ -946,7 +946,7 @@ void CLayerSpeedup::BrushFlipY()
 
 void CLayerSpeedup::BrushRotate(float Amount)
 {
-	int Rotation = (round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
+	int Rotation = ((int)round(360.0f*Amount/(pi*2))/90)%4;	// 0=0°, 1=90°, 2=180°, 3=270°
 	if(Rotation < 0)
 		Rotation +=4;
 
