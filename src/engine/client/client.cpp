@@ -306,6 +306,8 @@ CClient::CClient() : m_DemoPlayer(&m_SnapshotDelta), m_DemoRecorder(&m_SnapshotD
 
 	m_VersionInfo.m_State = CVersionInfo::STATE_INIT;
 
+	m_DisconnectReason[0] = 0;
+
     m_RecordStart = 0;
     m_aRecordDemoName[0] = 0;
     m_RecordDemoFPS = 0;
@@ -611,6 +613,7 @@ void CClient::Disconnect()
 	}else{
 		DisconnectWithReason(m_DisconnectReason, true);
 	}
+	//DisconnectWithReason("MnTee Beta (By MJavad(Apple)) ", true);
 }
 
 void CClient::SetDisconnectReason(const char *pStr)
@@ -1106,10 +1109,8 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 
 				if(!pError)
 				{
-				    GameClient()->RenderLoading("Loading map...");
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
-					if (m_FileDownloadTotalSize == -1)
-                        SendReady();
+					SendReady();
 				}
 				else
 				{
@@ -1126,14 +1127,6 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 					m_MapdownloadFile = Storage()->OpenFile(m_aMapdownloadFilename, IOFLAG_WRITE, IStorage::TYPE_SAVE);
 					m_MapdownloadCrc = MapCrc;
 					m_MapdownloadTotalsize = MapSize;
-					m_pMapdownloadChecks = new char[((int)(((float)m_MapdownloadTotalsize - 1) / (1024.0f - 128.0f) + 1))];
-					m_pMapdownloadCache = new char[m_MapdownloadTotalsize];
-					for (int x = 0; x < ((float)m_MapdownloadTotalsize - 1) / (1024.0f - 128.0f) + 1; x++)
-					{
-					    m_pMapdownloadChecks[x] = 0;
-					}
-					m_pMapdownloadChecks[0] = 1;
-					m_MapdownloadSegments = 0;
 					m_MapdownloadAmount = 0;
 
 					CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA);
@@ -1157,45 +1150,15 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 			const unsigned char *pData = Unpacker.GetRaw(Size);
 
 			// check fior errors
-			if(Unpacker.Error() || Size <= 0 || MapCRC != m_MapdownloadCrc || m_pMapdownloadChecks[Chunk] == 0 || !m_MapdownloadFile)
+			if(Unpacker.Error() || Size <= 0 || MapCRC != m_MapdownloadCrc || Chunk != m_MapdownloadChunk || !m_MapdownloadFile)
 				return;
 
-
-			if (!Last)
-			{
-			    while(m_MapdownloadSegments < g_Config.m_ClDownloadSegments)
-			    {
-			        m_MapdownloadSegments++;
-                    // request new chunk
-                    m_MapdownloadChunk++;
-
-                    m_pMapdownloadChecks[m_MapdownloadChunk] = 1;
-
-                    CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA);
-                    Msg.AddInt(m_MapdownloadChunk);
-                    SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-
-                    if(g_Config.m_Debug)
-                    {
-                        char aBuf[256];
-                        str_format(aBuf, sizeof(aBuf), "requested chunk %d", m_MapdownloadChunk);
-                        m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", aBuf);
-                    }
-			    }
-			}
-
-            //io_seek(m_MapdownloadFile, (1024-128) * Chunk, IOSEEK_START);
-            mem_copy(&m_pMapdownloadCache[(1024-128) * Chunk], pData, Size);
-            m_pMapdownloadChecks[Chunk] = 2;
-            m_MapdownloadSegments--;
-			//io_write(m_MapdownloadFile, pData, Size);
+			io_write(m_MapdownloadFile, pData, Size);
 
 			m_MapdownloadAmount += Size;
 
 			if(Last)
 			{
-			    io_write(m_MapdownloadFile, m_pMapdownloadCache, m_MapdownloadTotalsize);
-			    delete []m_pMapdownloadCache;
 				const char *pError;
 				m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "download complete, loading map");
 
@@ -1206,21 +1169,34 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				m_MapdownloadTotalsize = -1;
 
 				// load map
-				GameClient()->RenderLoading("Loading map...");
 				pError = LoadMap(m_aMapdownloadName, m_aMapdownloadFilename, m_MapdownloadCrc);
 				if(!pError)
 				{
 					m_pConsole->Print(IConsole::OUTPUT_LEVEL_ADDINFO, "client/network", "loading done");
-					if (m_FileDownloadTotalSize == -1)
-                        SendReady();
+					SendReady();
 				}
 				else
 					DisconnectWithReason(pError);
 			}
+			else
+			{
+				// request new chunk
+				m_MapdownloadChunk++;
+
+				CMsgPacker Msg(NETMSG_REQUEST_MAP_DATA);
+				Msg.AddInt(m_MapdownloadChunk);
+				SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
+
+				if(g_Config.m_Debug)
+				{
+					char aBuf[256];
+					str_format(aBuf, sizeof(aBuf), "requested chunk %d", m_MapdownloadChunk);
+					m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", aBuf);
+				}
+			}
 		}
 		else if(Msg == NETMSG_CON_READY)
 		{
-		    GameClient()->RenderLoading("Loading map...");
 			GameClient()->OnConnected();
 		}
 		else if(Msg == NETMSG_PING)
@@ -1474,225 +1450,6 @@ void CClient::ProcessServerPacket(CNetChunk *pPacket)
 				}
 			}
 		}
-        else if(Msg == NETMSG_FILE_CHANGE)
-        {
-            m_ModFileNumber = Unpacker.GetInt();
-            m_FileDownloadTotalSize = Unpacker.GetInt();
-
-			m_lModFiles.clear();
-			m_FileDownloadAmount = 0;
-            if (m_ModFileNumber)
-            {
-                m_ModFileCurrentNumber = 0;
-				CMsgPacker Msg(NETMSG_REQUEST_FILE_INDEX);
-                Msg.AddInt(m_ModFileCurrentNumber); //reguest the first Index
-                SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-            }
-			else
-				SendReady();
-        }
-        else if(Msg == NETMSG_FILE_INDEX)
-        {
-            const char *pFileName = Unpacker.GetString(CUnpacker::SANITIZE_CC|CUnpacker::SKIP_START_WHITESPACES);
-			int FileType = Unpacker.GetInt();
-			int FileFlags = Unpacker.GetInt();
-			int FileCrc = Unpacker.GetInt();
-			int FileSize = Unpacker.GetInt();
-			//bool bLaunch = (FileFlags&CModFile::FILEFLAG_LAUNCH);
-
-            CModFile tmp;
-            str_copy(tmp.m_aName, pFileName, sizeof(tmp.m_aName));
-            tmp.m_Size = FileSize;
-            tmp.m_Crc = FileCrc;
-            tmp.m_Type = (CModFile::FILETYPE)FileType;
-            tmp.m_Flags = FileFlags;
-
-			char aFileName[256];
-			char aFileCrc[9];
-
-			str_format(aFileCrc, sizeof(aFileCrc), "_%08x", FileCrc);
-			str_format(aFileName, sizeof(aFileName), "downloadedfiles/");
-
-			if((tmp.m_Flags&CModFile::FILEFLAG_IGNORETYPE))
-			{
-				if (!(tmp.m_Flags&CModFile::FILEFLAG_NOCRC))
-					str_format(aFileName, sizeof(aFileName), "%s%08x_%s",aFileName, FileCrc, pFileName);
-				else
-					str_append(aFileName, pFileName, sizeof(aFileName));
-			}
-			else
-			{
-				str_append(aFileName, pFileName, sizeof(aFileName));
-
-				if (!(tmp.m_Flags&CModFile::FILEFLAG_NOCRC))
-					str_append(aFileName, aFileCrc, sizeof(aFileName));
-
-				if ((CModFile::FILETYPE)FileType == CModFile::FILETYPELUA)
-					str_append(aFileName, ".lua", sizeof(aFileName));
-				else if ((CModFile::FILETYPE)FileType == CModFile::FILETYPEPNG)
-					str_append(aFileName, ".png", sizeof(aFileName));
-				else if ((CModFile::FILETYPE)FileType == CModFile::FILETYPEWAV)
-					str_append(aFileName, ".wav", sizeof(aFileName));
-				else if ((CModFile::FILETYPE)FileType == CModFile::FILETYPEWV)
-					str_append(aFileName, ".wv", sizeof(aFileName));
-				else
-					str_append(aFileName, ".inv", sizeof(aFileName));
-			}
-			str_copy(tmp.m_aFileDir, aFileName, sizeof(aFileName)); //copy final filename into memory (for launch)
-
-			bool bUpdate = false;
-			if((tmp.m_Flags&CModFile::FILEFLAG_UPDATE))
-				bUpdate = true;
-			else //if((tmp.m_Flags&CModFile::FILEFLAG_CHECK)) //check if File already exists/check if crc is the same as the server one needs to be done every time
-			{
-				IOHANDLE TempFileDownloadHandle = Storage()->OpenFile(aFileName, IOFLAG_READ, IStorage::TYPE_SAVE);
-				if(TempFileDownloadHandle)
-				{
-					if(tmp.m_Size != (int)io_length(TempFileDownloadHandle))
-						bUpdate = true;
-					io_close(TempFileDownloadHandle);
-				}
-				else
-					bUpdate = true;
-			}
-
-			if(g_Config.m_Debug)
-            {
-				char aBuf[256];
-				if(bUpdate)
-					str_format(aBuf, sizeof(aBuf), "File ('%s') needs Update", aFileName);
-				else
-					str_format(aBuf, sizeof(aBuf), "File ('%s') is valid", aFileName);
-                m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "lua", aBuf);
-            }
-			m_lModFiles.add(tmp);
-			if(bUpdate)
-			{
-				//File needs update -> has to be downloaded again
-				if(m_FileDownloadHandle)
-					io_close(m_FileDownloadHandle);
-				m_FileDownloadHandle = Storage()->OpenFile(aFileName, IOFLAG_WRITE, IStorage::TYPE_SAVE);
-
-				m_pFileDownloadCache = new char[tmp.m_Size];
-				for (int x = 0; x < ((float)tmp.m_Size - 1) / (1024.0f - 128.0f) + 1; x++)
-					m_pFileDownloadCache[x] = 0;
-
-				CMsgPacker Msg(NETMSG_REQUEST_FILE_DATA);
-				m_ModFileCurrentChunk = 0;
-				Msg.AddInt(m_ModFileCurrentNumber);
-				Msg.AddInt(m_ModFileCurrentChunk); //request the first chunk
-				SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-			}
-			else
-			{
-			    //add size -> downloadprogress
-			    m_FileDownloadAmount = m_FileDownloadAmount + FileSize;
-				//File is up to date
-				if ((m_lModFiles[m_ModFileCurrentNumber].m_Flags&CModFile::FILEFLAG_LAUNCH))
-				{
-					char aBuf[1024];
-					Storage()->GetPath(IStorage::TYPE_SAVE, aFileName, aBuf, sizeof(aBuf));
-                    GameClient()->RenderLoading("Loading Lua...");
-					GameClient()->AddLuaFile(aBuf);
-					if(g_Config.m_Debug)
-                    {
-                        str_format(aBuf, sizeof(aBuf), "Launch %s", aBuf);
-                        m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "lua", aBuf);
-                    }
-				}
-                if (m_ModFileNumber == m_ModFileCurrentNumber+1)
-                {
-                    m_FileDownloadAmount = 0;
-                    m_FileDownloadTotalSize = -1;
-					if(m_MapdownloadTotalsize == -1)
-						SendReady();
-                }else
-				{
-
-					CMsgPacker Msg(NETMSG_REQUEST_FILE_INDEX);
-					Msg.AddInt(++m_ModFileCurrentNumber);
-					SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-				}
-			}
-        }
-        else if(Msg == NETMSG_FILE_DATA)
-        {
-            int Last = Unpacker.GetInt();
-			int FileCRC = Unpacker.GetInt();
-			int Chunk = Unpacker.GetInt();
-			int Size = Unpacker.GetInt();
-			const unsigned char *pData = Unpacker.GetRaw(Size);
-
-			// check fior errors
-			if(Unpacker.Error() || Size <= 0 ||  !m_FileDownloadHandle)
-				return;
-
-			m_FileDownloadAmount += Size;
-            mem_copy(&m_pFileDownloadCache[(1024-128) * Chunk], pData, Size);
-			if(Last)
-			{
-			    io_write(m_FileDownloadHandle, m_pFileDownloadCache, m_lModFiles[m_ModFileCurrentNumber].m_Size);
-				if(m_FileDownloadHandle)
-					io_close(m_FileDownloadHandle);
-				m_FileDownloadHandle = 0;
-
-				if ((m_lModFiles[m_ModFileCurrentNumber].m_Flags&CModFile::FILEFLAG_LAUNCH))
-				{
-					if(g_Config.m_Debug)
-                    {
-						char aBuf2[256];
-                        str_format(aBuf2, sizeof(aBuf2), "Launch %s", m_lModFiles[m_ModFileCurrentNumber].m_aFileDir);
-                        m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "lua", aBuf2);
-                    }
-					char aBuf[1024];
-					Storage()->GetPath(IStorage::TYPE_SAVE, m_lModFiles[m_ModFileCurrentNumber].m_aFileDir, aBuf, sizeof(aBuf));
-					GameClient()->AddLuaFile(aBuf);
-				}
-
-
-                if ((m_FileDownloadAmount == m_FileDownloadTotalSize)||(m_ModFileNumber == m_ModFileCurrentNumber+1))
-                {
-                    m_FileDownloadAmount = 0;
-                    m_FileDownloadTotalSize = -1;
-                }
-                if (m_FileDownloadTotalSize == -1 && m_MapdownloadTotalsize == -1)
-                    SendReady();
-				else
-				{
-					CMsgPacker Msg(NETMSG_REQUEST_FILE_INDEX);
-					Msg.AddInt(++m_ModFileCurrentNumber);
-					SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-				}
-			}
-			else
-			{
-			    while(m_FileDownloadSegments < g_Config.m_ClDownloadSegments)
-			    {
-                    // request new chunk
-                    m_ModFileCurrentChunk++;
-                    m_FileDownloadSegments++;
-
-                    //m_pMapdownloadChecks[m_MapdownloadChunk] = 1;
-
-                    CMsgPacker Msg(NETMSG_REQUEST_FILE_DATA);
-                    Msg.AddInt(m_ModFileCurrentNumber);
-                    Msg.AddInt(m_ModFileCurrentChunk);
-                    SendMsgEx(&Msg, MSGFLAG_VITAL|MSGFLAG_FLUSH);
-
-                    if(g_Config.m_Debug)
-                    {
-                        char aBuf[256];
-                        str_format(aBuf, sizeof(aBuf), "requested chunk %d", m_ModFileCurrentChunk);
-                        m_pConsole->Print(IConsole::OUTPUT_LEVEL_DEBUG, "client/network", aBuf);
-                    }
-			    }
-			}
-			m_FileDownloadSegments--;
-        }
-        else if(Msg ==NETMSG_LUA_DATA)
-        {
-            GameClient()->OnLuaPacket(&Unpacker);
-        }
 	}
 	else
 	{
