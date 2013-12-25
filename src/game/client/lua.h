@@ -283,11 +283,13 @@ public:
     static inline int IntersectLine(lua_State *L);
     static inline int MovePoint(lua_State *L);
     static inline int MoveBox(lua_State *L);
-    static inline int GetTile(lua_State *L);
-    static inline int GetMapWidth(lua_State *L);
+	static inline int GetTile(lua_State *L);
+	static inline int GetFTile(lua_State *L);
+	static inline int GetMapWidth(lua_State *L);
     static inline int GetMapHeight(lua_State *L);
-    static inline int SetTile(lua_State *L);
-    static inline int ClosestPointOnLine(lua_State *L);
+	static inline int SetTile(lua_State *L);
+	static inline int SetFTile(lua_State *L);
+	static inline int ClosestPointOnLine(lua_State *L);
 
     //layers
     static inline int GetNumGroups(lua_State *L);
@@ -494,6 +496,12 @@ public:
 	static inline int GetTextWidth(lua_State *L);
 
 	static inline int SetDisconnectReason(lua_State *L);
+
+	static inline int GetCharacterActive(lua_State *L);
+	static inline int GetCharacterFlags(lua_State *L);
+
+	static inline int GetMousePos(lua_State *L);
+	static inline int SetMousePos(lua_State *L);
 };
 
 class CLua
