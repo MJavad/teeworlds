@@ -35,22 +35,29 @@ public:
 	void MovePoint(vec2 *pInoutPos, vec2 *pInoutVel, float Elasticity, int *pBounces);
 	void MoveBox(vec2 *pInoutPos, vec2 *pInoutVel, vec2 Size, float Elasticity);
 	bool TestBox(vec2 Pos, vec2 Size);
-    int GetTileRaw(int x, int y);
+	int GetTileRaw(int x, int y);
+	int GetFTileRaw(int x, int y);
 
 	// race
 	int GetIndex(vec2 Pos);
+	int GetFIndex(vec2 Pos);
 	int GetIndex(vec2 PrevPos, vec2 Pos);
 	vec2 GetPos(int Index);
 	int GetTileIndex(int Index);
+	int GetFTileIndex(int Index);
 	int IsTeleport(int Index);
 	int IsSpeedup(int Index);
 	void GetSpeedup(int Index, vec2 *Dir, int *Force);
 
+	int IsThrough(int x, int y);
+
     class CTeleTile *m_pTele;
 	class CSpeedupTile *m_pSpeedup;
+	class CTile *m_pFront;
 	class CLayers *Layers() { return m_pLayers; }
 
 	void SetTile(int x, int y, int index);
+	void SetFTile(int x, int y, int index);
 };
 
 #endif

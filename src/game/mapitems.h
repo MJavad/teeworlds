@@ -47,6 +47,7 @@ enum
 	TILE_SOLID,
 	TILE_DEATH,
 	TILE_NOHOOK,
+	TILE_THROUGH = 6,
 	TILE_TELEIN=26,
 	TILE_TELEOUT,
 	TILE_BOOST,
@@ -174,8 +175,9 @@ struct CMapItemLayerTilemap
 	int m_aName[3];
 
 	int m_Tele;
-
 	int m_Speedup;
+	int m_Front;
+
 } ;
 
 struct CMapItemLayerLua

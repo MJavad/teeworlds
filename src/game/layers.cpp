@@ -12,6 +12,7 @@ CLayers::CLayers()
 	m_pGameLayer = 0;
 	m_pTeleLayer = 0;
 	m_pSpeedupLayer = 0;
+	m_pFrontLayer = 0;
 	m_pMap = 0;
 }
 
@@ -20,6 +21,7 @@ void CLayers::Init(class IKernel *pKernel)
 	// reset pointers to race specific layers
 	m_pTeleLayer = 0;
 	m_pSpeedupLayer = 0;
+	m_pFrontLayer = 0;
 
 	m_pMap = pKernel->RequestInterface<IMap>();
 	m_pMap->GetType(MAPITEMTYPE_GROUP, &m_GroupsStart, &m_GroupsNum);
@@ -74,6 +76,14 @@ void CLayers::Init(class IKernel *pKernel)
 						pTilemap->m_Speedup = *pSpeedup;
 					}
 					m_pSpeedupLayer = pTilemap;
+				}
+				if(pTilemap->m_Flags&8)
+				{
+					if(pTilemap->m_Version < 3) // get the right values for front layer
+					{
+						pTilemap->m_Front = *((int*)(pTilemap)+17);
+					}
+					m_pFrontLayer = pTilemap;
 				}
 			}
 		}
