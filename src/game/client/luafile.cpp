@@ -3688,7 +3688,7 @@ int CLuaFile::TimeGet(lua_State *L)
 {
     LUA_FUNCTION_HEADER
 
-    lua_pushnumber(L, ((float)time_get()) / (float)time_freq());
+	lua_pushnumber(L, (double)time_get()/(double)time_freq());
     return 1;
 }
 
