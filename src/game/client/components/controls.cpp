@@ -116,8 +116,8 @@ int CControls::SnapInput(int *pData, int *pPredictionData)
 	// update player state
 	if(m_pClient->m_pChat->IsActive())
 		m_InputData.m_PlayerFlags = PLAYERFLAG_CHATTING;
-	else if(m_pClient->m_pMenus->IsActive())
-		m_InputData.m_PlayerFlags = PLAYERFLAG_IN_MENU;
+	//else if(m_pClient->m_pMenus->IsActive())
+		//m_InputData.m_PlayerFlags = PLAYERFLAG_IN_MENU;
 	else
 		m_InputData.m_PlayerFlags = PLAYERFLAG_PLAYING;
 
