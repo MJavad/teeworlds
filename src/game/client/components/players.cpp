@@ -147,7 +147,7 @@ void CPlayers::RenderHook(
 		}
 	}
 
-	vec2 Position = mix(vec2(Prev.m_X, Prev.m_Y), vec2(Player.m_X, Player.m_Y), IntraTick);
+	vec2 Position = !g_Config.m_ClHideUnpredicted || pInfo.m_Local ? mix(vec2(Prev.m_X, Prev.m_Y), vec2(Player.m_X, Player.m_Y), IntraTick) : m_pClient->m_aClients[pInfo.m_ClientID].m_Predicted.m_Pos;
 
 	// draw hook
 	if (Prev.m_HookState>0 && Player.m_HookState>0)
@@ -171,11 +171,11 @@ void CPlayers::RenderHook(
 			}
 			else if(pInfo.m_Local)
 			{
-				HookPos = mix(vec2(m_pClient->m_Snap.m_aCharacters[pPlayerChar->m_HookedPlayer].m_Prev.m_X,
+				HookPos = !g_Config.m_ClHideUnpredicted ? mix(vec2(m_pClient->m_Snap.m_aCharacters[pPlayerChar->m_HookedPlayer].m_Prev.m_X,
 					m_pClient->m_Snap.m_aCharacters[pPlayerChar->m_HookedPlayer].m_Prev.m_Y),
 					vec2(m_pClient->m_Snap.m_aCharacters[pPlayerChar->m_HookedPlayer].m_Cur.m_X,
 					m_pClient->m_Snap.m_aCharacters[pPlayerChar->m_HookedPlayer].m_Cur.m_Y),
-					Client()->IntraGameTick());
+					Client()->IntraGameTick()) : m_pClient->m_aClients[pPlayerChar->m_HookedPlayer].m_Predicted.m_Pos;
 			}
 			else
 				HookPos = mix(vec2(pPrevChar->m_HookX, pPrevChar->m_HookY), vec2(pPlayerChar->m_HookX, pPlayerChar->m_HookY), Client()->IntraGameTick());
@@ -313,10 +313,11 @@ void CPlayers::RenderPlayer(
 	}
 
 	vec2 Direction = GetDirection((int)(Angle*256.0f));
-	vec2 Position = mix(vec2(Prev.m_X, Prev.m_Y), vec2(Player.m_X, Player.m_Y), IntraTick);
+	vec2 OrgPosition = mix(vec2(Prev.m_X, Prev.m_Y), vec2(Player.m_X, Player.m_Y), IntraTick);
+	vec2 Position = !g_Config.m_ClHideUnpredicted || pInfo.m_Local ? OrgPosition : m_pClient->m_aClients[pInfo.m_ClientID].m_Predicted.m_Pos;
 	vec2 Vel = mix(vec2(Prev.m_VelX/256.0f, Prev.m_VelY/256.0f), vec2(Player.m_VelX/256.0f, Player.m_VelY/256.0f), IntraTick);
 
-	m_pClient->m_pFlow->Add(Position, Vel*100.0f, 10.0f);
+	m_pClient->m_pFlow->Add(OrgPosition, Vel*100.0f, 10.0f);
 
 	RenderInfo.m_GotAirJump = Player.m_Jumped&2?0:1;
 
@@ -503,10 +504,19 @@ void CPlayers::RenderPlayer(
 	// render the "shadow" tee
 	if(pInfo.m_Local && g_Config.m_Debug)
 	{
-		vec2 GhostPosition = mix(vec2(pPrevChar->m_X, pPrevChar->m_Y), vec2(pPlayerChar->m_X, pPlayerChar->m_Y), Client()->IntraGameTick());
+		vec2 GhostPosition = m_pClient->m_PredictedChar.m_Pos;//mix(vec2(pPrevChar->m_X, pPrevChar->m_Y), vec2(pPlayerChar->m_X, pPlayerChar->m_Y), Client()->IntraGameTick());
 		CTeeRenderInfo Ghost = RenderInfo;
 		Ghost.m_ColorBody.a = 0.5f;
 		Ghost.m_ColorFeet.a = 0.5f;
+		RenderTools()->RenderTee(&State, &Ghost, Player.m_Emote, Direction, GhostPosition); // render ghost
+	}
+
+	if(!pInfo.m_Local && g_Config.m_ClShowPredicted && !g_Config.m_ClHideUnpredicted)
+	{
+		vec2 GhostPosition = m_pClient->m_aClients[pInfo.m_ClientID].m_Predicted.m_Pos;
+		CTeeRenderInfo Ghost = RenderInfo;
+		Ghost.m_ColorBody.a = 0.3f;
+		Ghost.m_ColorFeet.a = 0.0f;
 		RenderTools()->RenderTee(&State, &Ghost, Player.m_Emote, Direction, GhostPosition); // render ghost
 	}
 

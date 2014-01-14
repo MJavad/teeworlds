@@ -18,7 +18,7 @@ void CNamePlates::RenderNameplate(
 {
 	float IntraTick = Client()->IntraGameTick();
 	
-	vec2 Position = mix(vec2(pPrevChar->m_X, pPrevChar->m_Y), vec2(pPlayerChar->m_X, pPlayerChar->m_Y), IntraTick);
+	vec2 Position = !g_Config.m_ClHideUnpredicted || pPlayerInfo->m_Local ? mix(vec2(pPrevChar->m_X, pPrevChar->m_Y), vec2(pPlayerChar->m_X, pPlayerChar->m_Y), IntraTick) : m_pClient->m_aClients[pPlayerInfo->m_ClientID].m_Predicted.m_Pos;
 	
 
 	float FontSize = 18.0f + 20.0f * g_Config.m_ClNameplatesSize / 100.0f;

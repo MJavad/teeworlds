@@ -195,6 +195,8 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("GetPlayerColorBody"), this->GetPlayerColorBody);
     lua_register(m_pLua, ToLower("GetPlayerColorSkin"), this->GetPlayerColorSkin);
 	lua_register(m_pLua, ToLower("GetPlayerUseCustomColor"), this->GetPlayerUseCustomColor);
+	lua_register(m_pLua, ToLower("GetPlayerPredictedPos"), this->GetPlayerPredictedPos);
+	lua_register(m_pLua, ToLower("GetPlayerPredictedVel"), this->GetPlayerPredictedVel);
 
     //Emote
     lua_register(m_pLua, ToLower("Emote"), this->Emote);
@@ -912,20 +914,49 @@ int CLuaFile::GetPlayerColorSkin(lua_State *L)
 
 int CLuaFile::GetPlayerUseCustomColor(lua_State *L)
 {
-    lua_getglobal(L, "pLUA");
-    CLuaFile *pSelf = (CLuaFile *)lua_touserdata(L, -1);
-    lua_Debug Frame;
-    lua_getstack(L, 1, &Frame);
-    lua_getinfo(L, "nlSf", &Frame);
-	//--
-	if (lua_isnumber(L, 1))
-    {
-        if (lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
-        {
+	LUA_FUNCTION_HEADER
+
+	if(lua_isnumber(L, 1))
+	{
+		if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
+		{
 			lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_UseCustomColor);
+			return 1;
 		}
 	}
-    return 1;
+	return 0;
+}
+
+int CLuaFile::GetPlayerPredictedPos(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(lua_isnumber(L, 1))
+	{
+		if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
+		{
+			lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Predicted.m_Pos.x);
+			lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Predicted.m_Pos.y);
+			return 2;
+		}
+	}
+	return 0;
+}
+
+int CLuaFile::GetPlayerPredictedVel(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(lua_isnumber(L, 1))
+	{
+		if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
+		{
+			lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Predicted.m_Vel.x);
+			lua_pushnumber(L, pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Predicted.m_Vel.y);
+			return 2;
+		}
+	}
+	return 0;
 }
 
 int CLuaFile::UiGetScreenWidth(lua_State *L)
