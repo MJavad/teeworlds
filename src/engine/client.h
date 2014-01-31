@@ -21,6 +21,7 @@ protected:
 
 	int m_PredTick;
 	float m_PredIntraTick;
+	float m_PredTickTime;
 
 	float m_LocalTime;
 	float m_FrameTime;
@@ -65,6 +66,7 @@ public:
 	inline float IntraGameTick() const { return m_GameIntraTick; }
 	inline float PredIntraGameTick() const { return m_PredIntraTick; }
 	inline float GameTickTime() const { return m_GameTickTime; }
+	inline float PredTickTime() const { return m_PredTickTime; }
 	inline int GameTickSpeed() const { return m_GameTickSpeed; }
 
 	// other time access

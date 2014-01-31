@@ -42,7 +42,7 @@ void CItems::RenderProjectile(const CNetObj_Projectile *pCurrent, int ItemID)
 		Speed = m_pClient->m_Tuning.m_GunSpeed;
 	}
 
-	float Ct = (Client()->PrevGameTick()-pCurrent->m_StartTick)/(float)SERVER_TICK_SPEED + Client()->GameTickTime();
+	float Ct = (Client()->PrevGameTick()-pCurrent->m_StartTick)/(float)SERVER_TICK_SPEED + Client()->PredTickTime();
 	if(Ct < 0)
 		return; // projectile havn't been shot yet
 
