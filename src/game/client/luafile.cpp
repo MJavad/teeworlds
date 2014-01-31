@@ -50,6 +50,8 @@
 #include <game/client/components/console.h>
 #include <game/client/components/binds.h>
 #include <game/client/components/controls.h>
+#include <game/client/components/broadcast.h>
+#include <game/client/components/motd.h>
 #include <game/luaglobal.h>
 
 
@@ -3937,8 +3939,10 @@ int CLuaFile::GetServerInfo(lua_State *L)
     lua_pushstring(L, CurrentServerInfo.m_aGameType);
     lua_pushstring(L, CurrentServerInfo.m_aMap);
     lua_pushstring(L, CurrentServerInfo.m_aVersion);
+	lua_pushstring(L, pSelf->m_pClient->m_pMotd->m_aServerMotd);
+	lua_pushstring(L, pSelf->m_pClient->m_pBroadcast->m_aBroadcastText);
 
-    return 5;
+    return 7;
 }
 
 int CLuaFile::CreateDamageIndicator(lua_State *L)

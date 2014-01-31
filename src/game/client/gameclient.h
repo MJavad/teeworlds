@@ -256,6 +256,7 @@ public:
 	class CEffects *m_pEffects;
 	class CSounds *m_pSounds;
 	class CMotd *m_pMotd;
+	class CBroadcast *m_pBroadcast;
 	class CMapImages *m_pMapimages;
 	class CVoting *m_pVoting;
 	class CScoreboard *m_pScoreboard;

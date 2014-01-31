@@ -167,6 +167,7 @@ void CGameClient::OnConsoleInit()
 	m_pEffects = &::gs_Effects;
 	m_pSounds = &::gs_Sounds;
 	m_pMotd = &::gs_Motd;
+	m_pBroadcast = &::gs_Broadcast;
 	m_pDamageind = &::gsDamageInd;
 	m_pMapimages = &::gs_MapImages;
 	m_pVoting = &::gs_Voting;
