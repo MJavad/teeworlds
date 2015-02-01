@@ -66,7 +66,8 @@ public:
 	void EnableMode(int Team);
 	
 	void Say(int Team, const char *pLine);
-	
+	void Say(int Team, const wchar_t *pLine);
+
 	int GetMode() { return m_Mode; }
 
 	virtual void OnReset();

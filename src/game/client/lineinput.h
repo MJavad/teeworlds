@@ -34,7 +34,7 @@ public:
 	CLineInput();
 	void Clear();
 	void ProcessInput(IInput::CEvent e);
-	void ProcessCharInput(char Code);
+	void ProcessCharInput(int Code);
 	void Set(const char *pString);
 	const char *GetOrgString() const { return m_Str; }
 	const char *GetString() const { return m_FixedStr; }

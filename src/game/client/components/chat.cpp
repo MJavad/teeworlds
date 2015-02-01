@@ -119,42 +119,47 @@ bool CChat::OnInput(IInput::CEvent Event)
         {
             if(m_Mode == MODE_NONE) // Simply send it
             {
-                char *Data;
+				WCHAR *Data;
                 OpenClipboard(NULL);
-                Data = (char*)GetClipboardData(CF_TEXT);
+				Data = (WCHAR*)GetClipboardData(CF_UNICODETEXT);
                 if(Data)
                     Say(0, Data);
                 CloseClipboard();
             }
             else
             {
-                char *Data;
+				WCHAR *pData;
                 OpenClipboard(NULL);
-                Data = (char*)GetClipboardData(CF_TEXT);
+				pData = (WCHAR *)GetClipboardData(CF_UNICODETEXT);
                 CloseClipboard();
-                if(Data)
-                {
-                    int i = 0;
-                    while(Data[i]) // Parse the string
-                    {
-                        // void ProcessInput(IInput::CEvent e);
-                        m_Input.ProcessCharInput(Data[i]); // Maybe remove \n?
-                        i++;
-                    }
-                }
+				int i = 0;
+                if(pData)
+					while(pData[i]) // Parse the string
+						m_Input.ProcessCharInput(pData[i++]); // Maybe remove \n?
             }
         }
-        else if(Event.m_Flags&IInput::FLAG_PRESS && Event.m_Key == 'c' || Event.m_Key == 'x' && (Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL))) // Copy
+        else if(Event.m_Flags&IInput::FLAG_PRESS && (Event.m_Key == 'c' || Event.m_Key == 'x') && (Input()->KeyPressed(KEY_LCTRL) || Input()->KeyPressed(KEY_RCTRL))) // Copy
         {
             if(m_Mode != MODE_NONE)
             {
                 OpenClipboard(NULL);
                 EmptyClipboard();
-                HGLOBAL h = GlobalAlloc(GHND | GMEM_SHARE, strlen(m_Input.GetOrgString()) + 1);
-                strcpy((LPSTR)GlobalLock(h), m_Input.GetOrgString());
+
+				const char *pStr = m_Input.GetOrgString();
+				HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, (strlen(pStr)+1)*sizeof(WCHAR));
+				if(!h)
+					return false;
+
+				PWCHAR Buff = (PWCHAR)GlobalLock(h);
+				int Char = 0;
+				int i = 0;
+				while(Char = str_utf8_decode(&pStr))
+					if(Char != -1)
+						Buff[i++] = Char;
+				Buff[i] = 0;
                 GlobalUnlock(h);
 
-                SetClipboardData(CF_TEXT, h);
+                SetClipboardData(CF_UNICODETEXT, h);
                 CloseClipboard();
 
                 if(Event.m_Key == 'x')
@@ -564,5 +569,26 @@ void CChat::Say(int Team, const char *pLine)
 	CNetMsg_Cl_Say Msg;
 	Msg.m_Team = Team;
 	Msg.m_pMessage = pLine;
+	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
+}
+
+void CChat::Say(int Team, const wchar_t *pLine)
+{
+	// send chat message
+	char Buff[512+1];
+	char Tmp[4];
+	int BInd = 0;
+	int LInd = 0;
+	while(pLine[LInd] && BInd < sizeof(Buff)-sizeof(Tmp))
+	{
+		int CharSize = str_utf8_encode(Tmp, pLine[LInd++]);
+		mem_copy(&Buff[BInd], Tmp, CharSize);
+		BInd += CharSize;
+	}
+	Buff[BInd] = 0;
+
+	CNetMsg_Cl_Say Msg;
+	Msg.m_Team = Team;
+	Msg.m_pMessage = (const char *)&Buff;
 	Client()->SendPackMsg(&Msg, MSGFLAG_VITAL);
 }
