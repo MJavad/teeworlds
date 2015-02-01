@@ -64,6 +64,12 @@ void CRTLFix::FixString(char *pDst, const char *pSrc, int DstSize, bool FullRTL,
 		int t = Str[i].Type;
 		int c = Str[i].Char;
 
+		if(c == ARABIC_TATWEEL)
+		{
+			Str[i+1].PrevType = DUAL;
+			Str[i].Type = NONE;
+		}
+
 		if(t == NO_BREAK)
 			continue;
 
@@ -113,7 +119,7 @@ void CRTLFix::FixString(char *pDst, const char *pSrc, int DstSize, bool FullRTL,
 	if(TypeToFill)
 		*TypeToFill = 0;
 
-	// Step 2: Link chars (the HARD part!) and set the Cursor
+	// Step 2: Link chars (the HARD part!) and set the Cursor (ALL PARTS have copyright and too much time spent on them)
 	int c;
 	int t;
 	int pt;

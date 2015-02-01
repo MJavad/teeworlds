@@ -27,7 +27,7 @@ const int ARABIC_CHARS_TYPE[] = {
     NONE, 		BEFORE, 	BEFORE,		BEFORE,		BEFORE,		DUAL,		BEFORE,		DUAL,
     BEFORE,		DUAL,		DUAL,		DUAL,		DUAL,		DUAL,		BEFORE,		BEFORE,
     BEFORE,		BEFORE,		DUAL,		DUAL,		DUAL,		DUAL,		DUAL,		DUAL,
-    DUAL,		DUAL,		NONE,		NONE,		NONE,		NONE,		NONE,		NO_BREAK,
+    DUAL,		DUAL,		NONE,		NONE,		NONE,		NONE,		NONE,		DUAL,
     DUAL,		DUAL,		DUAL,		DUAL,		DUAL,		DUAL,		DUAL,		BEFORE,
     DUAL,		DUAL		};
 
@@ -40,7 +40,8 @@ const int ARABIC_CHARS_LINK[] = {
 	0xFEEF,		0xFEF1		};
 
 const int ARABIC_LAM = 0x0644;
-const int ARABIC_ALEF_CHARS[] = {
+const int ARABIC_TATWEEL = 0x0640;
+const int ARABIC_ALEF_CHARS[] ={
 	0x0622,		0x0623,		0x0625,		0x0627		};
 const int ARABIC_ALEF_CHARS_N = 4;
 const int ARABIC_LAMALEF_CHARS[] = {	// Link is the same
