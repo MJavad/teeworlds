@@ -198,7 +198,9 @@ void CLuaFile::Init(const char *pFile)
     lua_register(m_pLua, ToLower("GetPlayerColorSkin"), this->GetPlayerColorSkin);
 	lua_register(m_pLua, ToLower("GetPlayerUseCustomColor"), this->GetPlayerUseCustomColor);
 	lua_register(m_pLua, ToLower("GetPlayerPredictedPos"), this->GetPlayerPredictedPos);
+	lua_register(m_pLua, ToLower("SetPlayerPredictedPos"), this->SetPlayerPredictedPos);
 	lua_register(m_pLua, ToLower("GetPlayerPredictedVel"), this->GetPlayerPredictedVel);
+	lua_register(m_pLua, ToLower("SetPlayerPredictedDirection"), this->SetPlayerPredictedDirection);
 
     //Emote
     lua_register(m_pLua, ToLower("Emote"), this->Emote);
@@ -945,6 +947,27 @@ int CLuaFile::GetPlayerPredictedPos(lua_State *L)
 	return 0;
 }
 
+int CLuaFile::SetPlayerPredictedPos(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(!lua_isnumber(L, 1))
+		return 0;
+	if(!lua_isnumber(L, 2))
+		return 0;
+	if(!lua_isnumber(L, 3))
+		return 0;
+
+	if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
+	{
+		pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Predicted.m_Pos.x = lua_tointeger(L, 2);
+		pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Predicted.m_Pos.y = lua_tointeger(L, 3);
+		return 0;
+	}
+	
+	return 0;
+}
+
 int CLuaFile::GetPlayerPredictedVel(lua_State *L)
 {
 	LUA_FUNCTION_HEADER
@@ -958,6 +981,24 @@ int CLuaFile::GetPlayerPredictedVel(lua_State *L)
 			return 2;
 		}
 	}
+	return 0;
+}
+
+int CLuaFile::SetPlayerPredictedDirection(lua_State *L)
+{
+	LUA_FUNCTION_HEADER
+
+	if(!lua_isnumber(L, 1))
+		return 0;
+	if(!lua_isnumber(L, 2))
+		return 0;
+
+	if(lua_tointeger(L, 1) >= 0 && lua_tointeger(L, 1) < MAX_CLIENTS)
+	{
+		pSelf->m_pClient->m_aClients[lua_tointeger(L, 1)].m_Predicted.m_Direction = clamp((int)lua_tointeger(L, 2), -1, 1);
+		return 0;
+	}
+
 	return 0;
 }
 

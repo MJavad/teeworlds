@@ -365,7 +365,9 @@ public:
     static inline int GetPlayerColorSkin(lua_State *L);
 	static inline int GetPlayerUseCustomColor(lua_State *L);
 	static inline int GetPlayerPredictedPos(lua_State *L);
+	static inline int SetPlayerPredictedPos(lua_State *L);
 	static inline int GetPlayerPredictedVel(lua_State *L);
+	static inline int SetPlayerPredictedDirection(lua_State *L);
 
     //Ui
     static inline int UiDoButton(lua_State *L);
