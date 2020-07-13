@@ -1,3 +1,7 @@
+
+*Feel free to use my code. Please credit MJavad if you do. Thanks.*
+
+RTL support and bug fixes Copyright (c) MJavad
 N-Client Copyright (c) 2012 MAP94 and Patafix
 Teeworlds Copyright (c) 2012 Magnus Auvinen
 
